@@ -107,7 +107,3 @@ describe('CallEvents', () => {
     expect(CallEvents.DeviceRemoved).toEqual(3);
   });
 });
-
-describe('reverseCallEvents', () => {
-
-});
