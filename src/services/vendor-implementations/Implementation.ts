@@ -1,10 +1,18 @@
-export default abstract class Interface { // TODO: rename this to something more descriptive
+import { Nullable } from '../../types';
+
+export default abstract class Implementation { // TODO: rename this to something more descriptive
+  headset: Nullable<Implementation>;
   vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
   isConnected = false;  // represents a connection to the headset controlling software, ex: plantronics hub
   isDeviceAttached = false;
   isMuted = false;
 
+  constructor() {
+    this.headset = null;
+  }
+
+  // tslint:ignore-next-line
   deviceLabelMatchesVendor (label: string): boolean {
     throw new Error(`${this.vendorName} - deviceLabelMatchesVendor() not implemented`);
   }
@@ -17,7 +25,7 @@ export default abstract class Interface { // TODO: rename this to something more
     return Promise.reject(new Error(`${this.vendorName} - disconnect() not implemented`));
   }
 
-  incomingCall (callInfo: any): Promise<any> {
+  incomingCall (opts: {}): Promise<any> { // TODO: propagate this changed parameter (used to be callInfo, but there are several differents sigs in the implementing classes)
     return Promise.reject(new Error(`${this.vendorName} - incomingCall() not implemented`));
   }
 
@@ -29,8 +37,12 @@ export default abstract class Interface { // TODO: rename this to something more
     return Promise.reject(new Error(`${this.vendorName} - answerCall() not implemented`));
   }
 
-  endCall (conversationId: string, hasotherActiveCalls: boolean): Promise<any> {
+  endCall (conversationId: string, hasOtherActiveCalls: boolean): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - endCall() not implemented`));
+  }
+
+  endAllCalls (): Promise<any> {
+    return Promise.reject(new Error(`${this.vendorName} - endAllCalls() not implemented`));
   }
 
   setMute (value: any): Promise<any> {

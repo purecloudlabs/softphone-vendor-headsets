@@ -1,8 +1,12 @@
-export default class JabraNativeService {
+import Implementation from '../Implementation';
+
+export default class JabraNativeService extends Implementation {
   private static instance: JabraNativeService;
 
 
-  private constructor() { }
+  private constructor() {
+    super();
+  }
 
   static getInstance () {
     if (!JabraNativeService.instance) {

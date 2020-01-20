@@ -1,8 +1,11 @@
-export default class PlantronicsService {
+import Implementation from '../Implementation';
+
+export default class PlantronicsService extends Implementation {
   private static instance: PlantronicsService;
 
-
-  private constructor() { }
+  private constructor() {
+    super();
+  }
 
   static getInstance () {
     if (!PlantronicsService.instance) {

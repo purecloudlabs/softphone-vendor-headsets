@@ -1,8 +1,11 @@
-export default class JabraChromeService {
+import Implementation from '../Implementation';
+
+export default class JabraChromeService extends Implementation {
   private static instance: JabraChromeService;
 
-
-  private constructor() { }
+  private constructor() {
+    super();
+  }
 
   static getInstance () {
     if (!JabraChromeService.instance) {
