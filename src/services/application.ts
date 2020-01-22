@@ -1,21 +1,20 @@
 // TODO: This is just a shell for now to make things work
-class HostedContext {
-  supportsJabra (): boolean {
+const hostedContext = {
+  isHosted: () => {
     return true;
-  }
-
-  isHosted (): boolean {
+  },
+  supportsJabra: () => {
     return true;
-  }
-}
+  },
+};
 
 export default class ApplicationService {
   static instance: ApplicationService;
-  public hostedContext: HostedContext = new HostedContext();
+  public hostedContext = hostedContext;
 
   private constructor() {}
 
-  static getInstance (): ApplicationService {
+  static getInstance(): ApplicationService {
     if (!this.instance) {
       this.instance = new ApplicationService();
     }

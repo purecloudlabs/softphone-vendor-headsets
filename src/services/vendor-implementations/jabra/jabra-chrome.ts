@@ -7,7 +7,7 @@ export default class JabraChromeService extends Implementation {
     super();
   }
 
-  static getInstance () {
+  static getInstance() {
     if (!JabraChromeService.instance) {
       JabraChromeService.instance = new JabraChromeService();
     }
