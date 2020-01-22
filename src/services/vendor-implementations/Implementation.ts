@@ -4,12 +4,15 @@ export default abstract class Implementation {
   vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
   isConnected = false; // represents a connection to the headset controlling software, ex: plantronics hub
-  isDeviceAttached = false;
   isMuted = false;
 
   constructor(vendorName: string = 'Not Specified') {
     this.vendorName = vendorName;
     this.headset = null;
+  }
+
+  get isDeviceAttached(): boolean {
+    throw new Error(`${this.vendorName} - isDeviceAttatched getter not implemented`);
   }
 
   deviceLabelMatchesVendor(label: string): boolean {
@@ -49,7 +52,7 @@ export default abstract class Implementation {
     return Promise.reject(new Error(`${this.vendorName} - setMute() not implemented`));
   }
 
-  setHold(conversationId: string, value: any) {
+  setHold(conversationId: string, value: any): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - setHold() not implemented`));
   }
 

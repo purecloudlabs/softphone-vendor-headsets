@@ -1,9 +1,5 @@
 import Implementation from '../Implementation';
-
-// TODO: work in progress; get all the fields on this, and possibly move to a global location
-interface DeviceInfo {
-  ProductName: string;
-}
+import DeviceInfo from '../../../models/device-info';
 
 export default class PlantronicsService extends Implementation {
   private static instance: PlantronicsService;
