@@ -20,6 +20,7 @@ export default class SennheiserService extends Implementation {
   websocketUri = 'wss://127.0.0.1:41088';
   websocket = null;
   deviceInfo: DeviceInfo = null;
+  Logger = null; // TODO: pass this in on creation?
 
   private constructor() {
     super();
@@ -31,10 +32,6 @@ export default class SennheiserService extends Implementation {
     }
 
     return SennheiserService.instance;
-  }
-
-  private generateRandomNumber(length = 7): number {
-    return Math.round(Math.random() * Math.pow(10, length));
   }
 
   get deviceName(): string {
@@ -49,19 +46,19 @@ export default class SennheiserService extends Implementation {
     return label.toLowerCase().includes('sennheiser');
   }
 
-  private _handleError(payload): void {
-    // Logger.error('Non-zero return code from sennheiser', payload); // TODO: Logger
+  _handleError(payload: SennheiserPayload): void {
+    this.Logger.error('Non-zero return code from sennheiser', payload);
   }
-  private _handleAck(payload): void {
-    // Logger.debug(`Received Ack for ${payload.Event}`); // TODO: Logger
+  _handleAck(payload: SennheiserPayload): void {
+    this.Logger.debug(`Received Ack for ${payload.Event}`);
   }
 
   _sendMessage(payload: SennheiserPayload): void {
-    // Logger.debug('sending sennheiser message', payload); // TODO: Logger
+    this.Logger.debug('sending sennheiser message', payload);
     this.websocket.send(JSON.stringify(payload));
   }
 
-  private _registerSoftphone(): void {
+  _registerSoftphone(): void {
     const payload: SennheiserPayload = {
       Event: SennheiserEvents.EstablishConnection,
       EventType: SennheiserEventTypes.Request,
@@ -90,14 +87,18 @@ export default class SennheiserService extends Implementation {
   }
 
   private _createCallMapping(conversationId: string) {
-    const callId = this.generateRandomNumber();
+    const ID_LENGTH = 7;
+    const callId = Math.round(Math.random() * Math.pow(10, ID_LENGTH)); // Generate random number
 
     this.callMappings = {
       [conversationId]: callId,
       [callId]: conversationId,
     };
 
-    // Logger.info('Created callId mapping for sennheiser headset', {conversationId, sennheiserCallId: callId}); // TODO: Logger
+    this.Logger.info('Created callId mapping for sennheiser headset', {
+      conversationId,
+      sennheiserCallId: callId,
+    });
 
     return callId;
   }
@@ -157,7 +158,7 @@ export default class SennheiserService extends Implementation {
     const callId = this.callMappings[conversationId];
 
     if (!callId) {
-      // Logger.info('Failed to find sennheiser callId, assuming call was already ended'); // TODO: Logger
+      this.Logger.info('Failed to find sennheiser callId, assuming call was already ended');
       return Promise.resolve();
     }
 
@@ -171,12 +172,118 @@ export default class SennheiserService extends Implementation {
   }
 
   endAllCalls(): Promise<void> {
-    // Logger.warn('There is no functionality defined for SennheiserService.endAllCalls()'); // TODO: Logger
+    this.Logger.warn('There is no functionality defined for SennheiserService.endAllCalls()');
     return Promise.resolve();
+  }
+
+  _handleMessage(message): void {
+    let payload: SennheiserPayload;
+    try {
+      payload = JSON.parse(message.data);
+    } catch (err) {
+      this.Logger.error(err);
+      this.Logger.error('Failed to parse sennheiser payload', { message });
+      return;
+    }
+    this.Logger.debug('incoming sennheiser message', payload);
+
+    if (payload.ReturnCode) {
+      this._handleError(payload);
+      return;
+    }
+
+    let conversationId: string;
+    const callId: number = payload.CallID;
+    if (callId) {
+      conversationId = this.callMappings[callId];
+    }
+
+    switch (payload.Event) {
+      case SennheiserEvents.SocketConnected:
+        this._registerSoftphone();
+        break;
+      case SennheiserEvents.EstablishConnection:
+        this._sendMessage({
+          Event: SennheiserEvents.SPLogin,
+          EventType: SennheiserEventTypes.Request,
+        });
+        break;
+      case SennheiserEvents.SPLogin:
+        this.isConnecting = false;
+        this.isConnected = true;
+        this._sendMessage({
+          Event: SennheiserEvents.SystemInformation,
+          EventType: SennheiserEventTypes.Request,
+        });
+        break;
+      case SennheiserEvents.HeadsetConnected:
+        if (payload.HeadsetName) {
+          this.deviceInfo = {
+            deviceName: payload.HeadsetName,
+            headsetType: payload.HeadsetType,
+          };
+        }
+        break;
+      case SennheiserEvents.HeadsetDisconnected:
+        if (payload.HeadsetName === this.deviceName) {
+          this.deviceInfo = null;
+        }
+
+        break;
+      case SennheiserEvents.IncomingCallAccepted:
+        if (payload.EventType === SennheiserEventTypes.Notification) {
+          this.deviceAnsweredCall();
+        }
+
+        break;
+      case SennheiserEvents.Hold:
+        if (payload.EventType === SennheiserEventTypes.Ack) {
+          this._handleAck(payload);
+          break;
+        }
+        this.deviceHoldStatusChanged(true);
+        break;
+      case SennheiserEvents.Resume:
+        if (payload.EventType === SennheiserEventTypes.Ack) {
+          this._handleAck(payload);
+          break;
+        }
+        this.deviceHoldStatusChanged(false);
+        break;
+      case SennheiserEvents.MuteFromHeadset:
+        this.deviceMuteChanged(true);
+        break;
+      case SennheiserEvents.UnmuteFromHeadset:
+        this.deviceMuteChanged(false);
+        break;
+      case SennheiserEvents.CallEnded:
+        // clean up mappings
+        delete this.callMappings[callId];
+        delete this.callMappings[conversationId];
+
+        if (payload.EventType === SennheiserEventTypes.Notification) {
+          this.deviceEndedCall();
+        }
+        break;
+      case SennheiserEvents.IncomingCallRejected:
+        this.deviceRejectedCall(conversationId);
+        break;
+      case SennheiserEvents.TerminateConnection:
+        if (this.websocket.readyState === 1) {
+          this.websocket.close();
+        }
+        this.websocket = null;
+        break;
+      default:
+        if (payload.EventType === SennheiserEventTypes.Ack) {
+          // this is mostly for testing purposes so we can confirm reciept of events we don't normally care about
+          this._handleAck(payload);
+        }
+        break;
+    }
   }
 
   // TODO: Implement these
   // _timeoutConnectTask
   // connect() {}
-  // async _handleMessage (message) {}
 }

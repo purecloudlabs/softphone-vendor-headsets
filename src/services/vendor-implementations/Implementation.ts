@@ -64,7 +64,7 @@ export default abstract class Implementation {
 
   deviceMuteChanged(isMuted: boolean): void {}
 
-  deviceHoldStatusChanged(isHeld: boolean, toggle: any): void {}
+  deviceHoldStatusChanged(isHeld: boolean, toggle?: any): void {}
 
   defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {}
 }

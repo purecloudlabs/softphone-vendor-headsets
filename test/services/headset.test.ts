@@ -73,10 +73,7 @@ describe('HeadsetService', () => {
     });
     it('should include an implementation for jabra-chrome upon instantiation if the application context is not hosted and supports jabra', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
-      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => {
-        console.log('isHosted: mock');
-        return false;
-      });
+      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
       headsetService = HeadsetService.getInstance();
 
       const implementations = headsetService.implementations;

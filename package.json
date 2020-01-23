@@ -14,7 +14,7 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "test:watch": "tsdx test --watch",
-    "tes:coverage": "tsdx test --coverage",
+    "test:coverage": "tsdx test --coverage",
     "lint": "tsdx lint",
     "lint:fix": "tsdx lint --fix",
     "prepare": "tsdx build"
