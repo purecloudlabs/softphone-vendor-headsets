@@ -3,6 +3,9 @@ import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
 import DeviceInfo from '../../../models/device-info';
 import { SennheiserPayload } from './sennheiser-payload';
+import * as utils from '../../../utils';
+
+const websocketUri = 'wss://127.0.0.1:41088';
 
 export default class SennheiserService extends Implementation {
   private static instance: SennheiserService;
@@ -10,14 +13,13 @@ export default class SennheiserService extends Implementation {
   connectTimeout: number = 5000;
 
   vendorName = 'Sennheiser';
-  isConnecting = false;
   isActive = false;
   devices = null;
   activeDeviceId = null;
+  websocketConnected = false;
 
   callMappings: any = {};
 
-  websocketUri = 'wss://127.0.0.1:41088';
   websocket = null;
   deviceInfo: DeviceInfo = null;
   Logger = null; // TODO: pass this in on creation?
@@ -71,6 +73,43 @@ export default class SennheiserService extends Implementation {
     };
 
     this._sendMessage(payload);
+  }
+
+  connect(): Promise<void> {
+    this.isConnecting = true;
+    this.isConnected = false;
+
+    const socket = new WebSocket(websocketUri);
+    socket.onopen = this.webSocketOnOpen.bind(this);
+    socket.onclose = this.webSocketOnClose.bind(this);
+    socket.onmessage = this._handleMessage.bind(this);
+    this.websocket = socket;
+
+    return Promise.resolve();
+  }
+
+  webSocketOnOpen = (): void => {
+    this.websocketConnected = true;
+    this.Logger.info('websocket open the sennheiser software');
+  };
+
+  webSocketOnClose(err: any): void {
+    this.websocketConnected = false;
+    if (!err.wasClean) {
+      this.Logger.error(err);
+    }
+    if (!this.isConnected) {
+      this.Logger.error(
+        new Error('Failed to connect to sennheiser software. Make sure it is installed')
+      );
+      if (utils.isFirefox()) {
+        this.errorCode = 'browser';
+        this.disableRetry = true;
+      }
+    }
+
+    this.isConnecting = false;
+    this.isConnected = false;
   }
 
   disconnect(): Promise<void> {
@@ -285,5 +324,4 @@ export default class SennheiserService extends Implementation {
 
   // TODO: Implement these
   // _timeoutConnectTask
-  // connect() {}
 }

@@ -5,6 +5,8 @@ export default abstract class Implementation {
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
   isConnected = false; // represents a connection to the headset controlling software, ex: plantronics hub
   isMuted = false;
+  errorCode: string = null;
+  disableRetry = false;
 
   constructor(vendorName: string = 'Not Specified') {
     this.vendorName = vendorName;

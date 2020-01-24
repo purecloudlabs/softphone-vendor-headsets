@@ -2,12 +2,15 @@ import SennheiserService from '../../../../src/services/vendor-implementations/s
 import { SennheiserPayload } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-payload';
 import { SennheiserEvents } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-events';
 import { SennheiserEventTypes } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-event-types';
+import * as utils from '../../../../src/utils';
 import DeviceInfo from '../../../../src/models/device-info';
 
 const mockWebSocket = {
   readyState: 0,
   send: () => {},
   close: () => {},
+  onOpen: () => {},
+  onClose: () => {},
 };
 
 const mockLogger = {
@@ -17,11 +20,23 @@ const mockLogger = {
   debug: () => {},
 };
 
+function resetService() {
+  const sennheiserService = SennheiserService.getInstance();
+  sennheiserService.isConnecting = false;
+  sennheiserService.isConnected = false;
+  sennheiserService.isMuted = false;
+  sennheiserService.errorCode = null;
+  sennheiserService.disableRetry = false;
+}
+
 describe('SennheiserService', () => {
   let sennheiserService: SennheiserService;
 
+  beforeEach(() => {
+    resetService();
+  });
+
   afterEach(() => {
-    sennheiserService = null;
     jest.restoreAllMocks();
   });
 
@@ -30,7 +45,6 @@ describe('SennheiserService', () => {
 
     beforeEach(() => {
       sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
       sennheiserService.Logger = mockLogger;
     });
 
@@ -732,6 +746,104 @@ describe('SennheiserService', () => {
       sennheiserService.endAllCalls();
 
       expect(mockLogger.warn).toHaveBeenCalled();
+    });
+  });
+
+  describe('webSocketOnOpen', () => {
+    beforeEach(() => {
+      sennheiserService = SennheiserService.getInstance();
+    });
+
+    it('should set websocketConnected to true', () => {
+      sennheiserService.websocketConnected = false;
+      sennheiserService.webSocketOnOpen();
+      expect(sennheiserService.websocketConnected).toBe(true);
+    });
+    it('should call logger to inform that the websocket is connected', () => {
+      jest.spyOn(mockLogger, 'info');
+      sennheiserService.webSocketOnOpen();
+      expect(mockLogger.info).toHaveBeenCalled();
+    });
+  });
+
+  describe('webSocketOnClose', () => {
+    beforeEach(() => {
+      sennheiserService = SennheiserService.getInstance();
+      sennheiserService.Logger = mockLogger;
+      sennheiserService.websocketConnected = true;
+    });
+
+    it('should set websocketConnected to false', () => {
+      sennheiserService.webSocketOnClose({ wasClean: true });
+      expect(sennheiserService.websocketConnected).toBe(false);
+    });
+    it('should log an error message when err.wasClean is false', () => {
+      jest.spyOn(mockLogger, 'error');
+      const err = { wasClean: false };
+
+      sennheiserService.webSocketOnClose(err);
+
+      expect(mockLogger.error).toHaveBeenCalled();
+    });
+    it('should set isConnecting to false', () => {
+      sennheiserService.isConnecting = true;
+      sennheiserService.webSocketOnClose({ wasClean: true });
+      expect(sennheiserService.isConnecting).toBe(false);
+    });
+    it('should set isConnected to false', () => {
+      sennheiserService.isConnected = true;
+      sennheiserService.webSocketOnClose({ wasClean: true });
+      expect(sennheiserService.isConnected).toBe(false);
+    });
+    it('should log an error if isConnected is false', () => {
+      sennheiserService.isConnected = false;
+      jest.spyOn(mockLogger, 'error');
+
+      sennheiserService.webSocketOnClose({ wasClean: true });
+
+      expect(mockLogger.error).toHaveBeenCalled();
+    });
+    it("should set errorCode to 'browser' when isConnected is false and the browser is Firefox", () => {
+      sennheiserService.isConnected = false;
+      sennheiserService.errorCode = null;
+      jest.spyOn(utils, 'isFirefox').mockReturnValue(true);
+
+      sennheiserService.webSocketOnClose({ wasClean: true });
+
+      expect(sennheiserService.errorCode).toEqual('browser');
+    });
+    it('should set disableRetry to true when isConnected is false and the browser is Firefox', () => {
+      sennheiserService.isConnected = false;
+      sennheiserService.disableRetry = false;
+      jest.spyOn(utils, 'isFirefox').mockReturnValue(true);
+
+      sennheiserService.webSocketOnClose({ wasClean: true });
+
+      expect(sennheiserService.disableRetry).toEqual(true);
+    });
+  });
+
+  describe('connect', () => {
+    it('should set isConnecting to true and isConnected to false', () => {
+      sennheiserService.isConnecting = false;
+      sennheiserService.isConnected = true;
+
+      sennheiserService.connect();
+
+      expect(sennheiserService.isConnected).toBe(false);
+      expect(sennheiserService.isConnecting).toBe(true);
+    });
+    it('should set the socket opopen, onclose, and onmessage functions', () => {
+      sennheiserService.websocket = null;
+      sennheiserService.connect();
+      expect(typeof sennheiserService.websocket.onopen).toBe('function');
+      expect(typeof sennheiserService.websocket.onclose).toBe('function');
+      expect(typeof sennheiserService.websocket.onmessage).toBe('function');
+    });
+    it('should set the service websocket', () => {
+      sennheiserService.websocket = null;
+      sennheiserService.connect();
+      expect(sennheiserService.websocket).toBeTruthy();
     });
   });
 });

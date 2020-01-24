@@ -15,11 +15,12 @@
     "test": "tsdx test",
     "test:watch": "tsdx test --watch",
     "test:coverage": "tsdx test --coverage",
-    "lint": "tsdx lint",
-    "lint:fix": "tsdx lint --fix",
+    "lint": "tsdx lint src test",
+    "lint:fix": "tsdx lint src test --fix",
     "prepare": "tsdx build"
   },
   "dependencies": {
+    "browserama": "^3.1.1",
     "rxjs": "^6.5.4"
   },
   "devDependencies": {

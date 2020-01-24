@@ -3,5 +3,6 @@ module.exports = {
     'ts-jest': {
       diagnostics: false
     }
-  }
+  },
+  coveragePathIgnorePatterns: ['Implementation.ts']
 };
