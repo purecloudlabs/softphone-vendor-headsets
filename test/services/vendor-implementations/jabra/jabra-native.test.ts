@@ -1,4 +1,4 @@
-import JabraNativeService from '../../../../src/services/vendor-implementations/jabra/jabra-native';
+import JabraNativeService from '../../../../src/services/vendor-implementations/jabra/jabra-native/jabra-native';
 
 describe('JabraNativeService', () => {
   describe('instantiation', () => {

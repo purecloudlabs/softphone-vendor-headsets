@@ -4,21 +4,35 @@ import DeviceInfo from '../../../models/device-info';
 export default class PlantronicsService extends Implementation {
   private static instance: PlantronicsService;
 
-  vendorName = 'Plantronics';
-  apiHost = 'https://127.0.0.1:32018/Spokes';
-  pluginName = 'emberApp2';
-  deviceInfo: DeviceInfo = null;
   activePollingInterval = 2000;
   connectedDeviceInterval = 6000;
   disconnectedDeviceInterval = 2000;
   deviceIdRetryInterval = 2000;
+  vendorName = 'Plantronics';
+  pluginName = 'emberApp2';
+  deviceInfo: DeviceInfo = null;
   isActive = false;
   disableEventPolling = false;
   deviceStatusTimer = null;
 
   private constructor() {
     super();
+    // TODO
+    // this.set('disableEventPolling', Ember.testing);
+    // this.on('AcceptCall', this, this.deviceAnsweredCall);
+    // this.on('TerminateCall', this, this.deviceEndedCall);
+    // this.on('CallEnded', () => this.get('_checkIsActiveTask').perform());
+    // this.on('Mute', () => this.deviceMuteChanged(true));
+    // this.on('Unmute', () => this.deviceMuteChanged(false));
+    // this.on('HoldCall', () => this.deviceHoldStatusChanged(true));
+    // this.on('ResumeCall', () => this.deviceHoldStatusChanged(false));
   }
+
+  // TODO: replace this if needed
+  // willDestroy () {
+  //   this._super(...arguments);
+  //   clearTimeout(this.get('deviceStatusTimer'));
+  // },
 
   static getInstance() {
     if (!PlantronicsService.instance) {
@@ -31,4 +45,30 @@ export default class PlantronicsService extends Implementation {
   get deviceName(): string {
     return this.deviceInfo.ProductName;
   }
+
+  get apiHost(): string {
+    return 'https://127.0.0.1:32018/Spokes';
+  }
+
+  // TODO: Implement these
+  // pollCallEventsTask: task(function * () {}
+  // _pollForCallEvents: observer('isConnected', 'isActive', 'disableEventPolling', function () {}
+  // deviceLabelMatchesVendor (label) {}
+  // pollForDeviceStatusTask: task(function * () {}
+  // _pollForDeviceStatus: observer('isConnected', 'isConnecting', 'disableEventPolling', function () {}
+  // _makeRequestTask: task(function * (endpoint, isRetry) {}
+  // _makeRequest (endpoint, isRetry) {}
+  // _checkIsActiveTask: task(function * () {}
+  // async _getActiveCalls () {}
+  // async getCallEvents () {}
+  // async getDeviceStatus () {}
+  // connect () {}
+  // disconnect () {}
+  // incomingCall ({conversationId, contactName}) {}
+  // outgoingCall ({conversationId, contactName}) {}
+  // answerCall (conversationId) {}
+  // async endCall (conversationId) {}
+  // async endAllCalls () {}
+  // async setMute (value) {}
+  // async setHold (conversationId, value) {}
 }

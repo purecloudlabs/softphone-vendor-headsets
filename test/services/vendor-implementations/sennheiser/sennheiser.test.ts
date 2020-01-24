@@ -4,21 +4,7 @@ import { SennheiserEvents } from '../../../../src/services/vendor-implementation
 import { SennheiserEventTypes } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-event-types';
 import * as utils from '../../../../src/utils';
 import DeviceInfo from '../../../../src/models/device-info';
-
-const mockWebSocket = {
-  readyState: 0,
-  send: () => {},
-  close: () => {},
-  onOpen: () => {},
-  onClose: () => {},
-};
-
-const mockLogger = {
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  debug: () => {},
-};
+import { mockWebSocket, mockLogger } from '../../test-utils';
 
 function resetService() {
   const sennheiserService = SennheiserService.getInstance();

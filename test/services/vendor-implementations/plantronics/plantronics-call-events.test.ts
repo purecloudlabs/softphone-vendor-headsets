@@ -1,4 +1,4 @@
-import { CallEvents } from '../../src/enums/plantronics-call-events';
+import { CallEvents } from '../../../../src/services/vendor-implementations/plantronics/plantronics-call-events';
 
 describe('CallEvents', () => {
   it('should return 0 for Unknown', () => {

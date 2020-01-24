@@ -1,4 +1,4 @@
-import Implementation from '../Implementation';
+import Implementation from '../../Implementation';
 
 export default class JabraNativeService extends Implementation {
   private static instance: JabraNativeService;

@@ -22,7 +22,6 @@ export default class SennheiserService extends Implementation {
 
   websocket = null;
   deviceInfo: DeviceInfo = null;
-  Logger = null; // TODO: pass this in on creation?
 
   private constructor() {
     super();
