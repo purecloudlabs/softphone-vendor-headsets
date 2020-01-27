@@ -10,8 +10,8 @@ const connectTimeout = 5000;
 export default class JabraChromeService extends Implementation {
   private static instance: JabraChromeService;
 
-  isConnecting: false;
-  isActive: false;
+  isConnecting = false;
+  isActive = false;
   devices: Map<string, DeviceInfo>;
   activeDeviceId: string = null;
   version: string = null;
@@ -95,7 +95,7 @@ export default class JabraChromeService extends Implementation {
     );
   }
 
-  _messageHandler(event) {
+  _messageHandler(event): void {
     if (
       event.source === window &&
       event.data.direction &&
@@ -104,11 +104,7 @@ export default class JabraChromeService extends Implementation {
       this.Logger.debug('Incoming jabra event', event.data);
 
       if (this.logHeadsetEvents) {
-        const headsetEvent = {
-          name: `jabra event - ${event.data.message}`,
-          event: event.data.message,
-        };
-        this.$headsetEvents.next(headsetEvent);
+        this.$headsetEvents.next(this.createJabraEvent(event.data.message));
       }
 
       if (event.data.message.startsWith(JabraChromeRequestedEvents.GetVersion)) {
@@ -117,46 +113,135 @@ export default class JabraChromeService extends Implementation {
         this.version = version;
       }
 
-      // if (this.get('isConnecting')) {
-      //   if (event.data.error !== null && event.data.error !== undefined) {
-      //     this._handleDeviceConnectionFailure(event.data.error);
-      //   } else {
-      //     this._handleDeviceConnect();
-      //   }
-      // } else {
-      //   if (event.data.message.startsWith(requestedEvents.GetDevices)) {
-      //     return this._handleGetDevices(event.data.message.substring(requestedEvents.GetDevices.length + 1));
-      //   }
+      if (this.isConnecting) {
+        if (event.data.error !== null && event.data.error !== undefined) {
+          this._handleDeviceConnectionFailure(event.data.error);
+        } else {
+          this._handleDeviceConnect();
+        }
+      } else {
+        if (event.data.message.startsWith(JabraChromeRequestedEvents.GetDevices)) {
+          this._handleGetDevices(
+            event.data.message.substring(JabraChromeRequestedEvents.GetDevices.length + 1)
+          );
+          return;
+        }
 
-      //   if (event.data.message.startsWith(requestedEvents.GetActiveDevice)) {
-      //     return this._handleGetActiveDevice(event.data.message.substring(requestedEvents.GetActiveDevice.length + 1));
-      //   }
+        if (event.data.message.startsWith(JabraChromeRequestedEvents.GetActiveDevice)) {
+          this._handleGetActiveDevice(
+            event.data.message.substring(JabraChromeRequestedEvents.GetActiveDevice.length + 1)
+          );
+          return;
+        }
 
-      //   const translatedEvent = EventTranslation[event.data.message];
-      //   if (!translatedEvent) {
-      //     return Logger.info('Jabra event unknown or not handled', { event: event.data.message });
-      //   }
+        const translatedEvent = JabraChromeCommands[event.data.message];
+        if (!translatedEvent) {
+          this.Logger.info('Jabra event unknown or not handled', { event: event.data.message });
+          return;
+        }
 
-      //   return this.trigger(translatedEvent);
-      // }
+        this.$headsetEvents.next(this.createJabraEvent(translatedEvent));
+      }
     }
+  }
+
+  setMute(value: boolean): Promise<void> {
+    if (value) {
+      this._sendCmd(JabraChromeCommands.Mute);
+    } else {
+      this._sendCmd(JabraChromeCommands.Unmute);
+    }
+
+    return Promise.resolve();
+  }
+
+  setHold(conversationId: string, value: boolean): Promise<void> {
+    if (value) {
+      this._sendCmd(JabraChromeCommands.Hold);
+    } else {
+      this._sendCmd(JabraChromeCommands.Resume);
+    }
+
+    return Promise.resolve();
+  }
+
+  incomingCall(opts: any = {}): Promise<void> {
+    if (!opts.hasOtherActiveCalls) {
+      this._sendCmd(JabraChromeCommands.Ring);
+    }
+    return Promise.resolve();
+  }
+
+  answerCall(): Promise<void> {
+    this._sendCmd(JabraChromeCommands.Offhook);
+    return Promise.resolve();
+  }
+
+  outgoingCall(): Promise<void> {
+    this._sendCmd(JabraChromeCommands.Offhook);
+    return Promise.resolve();
+  }
+
+  endCall(conversationId, hasOtherActiveCalls): Promise<void> {
+    if (hasOtherActiveCalls) {
+      return Promise.resolve();
+    }
+
+    this._getHeadsetIntoVanillaState();
+    this._sendCmd(JabraChromeCommands.Onhook);
+    return Promise.resolve();
+  }
+
+  endAllCalls(): Promise<void> {
+    this._sendCmd(JabraChromeCommands.Onhook);
+    return Promise.resolve();
+  }
+
+  _deviceAttached(): void {
+    this._sendCmd(JabraChromeCommands.GetActiveDevice);
+    this._sendCmd(JabraChromeCommands.GetDevices);
+  }
+
+  _deviceDetached() {
+    this.devices = null;
+    this.activeDeviceId = null;
+
+    this._sendCmd(JabraChromeCommands.GetActiveDevice);
+    this._sendCmd(JabraChromeCommands.GetDevices);
+  }
+
+  async _handleDeviceConnect() {}
+
+  _handleDeviceConnectionFailure(err) {}
+
+  _handleGetDevices(deviceList) {
+    this.Logger.debug('device list', deviceList);
+    const items = deviceList.split(',');
+    const deviceMap = new Map<string, DeviceInfo>();
+
+    for (let i = 0; i < items.length; i += 2) {
+      const deviceId = items[i];
+      const deviceName = items[i + 1];
+      deviceMap.set(deviceId, { deviceId, deviceName });
+    }
+
+    this.devices = deviceMap;
+  }
+
+  _handleGetActiveDevice(activeDeviceId: string) {
+    this.Logger.debug('active device info', activeDeviceId);
+    this.activeDeviceId = activeDeviceId;
   }
 
   // TODO: Implement these
   // _timeoutConnectTask: task(function * () {}
   // connect () {}
   // disconnect () {}
-  // setMute (value) {}
-  // setHold (conversationId, value) {}
-  // incomingCall (callInfo, hasOtherActiveCalls) {}
-  // answerCall () {}
-  // outgoingCall () {}
-  // endCall (conversationId, hasOtherActiveCalls) {}
-  // endAllCalls () {}
-  // async _handleDeviceConnect () {}
-  // _handleDeviceConnectionFailure (err) {}
-  // _handleGetActiveDevice (data) {}
-  // _handleGetDevices (data) {}
-  // _deviceAttached () {}
-  // _deviceDetached () {}
+
+  private createJabraEvent(message: string): { name: string; event: string } {
+    return {
+      name: `jabra event - ${message}`,
+      event: message,
+    };
+  }
 }

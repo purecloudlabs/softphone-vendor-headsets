@@ -51,7 +51,8 @@ describe('JabraChromeService', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    // jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('instantiation', () => {
@@ -227,6 +228,7 @@ describe('JabraChromeService', () => {
       it(
         'should emit a headset event with event.data.message if logHeadsetEvents is true',
         done => {
+          jabraChromeService.isConnecting = true;
           jabraChromeService.logHeadsetEvents = true;
           event.data.message = 'test message';
           headsetEventSubscription = jabraChromeService.headsetEvents.subscribe(headsetEvent => {
@@ -239,6 +241,7 @@ describe('JabraChromeService', () => {
         },
         ASYNC_TIMEOUT
       );
+
       describe(`event.data.message starts with ${JabraChromeRequestedEvents.GetVersion}`, () => {
         it(`should log an info message`, () => {
           const jabraVersion = '2';
@@ -256,6 +259,75 @@ describe('JabraChromeService', () => {
           expect(jabraChromeService.version).toEqual(event.data.message);
         });
       });
+
+      it('should call _handleDeviceConnectionFailure if event.data.error is present and isConnecting is true', () => {
+        jabraChromeService.isConnecting = true;
+        event.data.error = { message: 'mock test error' };
+        jest.spyOn(jabraChromeService, '_handleDeviceConnectionFailure');
+        jest.spyOn(jabraChromeService, '_handleDeviceConnect');
+
+        jabraChromeService._messageHandler(event);
+
+        expect(jabraChromeService._handleDeviceConnectionFailure).toHaveBeenCalled();
+        expect(jabraChromeService._handleDeviceConnect).not.toHaveBeenCalled();
+      });
+      it('should call _handleDeviceConnect if there is no error on the event and isConnecting is true', () => {
+        jabraChromeService.isConnecting = true;
+        event.data.error = null;
+        jest.spyOn(jabraChromeService, '_handleDeviceConnectionFailure');
+        jest.spyOn(jabraChromeService, '_handleDeviceConnect');
+
+        jabraChromeService._messageHandler(event);
+
+        expect(jabraChromeService._handleDeviceConnect).toHaveBeenCalled();
+        expect(jabraChromeService._handleDeviceConnectionFailure).not.toHaveBeenCalled();
+      });
+      it(`should call _handleGetDevices when isConnecting is false and event.data.message starts with '${JabraChromeRequestedEvents.GetDevices}'`, () => {
+        jabraChromeService.isConnecting = false;
+        event.data.message = JabraChromeRequestedEvents.GetDevices + ' device';
+        jest.spyOn(jabraChromeService, '_handleGetDevices');
+
+        jabraChromeService._messageHandler(event);
+
+        expect(jabraChromeService._handleGetDevices).toHaveBeenCalledWith('device');
+      });
+      it(`should call _handleGetActiveDevice when isConnecting is false and event.data.message starts with '${JabraChromeRequestedEvents.GetDevices}'`, () => {
+        jabraChromeService.isConnecting = false;
+        event.data.message = JabraChromeRequestedEvents.GetActiveDevice + ' device';
+        jest.spyOn(jabraChromeService, '_handleGetActiveDevice');
+
+        jabraChromeService._messageHandler(event);
+
+        expect(jabraChromeService._handleGetActiveDevice).toHaveBeenCalledWith('device');
+      });
+      it('should log a message when isConnecting is false and the jabra event is unknown or is not handled', () => {
+        jabraChromeService.isConnecting = false;
+        event.data.message = 'some unkonwn jabra command';
+        jest.spyOn(mockLogger, 'info');
+
+        jabraChromeService._messageHandler(event);
+
+        expect(mockLogger.info).toHaveBeenCalledWith('Jabra event unknown or not handled', {
+          event: event.data.message,
+        });
+      });
+      it(
+        `should emit the translated event when isConnecting = false and the event is neither '${JabraChromeRequestedEvents.GetDevices}' nor '${JabraChromeRequestedEvents.GetActiveDevice}'`,
+        done => {
+          event.data.message = 'Hold';
+          headsetEventSubscription = jabraChromeService.headsetEvents.subscribe(headsetEvent => {
+            expect(headsetEvent).toBeTruthy();
+            expect(headsetEvent).toEqual({
+              name: 'jabra event - hold',
+              event: 'hold',
+            });
+            done();
+          });
+
+          jabraChromeService._messageHandler(event);
+        },
+        ASYNC_TIMEOUT
+      );
     });
   });
 
@@ -271,35 +343,113 @@ describe('JabraChromeService', () => {
 
   // });
 
-  // describe('setMute', () => {
+  describe('setMute', () => {
+    it(
+      `should call _sendCmd with '${JabraChromeCommands.Mute}' when value is true`,
+      async () => {
+        jest.spyOn(jabraChromeService, '_sendCmd');
+        await jabraChromeService.setMute(true);
+        expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Mute);
+      },
+      ASYNC_TIMEOUT
+    );
+    it(
+      `should call _sendCmd with '${JabraChromeCommands.Unmute}' when value is false`,
+      async () => {
+        jest.spyOn(jabraChromeService, '_sendCmd');
+        await jabraChromeService.setMute(false);
+        expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Unmute);
+      },
+      ASYNC_TIMEOUT
+    );
+  });
 
-  // });
+  describe('setHold', () => {
+    it(
+      `should call _sendCmd with '${JabraChromeCommands.Hold}' when value is true`,
+      async () => {
+        jest.spyOn(jabraChromeService, '_sendCmd');
+        await jabraChromeService.setHold(null, true);
+        expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Hold);
+      },
+      ASYNC_TIMEOUT
+    );
+    it(
+      `should call _sendCmd with '${JabraChromeCommands.Resume}' when value is false`,
+      async () => {
+        jest.spyOn(jabraChromeService, '_sendCmd');
+        await jabraChromeService.setHold(null, false);
+        expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Resume);
+      },
+      ASYNC_TIMEOUT
+    );
+  });
 
-  // describe('setHold', () => {
+  describe('incomingCall', () => {
+    it('should not call _sendCmd when hasOtherActiveCalls is true', async () => {
+      const opts = { hasOtherActiveCalls: true };
+      jest.spyOn(jabraChromeService, '_sendCmd');
 
-  // });
+      await jabraChromeService.incomingCall(opts);
 
-  // describe('incomingCall', () => {
+      expect(jabraChromeService._sendCmd).not.toHaveBeenCalled();
+    });
+    it('should call _sendCmd when hasOtherActiveCalls is false', async () => {
+      const opts = { hasOtherActiveCalls: false };
+      jest.spyOn(jabraChromeService, '_sendCmd');
 
-  // });
+      await jabraChromeService.incomingCall(opts);
 
-  // describe('answerCall', () => {
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Ring);
+    });
+  });
 
-  // });
+  describe('answerCall', () => {
+    it(`should call _sendCmd with '${JabraChromeCommands.Offhook}'`, async () => {
+      jest.spyOn(jabraChromeService, '_sendCmd');
+      await jabraChromeService.answerCall();
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Offhook);
+    });
+  });
 
-  // describe('outgoingCall', () => {
+  describe('outgoingCall', () => {
+    it(`should call _sendCmd with '${JabraChromeCommands.Offhook}'`, async () => {
+      jest.spyOn(jabraChromeService, '_sendCmd');
+      await jabraChromeService.outgoingCall();
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Offhook);
+    });
+  });
 
-  // });
+  describe('endCall', () => {
+    it('should do nothing if hasOtherActiveCalls is true', async () => {
+      jest.spyOn(jabraChromeService, '_getHeadsetIntoVanillaState');
+      jest.spyOn(jabraChromeService, '_sendCmd');
 
-  // describe('endCall', () => {
+      await jabraChromeService.endCall(null, true);
 
-  // });
+      expect(jabraChromeService._getHeadsetIntoVanillaState).not.toHaveBeenCalled();
+      expect(jabraChromeService._sendCmd).not.toHaveBeenCalled();
+    });
+    it(`should call put the headset into its vanilla state and call _sendCmd with ${JabraChromeCommands.Onhook}`, async () => {
+      jest.spyOn(jabraChromeService, '_getHeadsetIntoVanillaState');
+      jest.spyOn(jabraChromeService, '_sendCmd');
 
-  // describe('endAllCalls', () => {
+      await jabraChromeService.endCall(null, false);
 
-  // });
+      expect(jabraChromeService._getHeadsetIntoVanillaState).toHaveBeenCalled();
+      expect(jabraChromeService._sendCmd).toHaveBeenCalled();
+    });
+  });
 
-  // describe('async', () => {
+  describe('endAllCalls', () => {
+    it(`should call _sendCmd with '${JabraChromeCommands.Onhook}'`, async () => {
+      jest.spyOn(jabraChromeService, '_sendCmd');
+      await jabraChromeService.endAllCalls();
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Onhook);
+    });
+  });
+
+  // describe('_handleDeviceConnect', () => {
 
   // });
 
@@ -307,19 +457,81 @@ describe('JabraChromeService', () => {
 
   // });
 
-  // describe('_handleGetActiveDevice', () => {
+  describe('_handleGetActiveDevice', () => {
+    it('should log a debug message with the passed in data', () => {
+      const data = 'newDeviceId';
+      jest.spyOn(mockLogger, 'debug');
 
-  // });
+      jabraChromeService._handleGetActiveDevice(data);
 
-  // describe('_handleGetDevices', () => {
+      expect(mockLogger.debug).toHaveBeenCalledWith('active device info', data);
+    });
+    it('should log a debug message with the passed in data', () => {
+      const data = 'newDevideId';
+      jabraChromeService._handleGetActiveDevice(data);
+      expect(jabraChromeService.activeDeviceId).toEqual(data);
+    });
+  });
 
-  // });
+  describe('_handleGetDevices', () => {
+    it('should log a debug messgae of the device list', () => {
+      jest.spyOn(mockLogger, 'debug');
+      jabraChromeService._handleGetDevices('1,2,3,4,5,6,7,8,9');
+      expect(mockLogger.debug).toHaveBeenCalled();
+    });
+    it('should create a map of the devices from the provided data', () => {
+      const device1 = ['device1Id', 'device1Name'];
+      const device2 = ['device2Id', 'device2Name'];
+      const device3 = ['device3Id', 'device3Name'];
+      const deviceList = `${device1[0]},${device1[1]},${device2[0]},${device2[1]},${device3[0]},${device3[1]}`;
 
-  // describe('_deviceAttached', () => {
+      jabraChromeService._handleGetDevices(deviceList);
 
-  // });
+      expect(jabraChromeService.devices.get(device1[0])).toEqual({
+        deviceId: device1[0],
+        deviceName: device1[1],
+      });
+      expect(jabraChromeService.devices.get(device2[0])).toEqual({
+        deviceId: device2[0],
+        deviceName: device2[1],
+      });
+      expect(jabraChromeService.devices.get(device3[0])).toEqual({
+        deviceId: device3[0],
+        deviceName: device3[1],
+      });
+    });
+  });
 
-  // describe('_deviceDetached', () => {
+  describe('_deviceAttached', () => {
+    it(`should send a '${JabraChromeCommands.GetActiveDevice}' command`, () => {
+      jest.spyOn(jabraChromeService, '_sendCmd');
+      jabraChromeService._deviceAttached();
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.GetActiveDevice);
+    });
+    it(`should send a '${JabraChromeCommands.GetDevices}' command`, () => {
+      jest.spyOn(jabraChromeService, '_sendCmd');
+      jabraChromeService._deviceAttached();
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.GetDevices);
+    });
+  });
 
-  // });
+  describe('_deviceDetached', () => {
+    it('should set devices and activeDeviceId to null', () => {
+      jabraChromeService.devices = new Map();
+      jabraChromeService.activeDeviceId = 'abcdefg';
+
+      jabraChromeService._deviceDetached();
+
+      expect(jabraChromeService.devices).toBeNull();
+      expect(jabraChromeService.activeDeviceId).toBeNull();
+    });
+    it(`should call _sendCmd with ${JabraChromeCommands.GetActiveDevice} and ${JabraChromeCommands.GetDevices}`, () => {
+      jest.spyOn(jabraChromeService, '_sendCmd');
+
+      jabraChromeService._deviceDetached();
+
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.GetActiveDevice);
+      expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.GetDevices);
+    });
+  });
 });

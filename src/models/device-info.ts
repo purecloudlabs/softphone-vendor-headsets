@@ -2,5 +2,6 @@
 export default interface DeviceInfo {
   ProductName?: string;
   deviceName?: string;
+  deviceId?: string;
   headsetType?: string;
 }
