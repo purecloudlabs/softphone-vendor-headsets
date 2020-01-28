@@ -2,47 +2,29 @@ import Implementation from '../../Implementation';
 import DeviceInfo from '../../../../models/device-info';
 import { JabraChromeCommands } from './jabra-chrome-commands';
 import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';
+import { timedPromise } from '../../../../utils';
+import { EventTranslation } from './jabra-chrome-event-translation';
 
 const incomingMessageName = 'jabra-headset-extension-from-content-script';
 const outgoingMessageName = 'jabra-headset-extension-from-page-script';
-const connectTimeout = 5000;
 
 export default class JabraChromeService extends Implementation {
   private static instance: JabraChromeService;
+  static connectTimeout = 5000;
 
   isConnecting = false;
   isActive = false;
   devices: Map<string, DeviceInfo>;
   activeDeviceId: string = null;
   version: string = null;
+  _connectDeferred: any; // { resolve: Function, reject: Function }
 
   private constructor() {
     super();
     this.vendorName = 'Jabra';
     this.devices = new Map<string, DeviceInfo>();
 
-    // TODO: implement this
-    // window.addEventListener('message', this._messageHandler.bind(this));
-
-    // this.on('Mute', () => {
-    //   this.setMute(true);
-    //   this.deviceMuteChanged(true);
-    // });
-    // this.on('Unmute', () => {
-    //   this.setMute(false);
-    //   this.deviceMuteChanged(false);
-    // });
-    // this.on('AcceptCall', () => {
-    //   this.deviceAnsweredCall();
-    // });
-    // this.on('TerminateCall', () => {
-    //   this._getHeadsetIntoVanillaState();
-    //   this.deviceEndedCall();
-    // });
-    // this.on('IgnoreCall', this, this.deviceRejectedCall);
-    // this.on('Flash', () => this.deviceHoldStatusChanged(null, true));
-    // this.on('Attached', this, this._deviceAttached);
-    // this.on('Detached', this, this._deviceDetached);
+    window.addEventListener('message', this._messageHandler.bind(this));
   }
 
   static getInstance() {
@@ -52,12 +34,6 @@ export default class JabraChromeService extends Implementation {
 
     return JabraChromeService.instance;
   }
-
-  // TODO: implement or replace this
-  // willDestroy () {
-  //   this._super(...arguments);
-  //   window.removeEventListener('message', this._messageHandler);
-  // },
 
   get deviceInfo(): DeviceInfo {
     if (this.activeDeviceId === null || this.devices.size === 0) {
@@ -104,7 +80,7 @@ export default class JabraChromeService extends Implementation {
       this.Logger.debug('Incoming jabra event', event.data);
 
       if (this.logHeadsetEvents) {
-        this.$headsetEvents.next(this.createJabraEvent(event.data.message));
+        this.Logger.info(event.data.message);
       }
 
       if (event.data.message.startsWith(JabraChromeRequestedEvents.GetVersion)) {
@@ -134,14 +110,48 @@ export default class JabraChromeService extends Implementation {
           return;
         }
 
-        const translatedEvent = JabraChromeCommands[event.data.message];
+        const translatedEvent = EventTranslation[event.data.message];
         if (!translatedEvent) {
           this.Logger.info('Jabra event unknown or not handled', { event: event.data.message });
           return;
         }
 
-        this.$headsetEvents.next(this.createJabraEvent(translatedEvent));
+        this._processEvent(translatedEvent);
       }
+    }
+  }
+
+  _processEvent(eventTranslation) {
+    switch (eventTranslation) {
+      case 'Mute':
+        this.setMute(true);
+        this.deviceMuteChanged(true);
+        break;
+      case 'Unmute':
+        this.setMute(false);
+        this.deviceMuteChanged(false);
+        break;
+      case 'AcceptCall':
+        this.deviceAnsweredCall();
+        break;
+      case 'TerminateCall':
+        this._getHeadsetIntoVanillaState();
+        this.deviceEndedCall();
+        break;
+      case 'IgnoreCall':
+        this.deviceRejectedCall(null);
+        break;
+      case 'Flash':
+        this.deviceHoldStatusChanged(null, true);
+        break;
+      case 'Attached':
+        this._deviceAttached();
+        break;
+      case 'Detached':
+        this._deviceDetached();
+        break;
+      default:
+        this.Logger.info('Unknown Jabra event: ', eventTranslation);
     }
   }
 
@@ -165,8 +175,8 @@ export default class JabraChromeService extends Implementation {
     return Promise.resolve();
   }
 
-  incomingCall(opts: any = {}): Promise<void> {
-    if (!opts.hasOtherActiveCalls) {
+  incomingCall(opts: any): Promise<void> {
+    if (opts && !opts.hasOtherActiveCalls) {
       this._sendCmd(JabraChromeCommands.Ring);
     }
     return Promise.resolve();
@@ -210,9 +220,54 @@ export default class JabraChromeService extends Implementation {
     this._sendCmd(JabraChromeCommands.GetDevices);
   }
 
-  async _handleDeviceConnect() {}
+  connect(): Promise<any> {
+    this.isConnecting = true;
+    const connectionPromise = new Promise((resolve, reject) => {
+      this._connectDeferred = { resolve, reject };
+      this._sendCmd(JabraChromeCommands.GetVersion);
+    });
 
-  _handleDeviceConnectionFailure(err) {}
+    const connectionError = new Error('Jabra-Chrome connection request timed out');
+    return timedPromise(
+      connectionPromise,
+      JabraChromeService.connectTimeout,
+      connectionError
+    ).catch(err => {
+      this.isConnected = false;
+      this.isConnecting = false;
+      this.Logger.info(err);
+    });
+  }
+
+  async _handleDeviceConnect() {
+    if (this._connectDeferred) {
+      this._sendCmd(JabraChromeCommands.GetActiveDevice);
+      this._sendCmd(JabraChromeCommands.GetDevices);
+      this.isConnecting = false;
+      this.isConnected = true;
+      this._connectDeferred.resolve();
+      this._connectDeferred = null;
+    } else {
+      this.Logger.warn(new Error('_handleDeviceConnect called but there is no pending connection'));
+    }
+  }
+
+  disconnect(): Promise<void> {
+    this.isConnecting = false;
+    this.isConnected = false;
+    return Promise.resolve();
+  }
+
+  _handleDeviceConnectionFailure(err) {
+    if (this._connectDeferred) {
+      this._connectDeferred.reject(err);
+      this._connectDeferred = null;
+    } else {
+      this.Logger.warn(
+        new Error('_handleDeviceConnectionFailure was called but there is no pending connection')
+      );
+    }
+  }
 
   _handleGetDevices(deviceList) {
     this.Logger.debug('device list', deviceList);
@@ -231,17 +286,5 @@ export default class JabraChromeService extends Implementation {
   _handleGetActiveDevice(activeDeviceId: string) {
     this.Logger.debug('active device info', activeDeviceId);
     this.activeDeviceId = activeDeviceId;
-  }
-
-  // TODO: Implement these
-  // _timeoutConnectTask: task(function * () {}
-  // connect () {}
-  // disconnect () {}
-
-  private createJabraEvent(message: string): { name: string; event: string } {
-    return {
-      name: `jabra event - ${message}`,
-      event: message,
-    };
   }
 }

@@ -1,5 +1,3 @@
-import { Subject, Observable } from 'rxjs';
-
 export default abstract class Implementation {
   // TODO: rename this to something more descriptive
   headset: Implementation;
@@ -12,14 +10,9 @@ export default abstract class Implementation {
   Logger: any; // TODO: pass this in on creation?
   logHeadsetEvents = false; // Mainly for debugging
 
-  protected $headsetEvents: Subject<any>;
-  headsetEvents: Observable<any>;
-
   constructor(vendorName: string = 'Not Specified') {
     this.vendorName = vendorName;
     this.headset = null;
-    this.$headsetEvents = new Subject<any>();
-    this.headsetEvents = this.$headsetEvents.asObservable();
   }
 
   get isDeviceAttached(): boolean {

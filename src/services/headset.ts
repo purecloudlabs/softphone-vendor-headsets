@@ -182,7 +182,7 @@ export default class HeadsetService {
     );
   }
 
-  triggerDeviceHoldStatusChanged(holdRequested, toggle) {
+  triggerDeviceHoldStatusChanged({ holdRequested, toggle }) {
     // Logger.info('Headset: device hold status changed', holdRequested); // TODO: Logger
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, { holdRequested, toggle })

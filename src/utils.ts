@@ -13,12 +13,16 @@ export function isFirefox(): boolean {
  * time elapses.  If the timeout elapses, then the returned promise rejects with a
  * message that the timeout time was exceeded.
  */
-export function timedPromise(promise: Promise<any>, timeoutInMillis: number): Promise<any> {
+export function timedPromise(
+  promise: Promise<any>,
+  timeoutInMillis: number,
+  timeoutError?: Error
+): Promise<any> {
   let timeoutId;
   const timeoutPromise: Promise<any> = new Promise((resolve, reject) => {
     timeoutId = setTimeout(() => {
       clearTimeout(timeoutId);
-      reject('Timed out in ' + timeoutInMillis + 'ms');
+      reject(timeoutError ? timeoutError : 'Timed out in ' + timeoutInMillis + 'ms');
     }, timeoutInMillis);
   }).then(result => {
     clearTimeout(timeoutId);
