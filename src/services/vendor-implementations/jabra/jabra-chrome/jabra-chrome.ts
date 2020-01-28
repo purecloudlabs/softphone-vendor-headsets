@@ -182,7 +182,7 @@ export default class JabraChromeService extends Implementation {
     return Promise.resolve();
   }
 
-  endCall(conversationId, hasOtherActiveCalls): Promise<void> {
+  endCall(conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
     if (hasOtherActiveCalls) {
       return Promise.resolve();
     }

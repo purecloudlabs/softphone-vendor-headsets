@@ -343,6 +343,14 @@ describe('JabraChromeService', () => {
 
   // });
 
+  // describe('_handleDeviceConnect', () => {
+
+  // });
+
+  // describe('_handleDeviceConnectionFailure', () => {
+
+  // });
+
   describe('setMute', () => {
     it(
       `should call _sendCmd with '${JabraChromeCommands.Mute}' when value is true`,
@@ -448,14 +456,6 @@ describe('JabraChromeService', () => {
       expect(jabraChromeService._sendCmd).toHaveBeenCalledWith(JabraChromeCommands.Onhook);
     });
   });
-
-  // describe('_handleDeviceConnect', () => {
-
-  // });
-
-  // describe('_handleDeviceConnectionFailure', () => {
-
-  // });
 
   describe('_handleGetActiveDevice', () => {
     it('should log a debug message with the passed in data', () => {
