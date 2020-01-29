@@ -1,3 +1,5 @@
+import { JabraNativeCommands } from './vendor-implementations/jabra/jabra-native/jabra-native-commands';
+
 // TODO: This is just a shell for now to make things work
 const hostedContext = {
   isHosted: () => {
@@ -5,6 +7,12 @@ const hostedContext = {
   },
   supportsJabra: () => {
     return true;
+  },
+  sendJabraEventToDesktop: (deviceId: string, cmd: JabraNativeCommands, value: any) => {
+    return null;
+  },
+  requestJabraDevices: (): Promise<any> => {
+    return Promise.resolve({});
   },
 };
 
