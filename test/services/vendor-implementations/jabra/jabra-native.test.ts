@@ -17,8 +17,6 @@ function resetJabraNativeService(service: JabraNativeService) {
   service.isActive = false;
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
-  service.hosted = null;
-  service.connectTimes = 0;
   service.Logger = mockLogger;
   service.ignoreNextOffhookEvent = false;
   service._connectionInProgress = null;
@@ -488,17 +486,18 @@ describe('JabraNativeService', () => {
   });
 
   describe('_processEvent', () => {
-    // describe(`${JabraNativeEventNames.OffHook}`, () => {
-    //   fit('should debounce a call to _handleOffhookEvent', () => {
-    //     jest.useFakeTimers();
-    //     jest.spyOn(jabraNativeService, '_handleOffhookEvent');
+    describe(`${JabraNativeEventNames.OffHook}`, () => {
+      it('should debounce a call to _handleOffhookEvent', () => {
+        jest.useFakeTimers();
+        jest.spyOn(jabraNativeService, '_handleOffhookEvent');
 
-    //     jabraNativeService._processEvent(JabraNativeEventNames.OffHook, true);
-    //     jest.runAllTimers();
+        jabraNativeService._processEvent(JabraNativeEventNames.OffHook, true);
+        jest.runOnlyPendingTimers();
 
-    //     expect(jabraNativeService._handleOffhookEvent).toHaveBeenCalled();
-    //   });
-    // });
+        expect(jabraNativeService._handleOffhookEvent).toHaveBeenCalled();
+        jest.useRealTimers();
+      });
+    });
     describe(`${JabraNativeEventNames.RejectCall}`, () => {
       it('should should call deviceRejectedCall()', () => {
         jest.spyOn(jabraNativeService, 'deviceRejectedCall');
@@ -525,6 +524,63 @@ describe('JabraNativeService', () => {
 
         expect(jabraNativeService._handleHoldEvent).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('disconnect', () => {
+    it('should set isConnecting and isConnected to false', () => {
+      jabraNativeService.isConnected = true;
+      jabraNativeService.isConnecting = true;
+
+      jabraNativeService.disconnect();
+
+      expect(jabraNativeService.isConnected).toBe(false);
+      expect(jabraNativeService.isConnecting).toBe(false);
+    });
+    it('should call applicationService.hostedContext.off with the jabra event name, and the handler', () => {
+      jest.spyOn(applicationService.hostedContext, 'off').mockImplementationOnce(() => null);
+
+      jabraNativeService.disconnect();
+
+      expect(applicationService.hostedContext.off).toHaveBeenCalledTimes(1);
+      expect(applicationService.hostedContext.off).toHaveBeenCalledWith(
+        'JabraEvent',
+        jabraNativeService.handler
+      );
+    });
+  });
+
+  describe('connected', () => {
+    it('should set isConnecting to true', async () => {
+      jabraNativeService.isConnecting = false;
+      jest.spyOn(jabraNativeService, 'updateDevices').mockResolvedValue(); // Have to mock updateDevices because it will set isConnecting back to false when it resolves
+
+      await jabraNativeService.connect();
+
+      expect(jabraNativeService.isConnecting).toBe(true);
+    });
+    it('should set handlser on the hostedContext', async () => {
+      jest.spyOn(applicationService.hostedContext, 'on').mockImplementationOnce(() => null);
+
+      await jabraNativeService.connect();
+
+      expect(applicationService.hostedContext.on).toHaveBeenCalledTimes(2);
+      expect(applicationService.hostedContext.on).toHaveBeenCalledWith(
+        'JabraEvent',
+        jabraNativeService.handler
+      );
+      expect(applicationService.hostedContext.on).toHaveBeenCalledWith(
+        'JabraDeviceAttached',
+        jabraNativeService.deviceAttachedHandler
+      );
+    });
+    it('should log an error message when it failes to connect', async () => {
+      jest.spyOn(mockLogger, 'error');
+      jest.spyOn(jabraNativeService, 'updateDevices').mockRejectedValue({});
+
+      await jabraNativeService.connect();
+
+      expect(mockLogger.error).toHaveBeenCalledWith('Failed to connect to Jabra', {});
     });
   });
 });

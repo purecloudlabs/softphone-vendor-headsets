@@ -1,4 +1,4 @@
-import debounce from 'lodash/debounce';
+import { debounce, timedPromise } from '../../../../utils';
 import Implementation from '../../Implementation';
 import DeviceInfo from '../../../../models/device-info';
 import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
@@ -7,10 +7,10 @@ import { JabraNativeCommands } from './jabra-native-commands';
 import ApplicationService from '../../../application';
 import { JabraNativeEventNames } from './jabra-native-events';
 
-// const JabraEventName = 'JabraEvent';
-// const JabraDeviceAttached = 'JabraDeviceAttached';
+const JabraEventName = 'JabraEvent';
+const JabraDeviceAttached = 'JabraDeviceAttached';
 
-// const connectTimeout = 5000;
+const connectTimeout = 5000;
 const offHookThrottleTime = 500;
 
 export default class JabraNativeService extends Implementation {
@@ -23,9 +23,8 @@ export default class JabraNativeService extends Implementation {
   isActive = false;
   devices: Map<string, DeviceInfo> = null;
   activeDeviceId: string = null;
-  hosted = null;
-  connectTimes = 0;
-  handler = null;
+  handler = this.handleJabraEvent.bind(this);
+  deviceAttachedHandler = this.handleJabraDeviceAttached.bind(this);
   headsetState: JabraNativeHeadsetState = null;
   ignoreNextOffhookEvent = false;
   _connectionInProgress: any; // { resolve: Function, reject: Function }
@@ -36,17 +35,7 @@ export default class JabraNativeService extends Implementation {
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
     this.applicationService = ApplicationService.getInstance();
-
-    // TODO: probably need to create a function to handles all these in a switch like jabra-chrome
-    // this.set('handler', this.handleJabraEvent.bind(this));
-    // this.set('deviceAttachedHandler', this.handleJabraDeviceAttached.bind(this));
   }
-
-  // TODO: determine if thie can be implemented; probably not because there is no destructor
-  // willDestroy () {
-  //   this._super(...arguments);
-  //   this.disconnect();
-  // },
 
   static getInstance() {
     if (!JabraNativeService.instance) {
@@ -184,9 +173,8 @@ export default class JabraNativeService extends Implementation {
     return context
       .requestJabraDevices()
       .then((data: DeviceInfo[]) => {
-        // this.get('_timeoutConnectTask').cancelAll(); // TODO: account for this
         if (this._connectionInProgress) {
-          this._connectionInProgress.resolve(); // TODO: verify this works for the line above
+          this._connectionInProgress.resolve();
         }
 
         this.isConnecting = false;
@@ -201,11 +189,9 @@ export default class JabraNativeService extends Implementation {
         }
 
         this.Logger.info('connected jabra devices', data);
-        if (data.length) {
-          this.devices.clear();
-          data.forEach(device => this.devices.set(device.deviceID, device));
-          this.activeDeviceId = data[0].deviceID;
-        }
+        this.devices.clear();
+        data.forEach(device => this.devices.set(device.deviceID, device));
+        this.activeDeviceId = data[0].deviceID;
 
         // reset headset state
         this._setRinging(false);
@@ -219,13 +205,8 @@ export default class JabraNativeService extends Implementation {
 
   _processEvent(eventName: any, value: any) {
     switch (eventName) {
-      // this.on(events.OffHook, function () { this.get('_throttleOffhookEvent').perform(...arguments); });
       case JabraNativeEventNames.OffHook:
-        console.log('### JabraNativeEventNames.OffHook');
-        debounce(() => {
-          console.log('### inside debounce');
-          this._handleOffhookEvent(value);
-        }, offHookThrottleTime);
+        debounce(() => this._handleOffhookEvent(value), offHookThrottleTime)();
         break;
 
       case JabraNativeEventNames.RejectCall:
@@ -240,17 +221,26 @@ export default class JabraNativeService extends Implementation {
         this._handleHoldEvent();
         break;
     }
-  } // TODO: this function will take the place of all the trigger handlers in init()
+  }
 
-  // TODO: Implement these
   connect(): Promise<void> {
-    return Promise.resolve();
+    this.isConnecting = true;
+
+    const context = this.applicationService.hostedContext;
+    context.on(JabraEventName, this.handler);
+    context.on(JabraDeviceAttached, this.deviceAttachedHandler);
+
+    return timedPromise(this.updateDevices(), connectTimeout).catch(err => {
+      this.Logger.error('Failed to connect to Jabra', err);
+    });
   }
 
   disconnect(): Promise<void> {
+    this.applicationService.hostedContext.off(JabraEventName, this.handler);
+
+    this.isConnecting = false;
+    this.isConnected = false;
+
     return Promise.resolve();
   }
-
-  // _timeoutConnectTask: task(function * () {}
-  // _throttleOffhookEvent: task(function * () {}
 }

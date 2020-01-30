@@ -1,6 +1,6 @@
 import { JabraNativeCommands } from './vendor-implementations/jabra/jabra-native/jabra-native-commands';
 
-// TODO: This is just a shell for now to make things work
+// TODO: This is just a shell for now to make things build
 const hostedContext = {
   isHosted: () => {
     return true;
@@ -13,6 +13,12 @@ const hostedContext = {
   },
   requestJabraDevices: (): Promise<any> => {
     return Promise.resolve({});
+  },
+  off: (eventName: string, handler: Function): void => {
+    return null;
+  },
+  on: (eventName: string, handler: Function): void => {
+    return null;
   },
 };
 
