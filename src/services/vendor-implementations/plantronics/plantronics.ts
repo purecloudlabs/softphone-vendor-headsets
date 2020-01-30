@@ -17,15 +17,7 @@ export default class PlantronicsService extends Implementation {
 
   private constructor() {
     super();
-    // TODO
-    // this.set('disableEventPolling', Ember.testing);
-    // this.on('AcceptCall', this, this.deviceAnsweredCall);
-    // this.on('TerminateCall', this, this.deviceEndedCall);
-    // this.on('CallEnded', () => this.get('_checkIsActiveTask').perform());
-    // this.on('Mute', () => this.deviceMuteChanged(true));
-    // this.on('Unmute', () => this.deviceMuteChanged(false));
-    // this.on('HoldCall', () => this.deviceHoldStatusChanged(true));
-    // this.on('ResumeCall', () => this.deviceHoldStatusChanged(false));
+    // this.set('disableEventPolling', Ember.testing); // TODO: find an equivalent if necessary
   }
 
   // TODO: replace this if needed
@@ -50,10 +42,14 @@ export default class PlantronicsService extends Implementation {
     return 'https://127.0.0.1:32018/Spokes';
   }
 
+  deviceLabelMatchesVendor(label) {
+    // includes vendor name or vendorId (chrome only)
+    return label.toLowerCase().includes('plantronics') || label.toLowerCase().includes('(047f:');
+  }
+
   // TODO: Implement these
   // pollCallEventsTask: task(function * () {}
   // _pollForCallEvents: observer('isConnected', 'isActive', 'disableEventPolling', function () {}
-  // deviceLabelMatchesVendor (label) {}
   // pollForDeviceStatusTask: task(function * () {}
   // _pollForDeviceStatus: observer('isConnected', 'isConnecting', 'disableEventPolling', function () {}
   // _makeRequestTask: task(function * (endpoint, isRetry) {}
@@ -71,4 +67,13 @@ export default class PlantronicsService extends Implementation {
   // async endAllCalls () {}
   // async setMute (value) {}
   // async setHold (conversationId, value) {}
+  // _processEvent(event: PlantronicsCallEvents): void {
+  // this.on('AcceptCall', this, this.deviceAnsweredCall);
+  // this.on('TerminateCall', this, this.deviceEndedCall);
+  // this.on('CallEnded', () => this.get('_checkIsActiveTask').perform());
+  // this.on('Mute', () => this.deviceMuteChanged(true));
+  // this.on('Unmute', () => this.deviceMuteChanged(false));
+  // this.on('HoldCall', () => this.deviceHoldStatusChanged(true));
+  // this.on('ResumeCall', () => this.deviceHoldStatusChanged(false));
+  // }
 }

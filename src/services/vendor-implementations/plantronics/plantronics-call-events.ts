@@ -1,4 +1,4 @@
-export enum CallEvents {
+export enum PlantronicsCallEvents {
   Unknown = 0,
   AcceptCall = 1,
   TerminateCall = 2,

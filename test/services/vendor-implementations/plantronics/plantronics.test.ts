@@ -1,4 +1,10 @@
 import PlantronicsService from '../../../../src/services/vendor-implementations/plantronics/plantronics';
+import DeviceInfo from '../../../../src/models/device-info';
+import { mockLogger } from '../../test-utils';
+
+const testDevice: DeviceInfo = {
+  ProductName: 'testDevice1',
+};
 
 function resetService(plantronicsService: PlantronicsService) {
   plantronicsService.vendorName = 'Plantronics';
@@ -36,7 +42,11 @@ describe('PlantronicsService', () => {
   });
 
   describe('deviceName', () => {
-    it('should return the value of deviceInfo.ProductName', () => {});
+    it('should return the value of deviceInfo.ProductName', () => {
+      plantronicsService.deviceInfo = testDevice;
+      const result = plantronicsService.deviceName;
+      expect(result).toEqual(testDevice.ProductName);
+    });
   });
 
   describe('apiHost', () => {
@@ -50,6 +60,65 @@ describe('PlantronicsService', () => {
     it('should return the expected name', () => {
       const expected = 'Plantronics';
       expect(plantronicsService.vendorName).toEqual(expected);
+    });
+  });
+
+  describe('deviceLabelMatchesVendor', () => {
+    beforeEach(() => {
+      plantronicsService = PlantronicsService.getInstance();
+      plantronicsService.Logger = mockLogger;
+    });
+    it('should return true when the device label contains the string "plantronics"', () => {
+      let testLabel = 'plantronics headset';
+      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset PlanTroniCs made';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset of Plantronics';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+    });
+    it('should return false when the device label does not contain the string "plantronics"', () => {
+      let testLabel = 'standard headset';
+      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset sennheiser made';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset of awesome';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+    });
+    it('should return true when the device label contains the string "(047f:"', () => {
+      let testLabel = '(047f: headset';
+      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset (047f: made';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset of (047f:';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+    });
+    it('should return false when the device label does not contain the string "(047f:"', () => {
+      let testLabel = 'standard headset';
+      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset sennheiser made';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset of awesome';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
     });
   });
 });
