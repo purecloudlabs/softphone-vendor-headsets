@@ -1,6 +1,10 @@
 import Implementation from '../Implementation';
 import DeviceInfo from '../../../models/device-info';
 
+/**
+ * TODO:  This looks like a feasible way to implement the polling we need
+ *        https://makeitnew.io/polling-using-rxjs-8347d05e9104
+ *  */
 export default class PlantronicsService extends Implementation {
   private static instance: PlantronicsService;
 

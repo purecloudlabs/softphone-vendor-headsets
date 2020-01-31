@@ -56,7 +56,7 @@ export default class HeadsetService {
   }
 
   // TODO: this function
-  // private _handleActiveMicChange: observer('implementations.[]', 'webrtc.defaultMicrophone', function () {
+  // _handleActiveMicChange: observer('implementations.[]', 'webrtc.defaultMicrophone', function () {
   //   const label = this.get('webrtc.defaultMicrophone.label');
 
   //   const newImplementation = label && this.get('implementations').find((implementation) => implementation.deviceLabelMatchesVendor(label));

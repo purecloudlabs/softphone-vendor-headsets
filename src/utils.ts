@@ -33,14 +33,15 @@ export function timedPromise(
 }
 
 export function debounce(func: Function, delay: number) {
-  var timer = null;
+  let timer = null;
 
   return function() {
-    var context = this,
-      args = arguments;
+    const args = arguments;
+
     clearTimeout(timer);
+
     timer = setTimeout(function() {
-      func.apply(context, args);
+      func.apply(null, args);
     }, delay);
   };
 }
