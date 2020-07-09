@@ -63,7 +63,7 @@ export default class SennheiserService extends Implementation {
     const payload: SennheiserPayload = {
       Event: SennheiserEvents.EstablishConnection,
       EventType: SennheiserEventTypes.Request,
-      SPName: 'Purecloud Softphone',
+      SPName: 'Genesys Cloud Softphone',
       SPIconImage: 'SPImage.ico',
       RedialSupport: 'No',
       OffHookSupport: 'No',
