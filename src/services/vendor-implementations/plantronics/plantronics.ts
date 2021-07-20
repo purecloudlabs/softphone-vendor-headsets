@@ -1,7 +1,7 @@
 import Implementation from '../Implementation';
 import { PlantronicsCallEvents } from './plantronics-call-events';
 import DeviceInfo from '../../../models/device-info';
-import { isFirefox } from 'utils';
+// import { isFirefox } from 'utils';
 
 /**
  * TODO:  This looks like a feasible way to implement the polling we need

@@ -1,6 +1,7 @@
 import PlantronicsService from '../../../../src/services/vendor-implementations/plantronics/plantronics';
 import DeviceInfo from '../../../../src/models/device-info';
 import { mockLogger } from '../../test-utils';
+import { isFirefox } from 'utils';
 
 const testDevice: DeviceInfo = {
   ProductName: 'testDevice1',
