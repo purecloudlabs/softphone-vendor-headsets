@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>PureCloud Softphone Integration</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="favicon.ico?v=3" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" crossorigin="anonymous">
+
+    {{content-for "head"}}
+
+    <link rel="stylesheet" href="assets/vendor.css">
+    <link rel="stylesheet" href="assets/dummy.css">
+
+    <!-- these are totally unnecessary, but because of a weird quirk in our build scripts, adding these helps
+      ensure that the file gets gzipped (because it's repetitive data). Going to just keep them here until that bug is fixed -->
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/chpkaocjjopjgclkahflonfkhdhkdenh" data-domain="apps.mypurecloud.com">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/cgddhgilalkameeagnjjijebbheeedfj" data-domain="apps.mypurecloud.com.au">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/blbdlfoaimjhadmkfbafohooabgcklnh" data-domain="apps.mypurecloud.jp">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/bpndjknpmohchoefpfdkgaoocokkdolg" data-domain="apps.mypurecloud.ie">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/pccfijhfdigbjojknaedhbmlajaphcjg" data-domain="apps.inintca.com">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/pccfijhfdigbjojknaedhbmlajaphcjg" data-domain="apps.inindca.com">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ljmakcbdogjlpfcpmcbgngplghhbcgdn" data-domain="apps.mypurecloud.de">
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/fnipabcfadheeemejmjdchnheocbofoo" data-domain="localhost">
+
+    {{content-for "head-footer"}}
+  </head>
+  <body>
+    {{content-for "body"}}
+
+    <script src="assets/vendor.js"></script>
+    <script src="assets/dummy.js"></script>
+
+    {{content-for "body-footer"}}
+  </body>
+</html>

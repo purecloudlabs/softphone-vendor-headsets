@@ -22,6 +22,7 @@ export default class HeadsetService {
 
   private $headsetEvents: Subject<HeadsetEvent>;
   public headsetEvents: Observable<HeadsetEvent>;
+  public logHeadsetEvents: boolean;
 
   private constructor() {
     this.$headsetEvents = new Subject<HeadsetEvent>();
@@ -29,6 +30,7 @@ export default class HeadsetService {
 
     this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
     // this._handleActiveMicChange(); // TODO: _handleActiveMicChange not implemented yet
+    this.logHeadsetEvents = false;
   }
 
   static getInstance() {
@@ -87,7 +89,7 @@ export default class HeadsetService {
   }
 
   // possible options: conversationId, contactName
-  incomingCall(callInfo: CallInfo, hasOtherActiveCalls): Promise<any> {
+  incomingCall(callInfo: CallInfo, hasOtherActiveCalls?): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       // Logger.info('Headset: No vendor headset connected [incomingCall]'); // TODO: Logger
@@ -138,7 +140,7 @@ export default class HeadsetService {
     return service.setHold(conversationId, value);
   }
 
-  endCall(conversationId, hasOtherActiveCalls): Promise<any> {
+  endCall(conversationId, hasOtherActiveCalls?): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       // Logger.info('Headset: No vendor headset connected [endCall]'); // TODO: Logger
