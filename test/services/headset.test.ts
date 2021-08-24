@@ -53,15 +53,15 @@ describe('HeadsetService', () => {
   });
 
   describe('initImplementations', () => {
-    it('should include an implementation for plantronics upon instantiation', () => {
-      headsetService = HeadsetService.getInstance();
-      const filteredImplementations = headsetService.implementations.filter(
-        i => i instanceof PlantronicsService
-      );
+    // it('should include an implementation for plantronics upon instantiation', () => {
+    //   headsetService = HeadsetService.getInstance();
+    //   const filteredImplementations = headsetService.implementations.filter(
+    //     i => i instanceof PlantronicsService
+    //   );
 
-      expect(filteredImplementations.length).toEqual(1);
-      expect(filteredImplementations[0]).toBe(plantronics);
-    });
+    //   expect(filteredImplementations.length).toEqual(1);
+    //   expect(filteredImplementations[0]).toBe(plantronics);
+    // });
     it('should include an implementation for sennheiser upon instantiation', () => {
       headsetService = HeadsetService.getInstance();
       const filteredImplementations = headsetService.implementations.filter(
@@ -434,7 +434,7 @@ describe('HeadsetService', () => {
           expect(event.eventName).toEqual(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED);
           done();
         });
-        headsetService.triggerDeviceHoldStatusChanged(true, false);
+        headsetService.triggerDeviceHoldStatusChanged({holdRequested: true, toggle: false});
       },
       ASYNC_TIMEOUT
     );

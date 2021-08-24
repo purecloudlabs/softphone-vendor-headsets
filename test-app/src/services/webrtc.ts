@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root'})
-export class WebRTCService {
+export default class WebRTCService {
     private hasPermissions = false;
-    private defaultMicrophone = null;
+    private defaultMicrophone = {} as MediaDeviceInfo;
 
     initialize = async () => {
         this.ensureAudioPermissions();
@@ -30,7 +30,7 @@ export class WebRTCService {
         return this.defaultMicrophone;
     }
 
-    setDefaultMicrophone = (microphone) => {
+    setDefaultMicrophone = (microphone: MediaDeviceInfo) => {
         this.defaultMicrophone = microphone;
     }
 }

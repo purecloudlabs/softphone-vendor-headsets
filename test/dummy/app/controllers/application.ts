@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import ApplicationService from 'services/application';
 import HeadsetService from 'services/headset';
-import { WebRTCService } from '../services/webrtc';
+import WebRTCService from '../../../../test-app/src/services/webrtc';
 import mockCall from '../models/call';
 
 @Component({
@@ -80,7 +80,7 @@ export class TestApplication implements OnInit {
         const headset = this.headset;
         const label = mic.label.toLowercase();
         if (label.indexOf('plantronics') > -1 || label.indexOf('plt') > -1) {
-            headset.changeImplementation(headset.plantronics);
+            // headset.changeImplementation(headset.plantronics);
         }
         if (label.indexOf('jabra') > -1) {
             if (this.isNativeApp) {

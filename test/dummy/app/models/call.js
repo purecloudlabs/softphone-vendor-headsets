@@ -1,3 +1,5 @@
+import { v4 } from "uuid";
+
 const defaultContacts = [
     'Lawrence W. Larson',
     'Noah Lane',
@@ -26,12 +28,12 @@ const defaultContacts = [
     'Riley Blanchard'
 ]
 
-getRandomContact = () => {
+const getRandomContact = () => {
     const index = Math.floor(Math.random() * defaultContacts.length);
     return defaultContacts[index];
 }
 
-export default mockCall = {
+const mockCall = {
     id: null,
     ringing: true,
     connected: false,
@@ -40,17 +42,19 @@ export default mockCall = {
     contactName: null,
 
     create: () => {
-        this.id = v4();
-        this.contactName = getRandomContact();
+        mockCall.id = v4();
+        mockCall.contactName = getRandomContact();
     },
 
     answer: () => {
-        this.ringing = false;
-        this.connected = true;
+        mockCall.ringing = false;
+        mockCall.connected = true;
     },
 
     end: () => {
-        this.ringing = false;
-        this.connected = false
+        mockCall.ringing = false;
+        mockCall.connected = false
     }
 }
+
+export default mockCall;

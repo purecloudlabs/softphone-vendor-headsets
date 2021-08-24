@@ -1,15 +1,15 @@
-import 'react-app-polyfill/ie11';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { Thing } from '../.';
-import HeadsetService from '../../src/services/headset';
+import React = require("react");
+import ReactDOM = require("react-dom");
+import { Suspense } from "react";
+// import './index.css';
+import App from './App';
+require('./configs/i18n');
 
-const App = () => {
-  return (
-    <div>
-      <Thing />
-    </div>
-  );
-};
-
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(
+    <React.StrictMode>
+        <Suspense fallback={<div>Loading i18n</div>}>
+            <App />
+        </Suspense>
+    </React.StrictMode>,
+    document.getElementById('root')
+);

@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import Implementation from './vendor-implementations/Implementation';
-import PlantronicsService from './vendor-implementations/plantronics/plantronics';
+// import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
@@ -11,7 +11,7 @@ import CallInfo from '../models/call-info';
 export default class HeadsetService {
   private static instance: HeadsetService;
 
-  public plantronics: Implementation = PlantronicsService.getInstance();
+  // public plantronics: Implementation = PlantronicsService.getInstance();
   public jabraChrome: Implementation = JabraChromeService.getInstance();
   public jabraNative: Implementation = JabraNativeService.getInstance();
   public sennheiser: Implementation = SennheiserService.getInstance();
@@ -22,6 +22,7 @@ export default class HeadsetService {
 
   private $headsetEvents: Subject<HeadsetEvent>;
   public headsetEvents: Observable<HeadsetEvent>;
+  private lastActionTaken: string;
   public logHeadsetEvents: boolean;
 
   private constructor() {
@@ -50,11 +51,15 @@ export default class HeadsetService {
         implementations.push(this.jabraChrome);
       }
     }
-    implementations.push(this.plantronics);
+    // implementations.push(this.plantronics);
     implementations.push(this.sennheiser);
 
     this._implementations = implementations;
     return this._implementations;
+  }
+
+  get getLastActionTaken(): string {
+    return this.lastActionTaken;
   }
 
   // TODO: this function
@@ -86,6 +91,8 @@ export default class HeadsetService {
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.IMPLEMENTATION_CHANGED, implementation)
     );
+
+    // this.lastActionTaken = 'implementationChanged';
   }
 
   // possible options: conversationId, contactName
@@ -116,7 +123,9 @@ export default class HeadsetService {
       // Logger.info('Headset: No vendor headset connected [answerCall]'); // TODO: Logger
       return Promise.resolve();
     }
-
+    // this.lastActionTaken = 'deviceAnsweredCall';
+    // this.triggerDeviceAnsweredCall();
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ANSWERED_CALL, null));
     return service.answerCall(conversationId);
   }
 
@@ -126,7 +135,7 @@ export default class HeadsetService {
       // Logger.info('Headset: No venddor headset connected [setMute]'); // TODO: Logger
       return Promise.resolve();
     }
-
+    // this.lastActionTaken = 'deviceMuteStatusChanged';
     return service.setMute(value);
   }
 
@@ -136,7 +145,7 @@ export default class HeadsetService {
       // Logger.info('Headset: No vendor headset connected [setHold]'); // TODO: Logger
       return Promise.resolve();
     }
-
+    // this.lastActionTaken = 'deviceHoldStatusChanged';
     return service.setHold(conversationId, value);
   }
 
@@ -146,7 +155,6 @@ export default class HeadsetService {
       // Logger.info('Headset: No vendor headset connected [endCall]'); // TODO: Logger
       return Promise.resolve();
     }
-
     return service.endCall(conversationId, hasOtherActiveCalls);
   }
 
@@ -190,6 +198,21 @@ export default class HeadsetService {
       new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, { holdRequested, toggle })
     ); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
   }
+
+  // get connectionStatus(): string {
+  //   let key;
+  //   if (this.selectedImplementation.errorCode) {
+  //     key = `esi.implErrorCode.${this.selectedImplementation.errorCode}`;
+  //   } else if (this.selectedImplementation.isConnecting) {
+  //     key = 'esi.connectionStatus.checking';
+  //   } else if (this.selectedImplementation.isConnected) {
+  //     key = 'esi.connectionStatus.running';
+  //   } else {
+  //     key = 'esi.connectionStatus.notRunning';
+  //   }
+
+  //   return 
+  // }
 
   // triggerDefaultHeadsetChanged (deviceInfo, isRetry) {
   //   // Logger.info('Headset: headset device changed', deviceInfo); // TODO: Logger
