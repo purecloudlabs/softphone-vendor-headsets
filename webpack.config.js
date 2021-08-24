@@ -2,8 +2,6 @@ const { readFileSync, readFile } = require('fs');
 const yargs = require('yargs/yargs');
 const webpack = require('webpack');
 
-console.log(readFileSync('./lotr.txt', { encoding: 'utf-8'}));
-
 const argv = {...yargs(process.argv).argv };
 
 delete argv._;
