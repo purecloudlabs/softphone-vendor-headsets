@@ -5254,11 +5254,6 @@ w3c-xmlserializer@^1.1.2:
     webidl-conversions "^4.0.2"
     xml-name-validator "^3.0.0"
 
-wave-visualizer@^1.0.6:
-  version "1.0.6"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/wave-visualizer/-/wave-visualizer-1.0.6.tgz#16ba0d6445b9cbb6f7e62c4ad669af46cd011c39"
-  integrity sha1-FroNZEW5y7b35ixK1mmvRs0BHDk=
-
 wcwidth@^1.0.1:
   version "1.0.1"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/wcwidth/-/wcwidth-1.0.1.tgz#f0b0dcf915bc5ff1528afadb2c0e17b532da2fe8"

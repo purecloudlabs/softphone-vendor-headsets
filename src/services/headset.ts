@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import Implementation from './vendor-implementations/Implementation';
-// import PlantronicsService from './vendor-implementations/plantronics/plantronics';
+import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
@@ -11,7 +11,7 @@ import CallInfo from '../models/call-info';
 export default class HeadsetService {
   private static instance: HeadsetService;
 
-  // public plantronics: Implementation = PlantronicsService.getInstance();
+  public plantronics: Implementation = PlantronicsService.getInstance();
   public jabraChrome: Implementation = JabraChromeService.getInstance();
   public jabraNative: Implementation = JabraNativeService.getInstance();
   public sennheiser: Implementation = SennheiserService.getInstance();
@@ -22,7 +22,6 @@ export default class HeadsetService {
 
   private $headsetEvents: Subject<HeadsetEvent>;
   public headsetEvents: Observable<HeadsetEvent>;
-  private lastActionTaken: string;
   public logHeadsetEvents: boolean;
 
   private constructor() {
@@ -56,10 +55,6 @@ export default class HeadsetService {
 
     this._implementations = implementations;
     return this._implementations;
-  }
-
-  get getLastActionTaken(): string {
-    return this.lastActionTaken;
   }
 
   // TODO: this function
@@ -136,6 +131,7 @@ export default class HeadsetService {
       return Promise.resolve();
     }
     // this.lastActionTaken = 'deviceMuteStatusChanged';
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, value));
     return service.setMute(value);
   }
 
@@ -146,6 +142,7 @@ export default class HeadsetService {
       return Promise.resolve();
     }
     // this.lastActionTaken = 'deviceHoldStatusChanged';
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, {conversationId, value}));
     return service.setHold(conversationId, value);
   }
 
@@ -155,6 +152,7 @@ export default class HeadsetService {
       // Logger.info('Headset: No vendor headset connected [endCall]'); // TODO: Logger
       return Promise.resolve();
     }
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, null))
     return service.endCall(conversationId, hasOtherActiveCalls);
   }
 

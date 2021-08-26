@@ -1,6 +1,9 @@
+import HeadsetService from "../headset";
+
 export default abstract class Implementation {
   // TODO: rename this to something more descriptive
-  headset: Implementation;
+  headsetService: HeadsetService;
+  currentHeadset: Implementation;
   vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
   isConnected = false; // represents a connection to the headset controlling software, ex: plantronics hub
@@ -12,7 +15,8 @@ export default abstract class Implementation {
 
   constructor(vendorName: string = 'Not Specified') {
     this.vendorName = vendorName;
-    this.headset = null;
+    this.currentHeadset = null;
+    // this.headsetService = new HeadsetService();
   }
 
   get isDeviceAttached(): boolean {
@@ -68,7 +72,9 @@ export default abstract class Implementation {
 
   deviceMuteChanged(isMuted: boolean): void {}
 
-  deviceHoldStatusChanged(isHeld: boolean, toggle?: any): void {}
+  deviceHoldStatusChanged(holdRequested: boolean, toggle?: any): void {
+    HeadsetService.getInstance().triggerDeviceHoldStatusChanged({holdRequested, toggle});
+  }
 
   defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {}
 }

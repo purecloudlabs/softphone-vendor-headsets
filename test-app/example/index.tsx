@@ -3,7 +3,7 @@ import ReactDOM = require("react-dom");
 import { Suspense } from "react";
 // import './index.css';
 import App from './App';
-require('./configs/i18n');
+import './configs/i18n';
 
 ReactDOM.render(
     <React.StrictMode>

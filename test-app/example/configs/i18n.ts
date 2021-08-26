@@ -4,7 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
 const backendOptions = {
-    loadPath: `${process.env.PUBLIC_URL}/i18n/en-us.json`,
+    loadPath: `/../../public/i18n/{{lng}}.json`,
 };
 
 i18n
@@ -14,14 +14,13 @@ i18n
     .init({
         backend: backendOptions,
         fallbackLng: 'en-us',
-        keySeparator: false,
         debug: true,
         lowerCaseLng: true,
         interpolation: {
             escapeValue: false
         },
         react: {
-            wait: true
+            useSuspense: true
         }
     });
 

@@ -18,7 +18,7 @@ const App = () => {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   let eventLogs = [] as any;
   const eventLogsJson = JSON.stringify(eventLogs, null, 2);
-  const headset = HeadsetService.getInstance();
+  const headset = HeadsetService?.getInstance();
   const webrtc = new WebRTCService();
   const isNativeApp = ApplicationService?.hostedContext?.isHosted();
   headset.headsetEvents.subscribe(value => {
@@ -29,11 +29,16 @@ const App = () => {
         break;
       case 'deviceHoldStatusChanged':
         // handleHeadsetEvent();
-        setHeld(!held);
+        // setHeld(!held);
+        // toggleCurrentCallState('held');
+        toggleSoftwareHold();
         break;
       case 'deviceMuteStatusChanged':
         // handleHeadsetEvent();
-        setMuted(!muted);
+        // setCurrentCall({...currentCall, muted: currentCall?.muted})
+        // toggleCurrentCallState('muted');
+        toggleSoftwareMute();
+        // setMuted(!muted);
         break;
       case 'deviceAnsweredCall':
         // handleHeadsetEvent();
@@ -50,7 +55,6 @@ const App = () => {
   // const deviceInfo = headset.selectedImplementation.deviceInfo;
 
   useEffect(() => {
-    console.log('rendered component');
     headset.logHeadsetEvents = true;
     //implement observable check. headSetEvents is an observable
     //subscribe to those changes and fire accordingly?
@@ -66,6 +70,10 @@ const App = () => {
     _updateDeviceList();
     window.addEventListener('message', receiveMessage.bind(this), false);
   }, []);
+
+  useEffect(() => {
+    console.log(currentCall);
+  }, [currentCall]);
 
   useEffect(() => {
     // setDeviceInfo(headset.selectedImplementation.deviceInfo);
@@ -97,7 +105,7 @@ const App = () => {
     }
     const label = mic.label.toLowerCase();
     if (label.indexOf('plantronics') > -1 || label.indexOf('plt') > -1) {
-      // headset.changeImplementation(headset.plantronics);
+      headset.changeImplementation(headset.plantronics);
     }
     if (label.indexOf('jabra') > -1) {
       headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabraChrome']);
@@ -171,6 +179,18 @@ const App = () => {
     endHeadsetAudio();
   }
 
+  const toggleSoftwareMute = () => {
+    setCurrentCall({...currentCall, muted: !currentCall.muted});
+    // toggleCurrentCallState('muted');
+    headset.setMute(!currentCall?.muted);
+  }
+
+  const toggleSoftwareHold = () => {
+    setCurrentCall({...currentCall, held: !currentCall.held});
+    // toggleCurrentCallState('held');
+    headset.setHold(currentCall.id, !held);
+  }
+
   return (
     <>
       <div className="entry-row">
@@ -178,7 +198,8 @@ const App = () => {
           <i className="ion-ios-world-outline"></i>
         </div>
         <div className="entry-values">
-          {t(`dummy.environment.${isNativeApp ? 'native' : 'browser'}`)}
+          {/* {t(`dummy.environment.${isNativeApp ? 'native' : 'browser'}`)} */}
+          Environment: {isNativeApp ? 'Native App' : 'Browser'}
         </div>
       </div>
       <div className="entry-row">
@@ -187,6 +208,7 @@ const App = () => {
         </div>
         <div className="entry-values">
           {t('dummy.currentMicrophone')}
+          {/* Current Microphone */}
           <select
             id="microphone-select"
             placeholder="Select microphone"
@@ -207,7 +229,8 @@ const App = () => {
             <i className="ion-ios-information-outline"></i>
           </div>
           <div className="entry-values">
-            {!deviceInfo && t('dummy.noMatch')}
+            {/* {!deviceInfo && t('dummy.noMatch')} */}
+            {!deviceInfo && 'Microphone selection does not match an integration'}
             {/* {headsetStatus} */}
           </div>
       </div>
@@ -215,16 +238,23 @@ const App = () => {
       {/* {deviceInfo && */}
         <div className="entry-row">
           <div className="entry-values">
-            <div className="entry-value">{t('dummy.controlInstructions')}</div>
+            {/* <div className="entry-value">{t('dummy.controlInstructions')}</div> */}
+            <div className="entry-value">Control simulated calls with these buttons and the buttons on your headset</div>
             <div className="entry-value">
-              <button type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button>
-              <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
+              {/* <button type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button> */}
+              <button type="button" onClick={() => simulateIncomingCall()}>Simulate Incoming Call</button>
+              {/* <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button> */}
+              <button type="button" onClick={() => endAllCalls()}>End All Calls</button>
             </div>
             <div className="entry-value">
-              <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
-              <button disabled={!mockCall.connected} type="button" onClick={() => {setMuted(!muted)}}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
-              <button disabled={!mockCall.connected} type="button" onClick={() => {setHeld(!held)}}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
-              <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>
+              {/* <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button> */}
+              <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>Answer</button>
+              {/* <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute()}>{t(`dummy.button.${currentCall?.muted ? 'un' : ''}mute`)}</button> */}
+              <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute()}>{currentCall?.muted ? 'Unmute' : 'Mute'}</button>
+              {/* <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold()}>{t(`dummy.button.${currentCall?.held ? 'resume' : 'hold'}`)}</button> */}
+              <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold()}>{currentCall?.held ? 'Resume' : 'Hold'}</button>
+              {/* <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button> */}
+              <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>End Current Calls</button>
             </div>
           </div>
         </div>
@@ -245,25 +275,26 @@ const App = () => {
         </div>
         <div className="entry-values">
           <div className="entry-value">
-            {t('dummy.currentCall.callState')}
+            {/* {t('dummy.currentCall.callState')} */}
+            Call State
           </div>
           <div className="entry-value">
             {currentCall
               ? <>
                   <div>ID: {currentCall.id}</div>
-                  {/* <div>ID: </div> */}
-                  <div>{t('dummy.currentCall.contactName')}: {currentCall.contactName}</div>
-                  {/* <div>{t('dummy.currentCall.contactName')}: </div> */}
-                  <div>{t('dummy.currentCall.ringing')}: {currentCall.ringing}</div>
-                  {/* <div>{t('dummy.currentCall.ringing')}: </div> */}
-                  <div>{t('dummy.currentCall.connected')}: {currentCall.connected}</div>
-                  {/* <div>{t('dummy.currentCall.connected')}: </div> */}
-                  <div>{t('dummy.currentCall.muted')}: {currentCall.muted}</div>
-                  {/* <div>{t('dummy.currentCall.muted')}: </div> */}
-                  <div>{t('dummy.currentCall.held')}: {currentCall.held}</div>
-                  {/* <div>{t('dummy.currentCall.held')}: </div> */}
+                  {/* <div>{t('dummy.currentCall.contactName')}: {currentCall.contactName}</div> */}
+                  <div>Contact Name: {currentCall.contactName}</div>
+                  {/* <div>{t('dummy.currentCall.ringing')}: {JSON.stringify(currentCall.ringing)}</div> */}
+                  <div>Ringing: {JSON.stringify(currentCall.ringing)}</div>
+                  {/* <div>{t('dummy.currentCall.connected')}: {JSON.stringify(currentCall.connected)}</div> */}
+                  <div>Connected: {JSON.stringify(currentCall.connected)}</div>
+                  {/* <div>{t('dummy.currentCall.muted')}: {JSON.stringify(currentCall.muted)}</div> */}
+                  <div>Mute State: {JSON.stringify(currentCall.muted)}</div>
+                  {/* <div>{t('dummy.currentCall.held')}: {JSON.stringify(currentCall.held)}</div> */}
+                  <div>On Hold: {JSON.stringify(currentCall.held)}</div>
                 </>
-              : t('dummy.currentCall.noCall')
+              // : t('dummy.currentCall.noCall')
+              : 'No Call'
             }
           </div>
         </div>

@@ -1,7 +1,7 @@
 import Implementation from '../Implementation';
 import { PlantronicsCallEvents } from './plantronics-call-events';
 import DeviceInfo from '../../../models/device-info';
-import { isFirefox } from 'utils';
+import browserama from 'browserama'
 
 /**
  * TODO:  This looks like a feasible way to implement the polling we need
@@ -45,7 +45,7 @@ export default class PlantronicsService extends Implementation {
                 }
               }
 
-              if(isFirefox) {
+              if(browserama.isFirefox) {
                 planatronicsInstance.errorCode = 'browser';
                 planatronicsInstance.disableRetry = true;
               }
@@ -186,13 +186,13 @@ export default class PlantronicsService extends Implementation {
         }
         // this.trigger(eventType);
 
-        if(this.headset.logHeadsetEvents) {
-          const eventInfo = { name: eventType, code: event.Action, event };
-          this.Logger.debug('headset info', eventInfo);
-          this.callCorrespondingFunction(eventType);
-          // this.trigger(headsetEvent, eventInfo)
-          // HeadsetService.getInstance().headsetEvent
-        }
+        // if(this.headset.logHeadsetEvents) {
+        //   const eventInfo = { name: eventType, code: event.Action, event };
+        //   this.Logger.debug('headset info', eventInfo);
+        //   this.callCorrespondingFunction(eventType);
+        //   // this.trigger(headsetEvent, eventInfo)
+        //   // HeadsetService.getInstance().headsetEvent
+        // }
       })
     }
   }
@@ -244,7 +244,7 @@ export default class PlantronicsService extends Implementation {
   connect() {
     this.isConnecting = true;
     return this._makeRequestTask(`/SessionManager/Register?name=${this.pluginName}`)
-      .catch((response) => {
+      .catch(() => {
         if(this.ajaxResponse.Err && this.ajaxResponse.Err.Description === 'Plugin Exists') {
           return this.Logger.warn('Plugin already exists');
         }

@@ -4,9 +4,11 @@ import { JabraChromeCommands } from './jabra-chrome-commands';
 import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';
 import { timedPromise } from '../../../../utils';
 import { EventTranslation } from './jabra-chrome-event-translation';
+import { v4 } from 'uuid';
 
 const incomingMessageName = 'jabra-headset-extension-from-content-script';
 const outgoingMessageName = 'jabra-headset-extension-from-page-script';
+const clientId = v4();
 
 export default class JabraChromeService extends Implementation {
   private static instance: JabraChromeService;
@@ -65,6 +67,8 @@ export default class JabraChromeService extends Implementation {
     window.postMessage(
       {
         direction: outgoingMessageName,
+        requestId: v4(),
+        apiClientId: clientId,
         message: cmd,
       },
       '*'
