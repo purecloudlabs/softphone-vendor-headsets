@@ -66,7 +66,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "tsdx test"
+      // "pre-push": "tsdx test"
     }
   },
   "prettier": {
