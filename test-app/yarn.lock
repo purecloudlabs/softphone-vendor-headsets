@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@angular/core@^12.2.3":
+  version "12.2.3"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-12.2.3.tgz#74f53915da3134f7e3a205219107b2eb4adcf8a6"
+  integrity sha512-gv3FJPiwDKugySzPepBzXrbr8HxeK2enotEmducNv3IdtGZPS0/qrbDVt7W0woRt7BGAeWaZKEaPoFzMZeEbCw==
+  dependencies:
+    tslib "^2.2.0"
+
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.14.5", "@babel/code-frame@^7.5.5":
   version "7.14.5"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/@babel/code-frame/-/code-frame-7.14.5.tgz#23b08d740e83f49c5e59945fbf1b43e80bbf4edb"
@@ -865,7 +872,7 @@
     core-js-pure "^3.16.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.0", "@babel/runtime@^7.14.5", "@babel/runtime@^7.14.6", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4":
   version "7.15.3"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/@babel/runtime/-/runtime-7.15.3.tgz#2e1c2880ca118e5b2f9988322bd8a7656a32502b"
   integrity sha1-LhwogMoRjlsvmYgyK9inZWoyUCs=
@@ -2145,13 +2152,6 @@ cosmiconfig@^6.0.0:
     path-type "^4.0.0"
     yaml "^1.7.2"
 
-cross-fetch@3.1.4:
-  version "3.1.4"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/cross-fetch/-/cross-fetch-3.1.4.tgz#9723f3a3a247bf8b89039f3a380a9244e8fa2f39"
-  integrity sha1-lyPzo6JHv4uJA586OAqSROj6Lzk=
-  dependencies:
-    node-fetch "2.6.1"
-
 cross-spawn@^6.0.0, cross-spawn@^6.0.5:
   version "6.0.5"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/cross-spawn/-/cross-spawn-6.0.5.tgz#4a5ec7c64dfae22c3a14124dbacdee846d80cbc4"
@@ -3163,13 +3163,6 @@ html-escaper@^2.0.0:
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/html-escaper/-/html-escaper-2.0.2.tgz#dfd60027da36a36dfcbe236262c00a5822681453"
   integrity sha1-39YAJ9o2o238viNiYsAKWCJoFFM=
 
-html-parse-stringify@^3.0.1:
-  version "3.0.1"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/html-parse-stringify/-/html-parse-stringify-3.0.1.tgz#dfc1017347ce9f77c8141a507f233040c59c55d2"
-  integrity sha1-38EBc0fOn3fIFBpQfyMwQMWcVdI=
-  dependencies:
-    void-elements "3.1.0"
-
 http-signature@~1.2.0:
   version "1.2.0"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/http-signature/-/http-signature-1.2.0.tgz#9aecd925114772f3d95b65a60abb8f7c18fbace1"
@@ -3193,27 +3186,6 @@ husky@^7.0.1:
   version "7.0.1"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/husky/-/husky-7.0.1.tgz#579f4180b5da4520263e8713cc832942b48e1f1c"
   integrity sha1-V59BgLXaRSAmPocTzIMpQrSOHxw=
-
-i18next-browser-languagedetector@^6.1.2:
-  version "6.1.2"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/i18next-browser-languagedetector/-/i18next-browser-languagedetector-6.1.2.tgz#68565a28b929cbc98ab6a56826ef2faf0e927ff8"
-  integrity sha1-aFZaKLkpy8mKtqVoJu8vrw6Sf/g=
-  dependencies:
-    "@babel/runtime" "^7.14.6"
-
-i18next-http-backend@^1.3.0:
-  version "1.3.0"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/i18next-http-backend/-/i18next-http-backend-1.3.0.tgz#fcafb9583cf2942a9c669bd1868ec84a11410536"
-  integrity sha1-/K+5WDzylCqcZpvRho7IShFBBTY=
-  dependencies:
-    cross-fetch "3.1.4"
-
-i18next@^20.4.0:
-  version "20.4.0"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/i18next/-/i18next-20.4.0.tgz#6897229a7898e23f3c4885f10315c978b594d3b9"
-  integrity sha1-aJcimniY4j88SIXxAxXJeLWU07k=
-  dependencies:
-    "@babel/runtime" "^7.12.0"
 
 iconv-lite@0.4.24, iconv-lite@^0.4.24:
   version "0.4.24"
@@ -4473,11 +4445,6 @@ no-case@^3.0.4:
     lower-case "^2.0.2"
     tslib "^2.0.3"
 
-node-fetch@2.6.1:
-  version "2.6.1"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
-  integrity sha1-BFvTI2Mfdu0uK1VXM5RBa2OaAFI=
-
 node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
@@ -4976,14 +4943,6 @@ react-dom@^17.0.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     scheduler "^0.20.2"
-
-react-i18next@^11.11.4:
-  version "11.11.4"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/react-i18next/-/react-i18next-11.11.4.tgz#f6f9a1c827e7a5271377de2bf14db04cb1c9e5ce"
-  integrity sha1-9vmhyCfnpScTd94r8U2wTLHJ5c4=
-  dependencies:
-    "@babel/runtime" "^7.14.5"
-    html-parse-stringify "^3.0.1"
 
 react-is@^16.12.0, react-is@^16.8.1:
   version "16.13.1"
@@ -6042,7 +6001,7 @@ tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha1-zy04vcNKE0vK8QkcQfZhni9nLQA=
 
-tslib@^2.0.3, tslib@^2.3.1:
+tslib@^2.0.3, tslib@^2.2.0, tslib@^2.3.1:
   version "2.3.1"
   resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/tslib/-/tslib-2.3.1.tgz#e8a335add5ceae51aa261d32a490158ef042ef01"
   integrity sha1-6KM1rdXOrlGqJh0ypJAVjvBC7wE=
@@ -6223,11 +6182,6 @@ verror@1.10.0:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
-
-void-elements@3.1.0:
-  version "3.1.0"
-  resolved "https://purecloud.jfrog.io/purecloud/api/npm/inin-internal-npm/void-elements/-/void-elements-3.1.0.tgz#614f7fbf8d801f0bb5f0661f5b2f5785750e4f09"
-  integrity sha1-YU9/v42AHwu18GYfWy9XhXUOTwk=
 
 w3c-hr-time@^1.0.1:
   version "1.0.2"

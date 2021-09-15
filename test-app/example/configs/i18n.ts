@@ -4,7 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
 const backendOptions = {
-    loadPath: `/../../public/i18n/{{lng}}.json`,
+    loadPath: `${process.env.PUBLIC_URL}i18n/{{lng}}.json`,
 };
 
 i18n

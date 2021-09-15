@@ -1,4 +1,10 @@
+import DeviceInfo from "models/device-info";
 import HeadsetService from "../headset";
+
+export interface ImplementationConfig {
+  logger: any;
+  vendorName?: string;
+}
 
 export default abstract class Implementation {
   // TODO: rename this to something more descriptive
@@ -10,13 +16,19 @@ export default abstract class Implementation {
   isMuted = false;
   errorCode: string = null;
   disableRetry = false;
-  Logger: any; // TODO: pass this in on creation?
-  logHeadsetEvents = false; // Mainly for debugging
+  logger: any; // TODO: pass this in on creation?
+  config: ImplementationConfig;
+  deviceInfo: DeviceInfo;
 
-  constructor(vendorName: string = 'Not Specified') {
-    this.vendorName = vendorName;
+  constructor(config: ImplementationConfig) {
+    this.config = config;
+    this.vendorName = config.vendorName;
+    this.logger = config.logger;
     this.currentHeadset = null;
-    // this.headsetService = new HeadsetService();
+  }
+
+  get logHeadsetEvents(): boolean{
+    return HeadsetService.getInstance(this.config).logHeadsetEvents;
   }
 
   get isDeviceAttached(): boolean {
@@ -64,17 +76,32 @@ export default abstract class Implementation {
     return Promise.reject(new Error(`${this.vendorName} - setHold() not implemented`));
   }
 
-  deviceAnsweredCall(): void {}
-
-  deviceRejectedCall(conversationId: string) {}
-
-  deviceEndedCall(): void {}
-
-  deviceMuteChanged(isMuted: boolean): void {}
-
-  deviceHoldStatusChanged(holdRequested: boolean, toggle?: any): void {
-    HeadsetService.getInstance().triggerDeviceHoldStatusChanged({holdRequested, toggle});
+  deviceAnsweredCall(eventInfo): void {
+    HeadsetService.getInstance(this.config).triggerDeviceAnsweredCall(eventInfo);
   }
 
-  defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {}
+  deviceRejectedCall(conversationId: string) {
+    HeadsetService.getInstance(this.config).triggerDeviceRejectedCall(conversationId);
+  }
+
+  deviceEndedCall(eventInfo): void {
+    HeadsetService.getInstance(this.config).triggerDeviceEndedCall(eventInfo);
+  }
+
+  deviceMuteChanged(isMuted: boolean, eventInfo): void {
+    HeadsetService.getInstance(this.config).triggerDeviceMuteStatusChanged(isMuted, eventInfo);
+  }
+
+  deviceHoldStatusChanged(holdRequested: boolean, eventInfo, toggle?: any): void {
+    HeadsetService.getInstance(this.config).triggerDeviceHoldStatusChanged({holdRequested, toggle}, eventInfo);
+  }
+
+  deviceEventLogs(eventInfo): void {
+    HeadsetService.getInstance(this.config).triggerDeviceLogs(eventInfo);
+  };
+
+  // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {
+  //   // this.headsetService.triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId});
+  //   // HeadsetService.getInstance().triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId})
+  // }
 }

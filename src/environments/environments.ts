@@ -6,7 +6,7 @@ import {
     availableTranslations
 } from './env.utils';
 
-const redirectUrl = 'https://localhost:8443/';
+const redirectUrl = 'https://localhost:1234/';
 
 export const environment = {
     production: false,
@@ -16,6 +16,6 @@ export const environment = {
     domain: 'inindca.com',
     clientId,
     apiHost: `https://api.inindca.com`,
-    redirectUrl: `https://localhost:8443/`,
+    redirectUrl: `https://localhost:1234/`,
     deployUrl
 }
