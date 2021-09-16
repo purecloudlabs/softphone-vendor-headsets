@@ -176,7 +176,6 @@ export default class PlantronicsService extends Implementation {
   async getDeviceStatus() {
     await this._makeRequestTask(`/DeviceServices/Info`)
       .then(response => {
-        debugger;
         this.deviceInfo = response.Result;
       })
       .catch(err => {

@@ -35,7 +35,6 @@ const App = () => {
   useEffect(() => {
     if (currentCall) {
       headset.headsetEvents.subscribe(value => {
-        debugger;
         switch(value.eventName) {
           case 'implementationChanged':
             handleHeadsetEvent(value.eventData);

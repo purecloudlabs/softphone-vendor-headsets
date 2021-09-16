@@ -182,7 +182,6 @@ export default class HeadsetService {
   }
 
   triggerDeviceMuteStatusChanged(isMuted: boolean, eventInfo) {
-    debugger;
     this.logger.info('Headset: device mute status changed: ', isMuted); // TODO: Logger
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, eventInfo)
