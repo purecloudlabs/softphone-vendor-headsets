@@ -434,7 +434,7 @@ describe('HeadsetService', () => {
           expect(event.eventName).toEqual(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED);
           done();
         });
-        headsetService.triggerDeviceHoldStatusChanged({holdRequested: true, toggle: false});
+        headsetService.triggerDeviceHoldStatusChanged({ holdRequested: true, toggle: false });
       },
       ASYNC_TIMEOUT
     );
