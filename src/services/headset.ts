@@ -1,4 +1,4 @@
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import Implementation from './vendor-implementations/Implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
