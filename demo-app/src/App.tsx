@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import DeviceService from './services/device-service';
 import ApplicationService from './services/application-service';
-import HeadsetService from '../../dist'
+import HeadsetService from '../../src/index';
 import MockCall from './models/call';
 import AudioVisualizer from './components/audio-visualizer';
 
