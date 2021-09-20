@@ -33,28 +33,26 @@ const getRandomContact = () => {
     return defaultContacts[index];
 }
 
-const mockCall = {
-    id: null,
-    ringing: true,
-    connected: false,
-    muted: false,
-    held: false,
-    contactName: null,
+export default class MockCall {
+    id: string;
+    contactName: string;
+    ringing = true;
+    connected = false;
+    muted = false;
+    held = false;
 
-    create: () => {
-        mockCall.id = v4();
-        mockCall.contactName = getRandomContact();
-    },
+    constructor () {
+        this.id = v4();
+        this.contactName = getRandomContact();
+    }
 
-    answer: () => {
-        mockCall.ringing = false;
-        mockCall.connected = true;
-    },
+    answer () {
+        this.ringing = false;
+        this.connected = true;
+    };
 
-    end: () => {
-        mockCall.ringing = false;
-        mockCall.connected = false
+    end () {
+        this.ringing = false;
+        this.connected = false;
     }
 }
-
-export default mockCall;

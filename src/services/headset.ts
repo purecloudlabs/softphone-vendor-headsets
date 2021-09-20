@@ -26,17 +26,20 @@ export default class HeadsetService {
   private logger: any;
 
   private constructor(config: any) {
-    this.$headsetEvents = new BehaviorSubject<HeadsetEvent>({eventName: '' as HeadsetEventName, eventData: {}});
+    this.$headsetEvents = new BehaviorSubject<HeadsetEvent>({
+      eventName: '' as HeadsetEventName,
+      eventData: {},
+    });
     this.headsetEvents = this.$headsetEvents.asObservable();
 
     this.application = ApplicationService.getInstance();
     this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
     this.logHeadsetEvents = false;
     this.logger = config?.logger || console;
-    this.plantronics = PlantronicsService.getInstance({logger: this.logger});
-    this.jabraChrome = JabraChromeService.getInstance({logger: this.logger});
-    this.jabraNative = JabraNativeService.getInstance({logger: this.logger});
-    this.sennheiser = SennheiserService.getInstance({logger: this.logger});
+    this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
+    this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
+    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
+    this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
   }
 
   static getInstance(config: any) {
@@ -51,9 +54,8 @@ export default class HeadsetService {
     const implementations: Implementation[] = [];
     if (this.application.hostedContext.supportsJabra()) {
       implementations.push(
-        this.application.hostedContext.isHosted()
-        ? this.jabraNative
-        : this.jabraChrome);
+        this.application.hostedContext.isHosted() ? this.jabraNative : this.jabraChrome
+      );
     }
     implementations.push(this.plantronics);
     implementations.push(this.sennheiser);
@@ -64,7 +66,7 @@ export default class HeadsetService {
 
   getHeadSetEventsSubject = () => {
     return this.$headsetEvents;
-  }
+  };
 
   // TODO: this function
   // _handleActiveMicChange: observer('implementations.[]', 'webrtc.defaultMicrophone', function () {
@@ -196,17 +198,16 @@ export default class HeadsetService {
   }
 
   /* This function has no functional purpose in a real life example
-  * It is here to help log all events in the call process at least for Plantronics
-  */
+   * It is here to help log all events in the call process at least for Plantronics
+   */
   triggerDeviceLogs(eventInfo) {
-    this.$headsetEvents.next(
-      new HeadsetEvent('loggableEvent' as HeadsetEventName, eventInfo)
-    )
+    this.$headsetEvents.next(new HeadsetEvent('loggableEvent' as HeadsetEventName, eventInfo));
   }
 
   get connectionStatus(): string {
     if (this.selectedImplementation?.errorCode) {
-      this.logger.error('An error has occurred while trying to establish a connection',
+      this.logger.error(
+        'An error has occurred while trying to establish a connection',
         this.selectedImplementation?.errorCode
       );
       return `Error occurred while establishing connection`;
@@ -218,7 +219,7 @@ export default class HeadsetService {
       return `Implementation Connected & Running`;
       // return `dummy.connectionStatus.connected`;
     } else {
-      return `Implementation is not Running`
+      return `Implementation is not Running`;
       // return `dummy.connectionStatus.notRunning`;
     }
   }
