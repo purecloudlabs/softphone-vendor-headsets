@@ -3,7 +3,7 @@ import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
 import DeviceInfo from '../../../models/device-info';
 import { SennheiserPayload } from './sennheiser-payload';
-import * as utils from '../../../utils';
+import * as utils from '../../../../react-app/src/library/utils';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 

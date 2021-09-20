@@ -1,12 +1,12 @@
-import HeadsetService from '../../src/services/headset';
-import Implementation from '../../src/services/vendor-implementations/Implementation';
-import PlantronicsService from '../../src/services/vendor-implementations/plantronics/plantronics';
-import SennheiserService from '../../src/services/vendor-implementations/sennheiser/sennheiser';
-import JabraChromeService from '../../src/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import JabraNativeService from '../../src/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import { HeadsetEvent, HeadsetEventName } from '../../src/models/headset-event';
-import CallInfo from '../../src/models/call-info';
-import ApplicationService from '../../src/services/application';
+import HeadsetService from '../../src/library/services/headset';
+import Implementation from '../../src/library/services/vendor-implementations/Implementation';
+import PlantronicsService from '../../src/library/services/vendor-implementations/plantronics/plantronics';
+import SennheiserService from '../../src/library/services/vendor-implementations/sennheiser/sennheiser';
+import JabraChromeService from '../../src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
+import JabraNativeService from '../../src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
+import { HeadsetEvent, HeadsetEventName } from '../../src/library/models/headset-event';
+import CallInfo from '../../src/library/models/call-info';
+import ApplicationService from '../../src/library/services/application';
 
 const ASYNC_TIMEOUT = 750;
 
@@ -434,7 +434,7 @@ describe('HeadsetService', () => {
           expect(event.eventName).toEqual(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED);
           done();
         });
-        headsetService.triggerDeviceHoldStatusChanged(true, false);
+        headsetService.triggerDeviceHoldStatusChanged({holdRequested: true, toggle: false});
       },
       ASYNC_TIMEOUT
     );

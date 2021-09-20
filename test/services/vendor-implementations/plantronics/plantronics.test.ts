@@ -1,5 +1,5 @@
-import PlantronicsService from '../../../../src/services/vendor-implementations/plantronics/plantronics';
-import DeviceInfo from '../../../../src/models/device-info';
+import PlantronicsService from '../../../../src/library/services/vendor-implementations/plantronics/plantronics';
+import DeviceInfo from '../../../../src/library/models/device-info';
 import { mockLogger } from '../../test-utils';
 
 const testDevice: DeviceInfo = {

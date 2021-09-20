@@ -1,9 +1,9 @@
-import SennheiserService from '../../../../src/services/vendor-implementations/sennheiser/sennheiser';
-import { SennheiserPayload } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-payload';
-import { SennheiserEvents } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-events';
-import { SennheiserEventTypes } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-event-types';
-import * as utils from '../../../../src/utils';
-import DeviceInfo from '../../../../src/models/device-info';
+import SennheiserService from '../../../../src/library/services/vendor-implementations/sennheiser/sennheiser';
+import { SennheiserPayload } from '../../../../src/library/services/vendor-implementations/sennheiser/sennheiser-payload';
+import { SennheiserEvents } from '../../../../src/library/services/vendor-implementations/sennheiser/sennheiser-events';
+import { SennheiserEventTypes } from '../../../../src/library/services/vendor-implementations/sennheiser/sennheiser-event-types';
+import * as utils from '../../../../src/react-app/src/library/utils';
+import DeviceInfo from '../../../../src/library/models/device-info';
 import { mockWebSocket, mockLogger } from '../../test-utils';
 
 function resetService() {

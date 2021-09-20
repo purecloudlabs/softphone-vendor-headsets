@@ -1,4 +1,4 @@
-import { timedPromise } from '../src/utils';
+import { timedPromise } from '../src/react-app/src/library/utils';
 
 describe('utils', () => {
   describe('timedPromise', () => {

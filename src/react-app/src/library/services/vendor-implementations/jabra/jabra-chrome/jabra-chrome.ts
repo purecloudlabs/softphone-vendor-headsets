@@ -1,4 +1,4 @@
-import Implementation from '../../Implementation';
+import Implementation, { ImplementationConfig } from '../../Implementation';
 import DeviceInfo from '../../../../models/device-info';
 import { JabraChromeCommands } from './jabra-chrome-commands';
 import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';
@@ -19,17 +19,17 @@ export default class JabraChromeService extends Implementation {
   version: string = null;
   _connectDeferred: any; // { resolve: Function, reject: Function }
 
-  private constructor() {
-    super();
+  private constructor(config: ImplementationConfig) {
+    super(config);
     this.vendorName = 'Jabra';
     this.devices = new Map<string, DeviceInfo>();
 
     window.addEventListener('message', this._messageHandler.bind(this));
   }
 
-  static getInstance() {
+  static getInstance(config: ImplementationConfig) {
     if (!JabraChromeService.instance) {
-      JabraChromeService.instance = new JabraChromeService();
+      JabraChromeService.instance = new JabraChromeService(config);
     }
 
     return JabraChromeService.instance;
