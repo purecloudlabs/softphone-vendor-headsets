@@ -1,8 +1,5 @@
+/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-  globals: {
-    'ts-jest': {
-      diagnostics: false
-    }
-  },
-  coveragePathIgnorePatterns: ['Implementation.ts']
+  preset: 'ts-jest',
+  testEnvironment: 'node',
 };

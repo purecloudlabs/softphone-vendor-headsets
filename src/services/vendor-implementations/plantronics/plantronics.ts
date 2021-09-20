@@ -1,14 +1,14 @@
 import fetchJsonp from 'fetch-jsonp';
-import Implementation, { ImplementationConfig } from '../Implementation';
+import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import { PlantronicsCallEvents } from './plantronics-call-events';
 import browserama from 'browserama';
-import DeviceInfo from '../../../models/device-info';
+import DeviceInfo from '../../../types/device-info';
 
 /**
  * TODO:  This looks like a feasible way to implement the polling we need
  *        https://makeitnew.io/polling-using-rxjs-8347d05e9104
  *  */
-export default class PlantronicsService extends Implementation {
+export default class PlantronicsService extends VendorImplementation {
   private static instance: PlantronicsService;
   activePollingInterval = 2000;
   connectedDeviceInterval = 6000;

@@ -1,13 +1,13 @@
-import Implementation, { ImplementationConfig } from '../Implementation';
+import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
-import DeviceInfo from '../../../models/device-info';
+import DeviceInfo from '../../../types/device-info';
 import { SennheiserPayload } from './sennheiser-payload';
 import * as utils from '../../../utils';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 
-export default class SennheiserService extends Implementation {
+export default class SennheiserService extends VendorImplementation {
   private static instance: SennheiserService;
 
   connectTimeout = 5000;

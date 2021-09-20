@@ -1,5 +1,5 @@
 import PlantronicsService from '../../../../src/services/vendor-implementations/plantronics/plantronics';
-import DeviceInfo from '../../../../src/models/device-info';
+import DeviceInfo from '../../../../src/types/device-info';
 import { mockLogger } from '../../test-utils';
 import { isFirefox } from 'utils';
 
@@ -10,7 +10,7 @@ const testDevice: DeviceInfo = {
 function resetService(plantronicsService: PlantronicsService) {
   plantronicsService.vendorName = 'Plantronics';
   plantronicsService.pluginName = 'emberApp2';
-  plantronicsService.deviceInfo = null;
+  plantronicsService._deviceInfo = null;
   plantronicsService.activePollingInterval = 2000;
   plantronicsService.connectedDeviceInterval = 6000;
   plantronicsService.disconnectedDeviceInterval = 2000;
@@ -24,7 +24,7 @@ describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
 
   beforeEach(() => {
-    plantronicsService = PlantronicsService.getInstance();
+    plantronicsService = PlantronicsService.getInstance({ logger: console });
     resetService(plantronicsService);
   });
 
@@ -34,7 +34,7 @@ describe('PlantronicsService', () => {
     });
 
     it('should be a singleton', () => {
-      const plantronicsService2 = PlantronicsService.getInstance();
+      const plantronicsService2 = PlantronicsService.getInstance({ logger: console });
 
       expect(plantronicsService).not.toBeFalsy();
       expect(plantronicsService2).not.toBeFalsy();
@@ -44,7 +44,7 @@ describe('PlantronicsService', () => {
 
   describe('deviceName', () => {
     it('should return the value of deviceInfo.ProductName', () => {
-      plantronicsService.deviceInfo = testDevice;
+      plantronicsService._deviceInfo = testDevice;
       const result = plantronicsService.deviceName;
       expect(result).toEqual(testDevice.ProductName);
     });
@@ -66,8 +66,8 @@ describe('PlantronicsService', () => {
 
   describe('deviceLabelMatchesVendor', () => {
     beforeEach(() => {
-      plantronicsService = PlantronicsService.getInstance();
-      plantronicsService.Logger = mockLogger;
+      plantronicsService = PlantronicsService.getInstance({ logger: console });
+      plantronicsService.logger = mockLogger;
     });
     it('should return true when the device label contains the string "plantronics"', () => {
       let testLabel = 'plantronics headset';

@@ -3,11 +3,11 @@ import { SennheiserPayload } from '../../../../src/services/vendor-implementatio
 import { SennheiserEvents } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-events';
 import { SennheiserEventTypes } from '../../../../src/services/vendor-implementations/sennheiser/sennheiser-event-types';
 import * as utils from '../../../../src/utils';
-import DeviceInfo from '../../../../src/models/device-info';
+import DeviceInfo from '../../../../src/types/device-info';
 import { mockWebSocket, mockLogger } from '../../test-utils';
 
 function resetService() {
-  const sennheiserService = SennheiserService.getInstance();
+  const sennheiserService = SennheiserService.getInstance({ logger: console });
   sennheiserService.isConnecting = false;
   sennheiserService.isConnected = false;
   sennheiserService.isMuted = false;
@@ -30,12 +30,12 @@ describe('SennheiserService', () => {
     let sennheiserService: SennheiserService;
 
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
     });
 
     it('should be a singleton', () => {
-      const sennheiserService2 = SennheiserService.getInstance();
+      const sennheiserService2 = SennheiserService.getInstance({ logger: console });
 
       expect(sennheiserService).not.toBeFalsy();
       expect(sennheiserService2).not.toBeFalsy();
@@ -49,8 +49,8 @@ describe('SennheiserService', () => {
 
   describe('deviceName', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
     });
     it('should return null if deviceInfo is null', () => {
       sennheiserService.deviceInfo = null;
@@ -67,8 +67,8 @@ describe('SennheiserService', () => {
 
   describe('isDeviceAttached', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
     });
     it('should return true if deviceInfo is defined', () => {
       sennheiserService.deviceInfo = { ProductName: 'fakeDevice' };
@@ -85,8 +85,8 @@ describe('SennheiserService', () => {
 
   describe('deviceLabelMatchesVendor', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
     });
     it('should return true when the device label contains the string "sennheiser"', () => {
       let testLabel = 'sennheiser headset';
@@ -118,24 +118,23 @@ describe('SennheiserService', () => {
 
   describe('disconnect', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
-      sennheiserService.Logger = mockLogger;
+      sennheiserService.logger = mockLogger;
     });
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should not call _sendMessage if the service is not connected', async done => {
+    it('should not call _sendMessage if the service is not connected', async () => {
       sennheiserService.isConnected = false;
       jest.spyOn(sennheiserService, '_sendMessage');
 
       await sennheiserService.disconnect();
 
       expect(sennheiserService._sendMessage).not.toHaveBeenCalled();
-      done();
     });
-    it('should call _sendMessage with the correct payload when the service is connected', async done => {
+    it('should call _sendMessage with the correct payload when the service is connected', async () => {
       sennheiserService.isConnected = true;
       jest.spyOn(sennheiserService, '_sendMessage');
       const expectedPayload: SennheiserPayload = {
@@ -146,16 +145,15 @@ describe('SennheiserService', () => {
       await sennheiserService.disconnect();
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
   });
 
   describe('setMute', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
-      sennheiserService.Logger = mockLogger;
+      sennheiserService.logger = mockLogger;
     });
     afterEach(() => {
       sennheiserService.callMappings = {};
@@ -190,8 +188,8 @@ describe('SennheiserService', () => {
 
   describe('setHold', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
     afterEach(() => {
@@ -233,8 +231,8 @@ describe('SennheiserService', () => {
 
   describe('incomingCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
     afterEach(() => {
@@ -262,8 +260,8 @@ describe('SennheiserService', () => {
 
   describe('answerCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
     afterEach(() => {
@@ -292,8 +290,8 @@ describe('SennheiserService', () => {
 
   describe('outgoingCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
     afterEach(() => {
@@ -321,8 +319,8 @@ describe('SennheiserService', () => {
 
   describe('endCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
     afterEach(() => {
@@ -362,8 +360,8 @@ describe('SennheiserService', () => {
     let message;
 
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.callMappings = {};
 
       jest.spyOn(sennheiserService, '_handleAck');
@@ -724,9 +722,9 @@ describe('SennheiserService', () => {
 
   describe('endAllCalls', () => {
     it('should return a Promise<void>', () => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
+      sennheiserService.logger = mockLogger;
       jest.spyOn(mockLogger, 'warn');
 
       sennheiserService.endAllCalls();
@@ -737,7 +735,7 @@ describe('SennheiserService', () => {
 
   describe('webSocketOnOpen', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
+      sennheiserService = SennheiserService.getInstance({ logger: console });
     });
 
     it('should set websocketConnected to true', () => {
@@ -754,8 +752,8 @@ describe('SennheiserService', () => {
 
   describe('webSocketOnClose', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance();
-      sennheiserService.Logger = mockLogger;
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
       sennheiserService.websocketConnected = true;
     });
 

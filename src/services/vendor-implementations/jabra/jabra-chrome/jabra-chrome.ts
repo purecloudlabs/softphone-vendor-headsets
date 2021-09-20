@@ -1,5 +1,5 @@
-import Implementation, { ImplementationConfig } from '../../Implementation';
-import DeviceInfo from '../../../../models/device-info';
+import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
+import DeviceInfo from '../../../../types/device-info';
 import { JabraChromeCommands } from './jabra-chrome-commands';
 import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';
 import { timedPromise } from '../../../../utils';
@@ -10,7 +10,7 @@ const incomingMessageName = 'jabra-headset-extension-from-content-script';
 const outgoingMessageName = 'jabra-headset-extension-from-page-script';
 const clientId = v4();
 
-export default class JabraChromeService extends Implementation {
+export default class JabraChromeService extends VendorImplementation {
   private static instance: JabraChromeService;
   static connectTimeout = 5000;
 
