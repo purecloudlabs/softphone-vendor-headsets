@@ -1,7 +1,4 @@
-import { Injectable } from '@angular/core';
-
-@Injectable({ providedIn: 'root'})
-export default class WebRTCService {
+export default class DeviceService {
     private hasPermissions = false;
     private defaultMicrophone = {} as MediaDeviceInfo;
 

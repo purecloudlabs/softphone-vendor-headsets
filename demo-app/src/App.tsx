@@ -2,11 +2,11 @@ import './App.css';
 import React = require('react');
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import HeadsetService from '../../src/services/headset';
-import ApplicationService from '../src/services/application';
-import WebRTCService from '../src/services/webrtc';
-import mockCall from '../../test/dummy/app/models/call';
-import AudioVisualizer from '../src/components/audioVisualizer';
+import DeviceService from './services/device-service';
+import ApplicationService from './services/application-service';
+import HeadsetService from '../../dist'
+import MockCall from './models/call';
+import AudioVisualizer from './components/audio-visualizer';
 
 const App = () => {
   const { t } = useTranslation();
@@ -18,8 +18,9 @@ const App = () => {
   let eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const headset = HeadsetService?.getInstance({} as any);
-  const webrtc = new WebRTCService();
-  const isNativeApp = ApplicationService?.hostedContext?.isHosted();
+  const webrtc = new DeviceService();
+  const appService = new ApplicationService();
+  const isNativeApp = appService.isHosted;
 
   useEffect(() => {
     headset.logHeadsetEvents = true;
@@ -142,8 +143,7 @@ const App = () => {
 
   const simulateIncomingCall = () => {
     console.log('**** SIMULATING CALL ****');
-    const call = mockCall;
-    call.create();
+    const call = new MockCall();
     setCurrentCall(call);
     headset.incomingCall({conversationId: call.id, contactName: call.contactName});
   }

@@ -2,6 +2,7 @@ import React = require("react");
 import ReactDOM = require("react-dom");
 import { Suspense } from "react";
 // import './index.css';
+import 'regenerator-runtime/runtime'
 import App from './App';
 import './configs/i18n';
 
