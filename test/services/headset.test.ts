@@ -20,10 +20,10 @@ describe('HeadsetService', () => {
 
   beforeEach(() => {
     application = ApplicationService.getInstance();
-    plantronics = PlantronicsService.getInstance();
-    sennheiser = SennheiserService.getInstance();
-    jabraNative = JabraNativeService.getInstance();
-    jabraChrome = JabraChromeService.getInstance();
+    plantronics = PlantronicsService.getInstance({ logger: console });
+    sennheiser = SennheiserService.getInstance({ logger: console });
+    jabraNative = JabraNativeService.getInstance({ logger: console });
+    jabraChrome = JabraChromeService.getInstance({ logger: console });
 
     jest.spyOn(sennheiser, 'connect').mockResolvedValue(true);
     jest.spyOn(plantronics, 'connect').mockResolvedValue(true);
@@ -43,8 +43,8 @@ describe('HeadsetService', () => {
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-      headsetService = HeadsetService.getInstance();
-      const headsetService2 = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
+      const headsetService2 = HeadsetService.getInstance({ logger: console });
 
       expect(headsetService).not.toBeFalsy();
       expect(headsetService2).not.toBeFalsy();
@@ -54,7 +54,7 @@ describe('HeadsetService', () => {
 
   describe('initImplementations', () => {
     // it('should include an implementation for plantronics upon instantiation', () => {
-    //   headsetService = HeadsetService.getInstance();
+    //   headsetService = HeadsetService.getInstance({ logger: console });
     //   const filteredImplementations = headsetService.implementations.filter(
     //     i => i instanceof PlantronicsService
     //   );
@@ -63,7 +63,7 @@ describe('HeadsetService', () => {
     //   expect(filteredImplementations[0]).toBe(plantronics);
     // });
     it('should include an implementation for sennheiser upon instantiation', () => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       const filteredImplementations = headsetService.implementations.filter(
         i => i instanceof SennheiserService
       );
@@ -74,7 +74,7 @@ describe('HeadsetService', () => {
     it('should include an implementation for jabra-chrome upon instantiation if the application context is not hosted and supports jabra', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
       jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
 
       const implementations = headsetService.implementations;
       const filteredImplementations = implementations.filter(i => i instanceof JabraChromeService);
@@ -85,7 +85,7 @@ describe('HeadsetService', () => {
     it('should include an implementation for jabra-native upon instantiation if the application context is hosted and supports jabra', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
       jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => true);
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
 
       const filteredImplementations = headsetService.implementations.filter(
         i => i instanceof JabraNativeService
@@ -97,7 +97,7 @@ describe('HeadsetService', () => {
     it('should not include any jabra implementations if jabra is not supported', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => false);
       jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => true);
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
 
       const filteredImplementations = headsetService.implementations.filter(
         i => i instanceof JabraNativeService || i instanceof JabraChromeService
@@ -109,7 +109,7 @@ describe('HeadsetService', () => {
 
   describe('changeImplementation', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
     });
     it('should do nothing if the implementation passed in is the current implementation', () => {
       headsetService.selectedImplementation = sennheiser;
@@ -167,7 +167,7 @@ describe('HeadsetService', () => {
 
   describe('incomingCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'incomingCall').mockResolvedValue({});
       headsetService.selectedImplementation = plantronics;
     });
@@ -197,7 +197,7 @@ describe('HeadsetService', () => {
 
   describe('outgoingCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'outgoingCall').mockResolvedValue({});
       headsetService.selectedImplementation = plantronics;
     });
@@ -224,7 +224,7 @@ describe('HeadsetService', () => {
 
   describe('answerCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'answerCall').mockResolvedValue({});
       headsetService.selectedImplementation = plantronics;
     });
@@ -251,7 +251,7 @@ describe('HeadsetService', () => {
 
   describe('setMute', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'setMute').mockResolvedValue({});
       headsetService.selectedImplementation = plantronics;
     });
@@ -278,7 +278,7 @@ describe('HeadsetService', () => {
 
   describe('setHold', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'setHold').mockResolvedValue(null);
       headsetService.selectedImplementation = plantronics;
     });
@@ -307,7 +307,7 @@ describe('HeadsetService', () => {
 
   describe('endCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'endCall').mockResolvedValue({});
       headsetService.selectedImplementation = plantronics;
     });
@@ -336,7 +336,7 @@ describe('HeadsetService', () => {
 
   describe('endAllCalls', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
       jest.spyOn(plantronics, 'endAllCalls').mockResolvedValue({});
       headsetService.selectedImplementation = plantronics;
     });
@@ -357,7 +357,7 @@ describe('HeadsetService', () => {
 
   describe('triggerDeviceAnsweredCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
     });
     it(
       'should send a headset event of type DEVICE_ANSWERED_CALL',
@@ -374,7 +374,7 @@ describe('HeadsetService', () => {
 
   describe('triggerDeviceRejectedCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
     });
     it(
       'should send a headset event of type DEVICE_REJECTED_CALL',
@@ -391,7 +391,7 @@ describe('HeadsetService', () => {
 
   describe('triggerDeviceEndedCall', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
     });
     it(
       'should send a headset event of type DEVICE_ENDED_CALL',
@@ -408,7 +408,7 @@ describe('HeadsetService', () => {
 
   describe('triggerDeviceMuteStatusChanged', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
     });
     it(
       'should send a headset event of type DEVICE_MUTE_STATUS_CHANGED',
@@ -425,7 +425,7 @@ describe('HeadsetService', () => {
 
   describe('triggerDeviceHoldStatusChanged', () => {
     beforeEach(() => {
-      headsetService = HeadsetService.getInstance();
+      headsetService = HeadsetService.getInstance({ logger: console });
     });
     it(
       'should send a headset event of type DEVICE_HOLD_STATUS_CHANGED',
