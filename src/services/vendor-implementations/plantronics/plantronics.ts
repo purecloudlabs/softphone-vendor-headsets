@@ -94,7 +94,7 @@ export default class PlantronicsService extends Implementation {
   }
 
   async _makeRequest(endpoint, isRetry) {
-    let plantronicsInstance = PlantronicsService.instance;
+    const plantronicsInstance = PlantronicsService.instance;
     return await fetchJsonp(`${this.apiHost}${endpoint}`)
       .then(response => {
         return response.json();
@@ -328,7 +328,7 @@ export default class PlantronicsService extends Implementation {
 
   answerCall(conversationId) {
     const halfEncodedCallIdString = `"Id":"${conversationId}"`;
-    let params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
+    const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     this.isActive = true;
     return this._makeRequestTask(`/CallServices/AnswerCall${encodeURI(params)}`);
@@ -360,7 +360,7 @@ export default class PlantronicsService extends Implementation {
 
   async setHold(conversationId, value) {
     const halfEncodedCallIdString = `"Id":"${conversationId}"`;
-    let params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
+    const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
     const response = await this._makeRequestTask(
       `/CallServices/${value ? 'HoldCall' : 'ResumeCall'}${encodeURI(params)}`
     );

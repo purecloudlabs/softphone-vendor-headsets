@@ -1,4 +1,4 @@
-import DeviceInfo from 'models/device-info';
+import DeviceInfo from '../../models/device-info';
 import HeadsetService from '../headset';
 
 export interface ImplementationConfig {
@@ -48,7 +48,8 @@ export default abstract class Implementation {
     return Promise.reject(new Error(`${this.vendorName} - disconnect() not implemented`));
   }
 
-  incomingCall(opts: {}): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  incomingCall(opts: any): Promise<any> {
     // TODO: propagate this changed parameter (used to be callInfo, but there are several differents signatures in the implementing classes)
     return Promise.reject(new Error(`${this.vendorName} - incomingCall() not implemented`));
   }

@@ -12,14 +12,14 @@ webappPipeline {
     }
     buildType = { (env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('release/')) ? 'MAINLINE' : 'FEATURE' }
     publishPackage = { 'prod' }
-    testJob = 'spigot-tests-webrtcsdk'
+    testJob = null
 
     buildStep = {
         sh('''
             export CDN_URL="$(npx cdn --ecosystem pc --name $APP_NAME --build $BUILD_ID --version $VERSION)"
             echo "CDN_URL $CDN_URL"
-            npm ci && npm test && npm run build
-            npm run build:sample
+            npm ci && npm run lint && npm test && npm run build
+            cd demo-app && npm ci && npm run build
         ''')
     }
 

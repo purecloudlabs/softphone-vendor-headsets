@@ -10,7 +10,7 @@ const websocketUri = 'wss://127.0.0.1:41088';
 export default class SennheiserService extends Implementation {
   private static instance: SennheiserService;
 
-  connectTimeout: number = 5000;
+  connectTimeout = 5000;
 
   vendorName = 'Sennheiser';
   isActive = false;
