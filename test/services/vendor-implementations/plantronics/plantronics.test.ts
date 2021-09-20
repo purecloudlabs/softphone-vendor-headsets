@@ -7,6 +7,11 @@ const testDevice: DeviceInfo = {
   ProductName: 'testDevice1',
 };
 
+const config: any = {
+  logger: console,
+  vendorName: 'Plantronics'
+}
+
 function resetService(plantronicsService: PlantronicsService) {
   plantronicsService.vendorName = 'Plantronics';
   plantronicsService.pluginName = 'emberApp2';
@@ -24,7 +29,7 @@ describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
 
   beforeEach(() => {
-    plantronicsService = PlantronicsService.getInstance();
+    plantronicsService = PlantronicsService.getInstance(config);
     resetService(plantronicsService);
   });
 
@@ -34,7 +39,7 @@ describe('PlantronicsService', () => {
     });
 
     it('should be a singleton', () => {
-      const plantronicsService2 = PlantronicsService.getInstance();
+      const plantronicsService2 = PlantronicsService.getInstance(config);
 
       expect(plantronicsService).not.toBeFalsy();
       expect(plantronicsService2).not.toBeFalsy();
@@ -66,8 +71,8 @@ describe('PlantronicsService', () => {
 
   describe('deviceLabelMatchesVendor', () => {
     beforeEach(() => {
-      plantronicsService = PlantronicsService.getInstance();
-      plantronicsService.Logger = mockLogger;
+      plantronicsService = PlantronicsService.getInstance(config);
+      plantronicsService.logger = mockLogger;
     });
     it('should return true when the device label contains the string "plantronics"', () => {
       let testLabel = 'plantronics headset';

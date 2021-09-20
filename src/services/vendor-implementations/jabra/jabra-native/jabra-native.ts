@@ -1,5 +1,5 @@
 import { debounce, timedPromise } from '../../../../utils';
-import Implementation from '../../Implementation';
+import Implementation, { ImplementationConfig } from '../../Implementation';
 import DeviceInfo from '../../../../models/device-info';
 import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
 import { JabraNativeEvent } from './jabra-native-event';
@@ -29,17 +29,17 @@ export default class JabraNativeService extends Implementation {
   ignoreNextOffhookEvent = false;
   _connectionInProgress: any; // { resolve: Function, reject: Function }
 
-  private constructor() {
-    super();
+  private constructor(config: ImplementationConfig) {
+    super(config);
     this.vendorName = 'Jabra';
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
     this.applicationService = ApplicationService.getInstance();
   }
 
-  static getInstance() {
+  static getInstance(config: ImplementationConfig) {
     if (!JabraNativeService.instance) {
-      JabraNativeService.instance = new JabraNativeService();
+      JabraNativeService.instance = new JabraNativeService(config);
     }
 
     return JabraNativeService.instance;
