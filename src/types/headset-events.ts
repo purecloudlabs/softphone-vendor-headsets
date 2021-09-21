@@ -4,8 +4,8 @@ export interface HeadsetEvents {
   deviceAnsweredCall: VendorEventWithInfo;
   deviceRejectedCall: VendorConversationIdEvent;
   deviceEndedCall: VendorEvent<any>;
-  deviceMuteChanged: VendorEvent<any>;
-  deviceHoldStatusChanged: VendorEvent<any>;
+  deviceMuteChanged: VendorMutedEvent;
+  deviceHoldStatusChanged: VendorHoldEvent;
   deviceEventLogs: VendorEvent<any>;
 }
 
@@ -19,9 +19,18 @@ export interface VendorConversationIdEvent extends VendorEvent<{ conversationId:
 };
 
 export interface EventInfo {
-  eventCode: string;
+  name: string;
+  code?: string;
+  event: any;
 }
 
-export interface VendorEventWithInfo extends VendorEvent<EventInfo> {
+export interface VendorEventWithInfo extends VendorEvent<EventInfo> { };
 
-};
+export interface VendorMutedEvent extends VendorEvent<EventInfo>{
+  isMuted: boolean;
+}
+
+export interface VendorHoldEvent extends VendorEvent<EventInfo> {
+  holdRequested: boolean;
+  toggle?: boolean;
+}

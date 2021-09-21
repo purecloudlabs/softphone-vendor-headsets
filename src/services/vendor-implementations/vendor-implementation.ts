@@ -1,6 +1,6 @@
 import DeviceInfo from '../../types/device-info';
 import StrictEventEmitter from 'strict-event-emitter-types';
-import { EventEmitter } from 'stream';
+import { EventEmitter } from 'events';
 import { HeadsetEvents } from '../../types/headset-events';
 
 type HeadsetEventName = keyof HeadsetEvents;

@@ -7,7 +7,7 @@ import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabr
 import ApplicationService from './application';
 import { HeadsetEvent, HeadsetEventName } from '../types/headset-event';
 import CallInfo from '../types/call-info';
-import { VendorConversationIdEvent, VendorEvent, VendorEventWithInfo } from '../types/headset-events';
+import { VendorConversationIdEvent, VendorEvent, VendorEventWithInfo, VendorHoldEvent, VendorMutedEvent } from '../types/headset-events';
 
 export default class HeadsetService {
   private static instance: HeadsetService;
@@ -72,7 +72,12 @@ export default class HeadsetService {
   };
 
   private subscribeToHeadsetEvents (implementation: VendorImplementation) {
+    implementation.on('deviceAnsweredCall', this.handleDeviceAnsweredCall.bind(this));
     implementation.on('deviceRejectedCall', this.handleDeviceRejectedCall.bind(this));
+    implementation.on('deviceEndedCall', this.handleDeviceEndedCall.bind(this));
+    implementation.on('deviceMuteChanged', this.handleDeviceMuteStatusChanged.bind(this));
+    implementation.on('deviceHoldStatusChanged', this.handleDeviceHoldStatusChanged.bind(this));
+    implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this))
   }
 
   // TODO: this function
@@ -90,7 +95,6 @@ export default class HeadsetService {
     if (implementation === this.selectedImplementation) {
       return;
     }
-    
 
     if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
@@ -194,22 +198,22 @@ export default class HeadsetService {
     );
   }
 
-  handleDeviceEndedCall(eventInfo) {
+  handleDeviceEndedCall(event: VendorEventWithInfo) {
     this.logger.info('Headset: device ended the call'); // TODO: Logger
-    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, eventInfo));
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, event.body));
   }
 
-  handleDeviceMuteStatusChanged(isMuted: boolean, eventInfo) {
-    this.logger.info('Headset: device mute status changed: ', isMuted); // TODO: Logger
+  handleDeviceMuteStatusChanged(event: VendorMutedEvent) {
+    this.logger.info('Headset: device mute status changed: ', event.isMuted); // TODO: Logger
     this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, eventInfo)
+      new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, event.body)
     );
   }
 
-  handleDeviceHoldStatusChanged({ holdRequested, toggle }, eventInfo) {
-    this.logger.info('Headset: device hold status changed', holdRequested); // TODO: Logger
+  handleDeviceHoldStatusChanged(event: VendorHoldEvent) {
+    this.logger.info('Headset: device hold status changed', event.holdRequested); // TODO: Logger
     this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, eventInfo)
+      new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, event.body)
     ); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
   }
 

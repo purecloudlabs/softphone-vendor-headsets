@@ -1,16 +1,10 @@
 import PlantronicsService from '../../../../src/services/vendor-implementations/plantronics/plantronics';
 import DeviceInfo from '../../../../src/types/device-info';
 import { mockLogger } from '../../test-utils';
-import { isFirefox } from 'utils';
 
 const testDevice: DeviceInfo = {
   ProductName: 'testDevice1',
 };
-
-const config: any = {
-  logger: console,
-  vendorName: 'Plantronics'
-}
 
 function resetService(plantronicsService: PlantronicsService) {
   plantronicsService.vendorName = 'Plantronics';
@@ -29,11 +23,7 @@ describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
 
   beforeEach(() => {
-<<<<<<< HEAD
-    plantronicsService = PlantronicsService.getInstance(config);
-=======
     plantronicsService = PlantronicsService.getInstance({ logger: console });
->>>>>>> ab571865acac9f966ae0cc69c407acd59e8c4598
     resetService(plantronicsService);
   });
 
@@ -43,11 +33,7 @@ describe('PlantronicsService', () => {
     });
 
     it('should be a singleton', () => {
-<<<<<<< HEAD
-      const plantronicsService2 = PlantronicsService.getInstance(config);
-=======
       const plantronicsService2 = PlantronicsService.getInstance({ logger: console });
->>>>>>> ab571865acac9f966ae0cc69c407acd59e8c4598
 
       expect(plantronicsService).not.toBeFalsy();
       expect(plantronicsService2).not.toBeFalsy();
@@ -79,11 +65,7 @@ describe('PlantronicsService', () => {
 
   describe('deviceLabelMatchesVendor', () => {
     beforeEach(() => {
-<<<<<<< HEAD
-      plantronicsService = PlantronicsService.getInstance(config);
-=======
       plantronicsService = PlantronicsService.getInstance({ logger: console });
->>>>>>> ab571865acac9f966ae0cc69c407acd59e8c4598
       plantronicsService.logger = mockLogger;
     });
     it('should return true when the device label contains the string "plantronics"', () => {
@@ -139,4 +121,32 @@ describe('PlantronicsService', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('pollForCallEvents', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    })
+    it('will not call getCallEventsSpy if proper flags are not met', () => {
+      const getCallEventsSpy = jest.spyOn(plantronicsService, 'getCallEvents');
+      const pollForCallEventsSpy = jest.spyOn(plantronicsService, 'pollForCallEvents');
+
+      expect(getCallEventsSpy).not.toHaveBeenCalled();
+      setTimeout(() => {
+        expect(pollForCallEventsSpy).toHaveBeenCalled();
+      }, plantronicsService.activePollingInterval);
+    })
+    it('will call getCallEventsSpy if proper flags are met', () => {
+      const getCallEventsSpy = jest.spyOn(plantronicsService, 'getCallEvents');
+      const pollForCallEventsSpy = jest.spyOn(plantronicsService, 'pollForCallEvents');
+      plantronicsService.isConnected = true;
+      plantronicsService.isActive = true;
+      plantronicsService.disableEventPolling = false;
+
+      plantronicsService.pollForCallEvents();
+
+      expect(getCallEventsSpy).toHaveBeenCalled();
+      setTimeout(() => {
+        expect(pollForCallEventsSpy).toHaveBeenCalled();
+      }, plantronicsService.activePollingInterval);    })
+  })
 });
