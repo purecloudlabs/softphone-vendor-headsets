@@ -1,16 +1,16 @@
-import Implementation from '../Implementation';
+import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
-import DeviceInfo from '../../../models/device-info';
+import DeviceInfo from '../../../types/device-info';
 import { SennheiserPayload } from './sennheiser-payload';
 import * as utils from '../../../utils';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 
-export default class SennheiserService extends Implementation {
+export default class SennheiserService extends VendorImplementation {
   private static instance: SennheiserService;
 
-  connectTimeout: number = 5000;
+  connectTimeout = 5000;
 
   vendorName = 'Sennheiser';
   isActive = false;
@@ -23,13 +23,9 @@ export default class SennheiserService extends Implementation {
   websocket = null;
   deviceInfo: DeviceInfo = null;
 
-  private constructor() {
-    super();
-  }
-
-  static getInstance() {
+  static getInstance(config: ImplementationConfig) {
     if (!SennheiserService.instance) {
-      SennheiserService.instance = new SennheiserService();
+      SennheiserService.instance = new SennheiserService(config);
     }
 
     return SennheiserService.instance;
@@ -48,14 +44,14 @@ export default class SennheiserService extends Implementation {
   }
 
   _handleError(payload: SennheiserPayload): void {
-    this.Logger.error('Non-zero return code from sennheiser', payload);
+    this.logger.error('Non-zero return code from sennheiser', payload);
   }
   _handleAck(payload: SennheiserPayload): void {
-    this.Logger.debug(`Received Ack for ${payload.Event}`);
+    this.logger.debug(`Received Ack for ${payload.Event}`);
   }
 
   _sendMessage(payload: SennheiserPayload): void {
-    this.Logger.debug('sending sennheiser message', payload);
+    this.logger.debug('sending sennheiser message', payload);
     this.websocket.send(JSON.stringify(payload));
   }
 
@@ -89,16 +85,16 @@ export default class SennheiserService extends Implementation {
 
   webSocketOnOpen = (): void => {
     this.websocketConnected = true;
-    this.Logger.info('websocket open the sennheiser software');
+    this.logger.info('websocket open the sennheiser software');
   };
 
   webSocketOnClose(err: any): void {
     this.websocketConnected = false;
     if (!err.wasClean) {
-      this.Logger.error(err);
+      this.logger.error(err);
     }
     if (!this.isConnected) {
-      this.Logger.error(
+      this.logger.error(
         new Error('Failed to connect to sennheiser software. Make sure it is installed')
       );
       if (utils.isFirefox()) {
@@ -133,7 +129,7 @@ export default class SennheiserService extends Implementation {
       [callId]: conversationId,
     };
 
-    this.Logger.info('Created callId mapping for sennheiser headset', {
+    this.logger.info('Created callId mapping for sennheiser headset', {
       conversationId,
       sennheiserCallId: callId,
     });
@@ -196,7 +192,7 @@ export default class SennheiserService extends Implementation {
     const callId = this.callMappings[conversationId];
 
     if (!callId) {
-      this.Logger.info('Failed to find sennheiser callId, assuming call was already ended');
+      this.logger.info('Failed to find sennheiser callId, assuming call was already ended');
       return Promise.resolve();
     }
 
@@ -210,7 +206,7 @@ export default class SennheiserService extends Implementation {
   }
 
   endAllCalls(): Promise<void> {
-    this.Logger.warn('There is no functionality defined for SennheiserService.endAllCalls()');
+    this.logger.warn('There is no functionality defined for SennheiserService.endAllCalls()');
     return Promise.resolve();
   }
 
@@ -219,11 +215,11 @@ export default class SennheiserService extends Implementation {
     try {
       payload = JSON.parse(message.data);
     } catch (err) {
-      this.Logger.error(err);
-      this.Logger.error('Failed to parse sennheiser payload', { message });
+      this.logger.error(err);
+      this.logger.error('Failed to parse sennheiser payload', { message });
       return;
     }
-    this.Logger.debug('incoming sennheiser message', payload);
+    this.logger.debug('incoming sennheiser message', payload);
 
     if (payload.ReturnCode) {
       this._handleError(payload);
@@ -270,7 +266,7 @@ export default class SennheiserService extends Implementation {
         break;
       case SennheiserEvents.IncomingCallAccepted:
         if (payload.EventType === SennheiserEventTypes.Notification) {
-          this.deviceAnsweredCall();
+          this.deviceAnsweredCall({name: payload.Event});
         }
 
         break;
@@ -279,20 +275,20 @@ export default class SennheiserService extends Implementation {
           this._handleAck(payload);
           break;
         }
-        this.deviceHoldStatusChanged(true);
+        this.deviceHoldStatusChanged(true, {name: payload.Event});
         break;
       case SennheiserEvents.Resume:
         if (payload.EventType === SennheiserEventTypes.Ack) {
           this._handleAck(payload);
           break;
         }
-        this.deviceHoldStatusChanged(false);
+        this.deviceHoldStatusChanged(false, {name: payload.Event});
         break;
       case SennheiserEvents.MuteFromHeadset:
-        this.deviceMuteChanged(true);
+        this.deviceMuteChanged(true, {name: payload.Event});
         break;
       case SennheiserEvents.UnmuteFromHeadset:
-        this.deviceMuteChanged(false);
+        this.deviceMuteChanged(false, {name: payload.Event});
         break;
       case SennheiserEvents.CallEnded:
         // clean up mappings
@@ -300,7 +296,7 @@ export default class SennheiserService extends Implementation {
         delete this.callMappings[conversationId];
 
         if (payload.EventType === SennheiserEventTypes.Notification) {
-          this.deviceEndedCall();
+          this.deviceEndedCall({name: payload.Event});
         }
         break;
       case SennheiserEvents.IncomingCallRejected:

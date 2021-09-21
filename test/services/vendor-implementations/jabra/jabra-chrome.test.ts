@@ -1,5 +1,5 @@
 import JabraChromeService from '../../../../src/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import DeviceInfo from '../../../../src/models/device-info';
+import DeviceInfo from '../../../../src/types/device-info';
 import { mockLogger } from '../../test-utils';
 import { JabraChromeCommands } from '../../../../src/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-commands';
 import { Subscription } from 'rxjs';
@@ -32,8 +32,8 @@ function resetJabraChromeService(service: JabraChromeService): void {
   service.isActive = false;
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
-  service.Logger = mockLogger;
-  service.logHeadsetEvents = false;
+  service.logger = mockLogger;
+  Object.defineProperty(service, 'logHeadsetEvents', { get: () => false });
   service._connectDeferred = null;
 }
 
@@ -47,7 +47,7 @@ describe('JabraChromeService', () => {
   let jabraChromeService: JabraChromeService;
 
   beforeEach(() => {
-    jabraChromeService = JabraChromeService.getInstance();
+    jabraChromeService = JabraChromeService.getInstance({ logger: console });
     resetJabraChromeService(jabraChromeService);
   });
 
@@ -58,7 +58,7 @@ describe('JabraChromeService', () => {
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-      const jabraChromeService2 = JabraChromeService.getInstance();
+      const jabraChromeService2 = JabraChromeService.getInstance({ logger: console });
 
       expect(jabraChromeService).not.toBeFalsy();
       expect(jabraChromeService2).not.toBeFalsy();
