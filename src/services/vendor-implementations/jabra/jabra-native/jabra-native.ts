@@ -1,6 +1,6 @@
 import { debounce, timedPromise } from '../../../../utils';
-import Implementation, { ImplementationConfig } from '../../Implementation';
-import DeviceInfo from '../../../../models/device-info';
+import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
+import DeviceInfo from '../../../../types/device-info';
 import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
 import { JabraNativeEvent } from './jabra-native-event';
 import { JabraNativeCommands } from './jabra-native-commands';
@@ -13,7 +13,7 @@ const JabraDeviceAttached = 'JabraDeviceAttached';
 const connectTimeout = 5000;
 const offHookThrottleTime = 500;
 
-export default class JabraNativeService extends Implementation {
+export default class JabraNativeService extends VendorImplementation {
   private static instance: JabraNativeService;
 
   applicationService: ApplicationService;

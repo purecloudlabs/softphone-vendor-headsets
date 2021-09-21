@@ -1,14 +1,14 @@
 import fetchJsonp from 'fetch-jsonp';
-import Implementation, { ImplementationConfig } from '../Implementation';
+import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import { PlantronicsCallEvents } from './plantronics-call-events';
 import browserama from 'browserama';
-import DeviceInfo from '../../../models/device-info';
+import DeviceInfo from '../../../types/device-info';
 
 /**
  * TODO:  This looks like a feasible way to implement the polling we need
  *        https://makeitnew.io/polling-using-rxjs-8347d05e9104
  *  */
-export default class PlantronicsService extends Implementation {
+export default class PlantronicsService extends VendorImplementation {
   private static instance: PlantronicsService;
   activePollingInterval = 2000;
   connectedDeviceInterval = 6000;
@@ -94,7 +94,7 @@ export default class PlantronicsService extends Implementation {
   }
 
   async _makeRequest(endpoint, isRetry) {
-    let plantronicsInstance = PlantronicsService.instance;
+    const plantronicsInstance = PlantronicsService.instance;
     return await fetchJsonp(`${this.apiHost}${endpoint}`)
       .then(response => {
         return response.json();
@@ -328,7 +328,7 @@ export default class PlantronicsService extends Implementation {
 
   answerCall(conversationId) {
     const halfEncodedCallIdString = `"Id":"${conversationId}"`;
-    let params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
+    const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     this.isActive = true;
     return this._makeRequestTask(`/CallServices/AnswerCall${encodeURI(params)}`);
@@ -360,7 +360,7 @@ export default class PlantronicsService extends Implementation {
 
   async setHold(conversationId, value) {
     const halfEncodedCallIdString = `"Id":"${conversationId}"`;
-    let params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
+    const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
     const response = await this._makeRequestTask(
       `/CallServices/${value ? 'HoldCall' : 'ResumeCall'}${encodeURI(params)}`
     );

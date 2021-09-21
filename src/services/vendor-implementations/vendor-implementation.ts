@@ -1,15 +1,18 @@
-import DeviceInfo from 'models/device-info';
-import HeadsetService from '../headset';
+import DeviceInfo from '../../types/device-info';
+import StrictEventEmitter from 'strict-event-emitter-types';
+import { EventEmitter } from 'stream';
+import { HeadsetEvents } from '../../types/headset-events';
+
+type HeadsetEventName = keyof HeadsetEvents;
 
 export interface ImplementationConfig {
   logger: any;
   vendorName?: string;
+  logHeadsetEvents?: boolean;
 }
 
-export default abstract class Implementation {
+export abstract class VendorImplementation {
   // TODO: rename this to something more descriptive
-  headsetService: HeadsetService;
-  currentHeadset: Implementation;
   vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
   isConnected = false; // represents a connection to the headset controlling software, ex: plantronics hub
@@ -20,14 +23,22 @@ export default abstract class Implementation {
   config: ImplementationConfig;
 
   constructor(config: ImplementationConfig) {
+    const eventEmitter = new EventEmitter();
+    Object.keys((eventEmitter as any).__proto__).forEach((name) => {
+      this[name] = eventEmitter[name];
+    });
+
     this.config = config;
     this.vendorName = config.vendorName;
     this.logger = config.logger;
-    this.currentHeadset = null;
   }
 
   get logHeadsetEvents(): boolean {
-    return HeadsetService.getInstance(this.config).logHeadsetEvents;
+    if (typeof this.config.logHeadsetEvents === 'undefined' || this.config.logHeadsetEvents === null) {
+      return true;
+    }
+
+    return this.config.logHeadsetEvents;
   }
 
   get isDeviceAttached(): boolean {
@@ -48,7 +59,8 @@ export default abstract class Implementation {
     return Promise.reject(new Error(`${this.vendorName} - disconnect() not implemented`));
   }
 
-  incomingCall(opts: {}): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  incomingCall(opts: any): Promise<any> {
     // TODO: propagate this changed parameter (used to be callInfo, but there are several differents signatures in the implementing classes)
     return Promise.reject(new Error(`${this.vendorName} - incomingCall() not implemented`));
   }
@@ -77,35 +89,37 @@ export default abstract class Implementation {
     return Promise.reject(new Error(`${this.vendorName} - setHold() not implemented`));
   }
 
+  private emitEvent(eventName: HeadsetEventName, eventBody: any) {
+    this.emit(eventName, { vendor: this, ...eventBody })
+  }
+
   deviceAnsweredCall(eventInfo?: any): void {
-    HeadsetService.getInstance(this.config).triggerDeviceAnsweredCall(eventInfo);
+    this.emitEvent('deviceAnsweredCall', eventInfo);
   }
 
   deviceRejectedCall(conversationId: string) {
-    HeadsetService.getInstance(this.config).triggerDeviceRejectedCall(conversationId);
+    this.emitEvent('deviceRejectedCall', conversationId);
   }
 
   deviceEndedCall(eventInfo?: any): void {
-    HeadsetService.getInstance(this.config).triggerDeviceEndedCall(eventInfo);
+    this.emitEvent('deviceEndedCall', eventInfo);
   }
 
   deviceMuteChanged(isMuted: boolean, eventInfo?: any): void {
-    HeadsetService.getInstance(this.config).triggerDeviceMuteStatusChanged(isMuted, eventInfo);
+    this.emitEvent('deviceMuteChanged', { isMuted, eventInfo });
   }
 
   deviceHoldStatusChanged(holdRequested: boolean, eventInfo?: any, toggle?: any): void {
-    HeadsetService.getInstance(this.config).triggerDeviceHoldStatusChanged(
-      { holdRequested, toggle },
-      eventInfo
-    );
+    this.emitEvent('deviceHoldStatusChanged', { holdRequested, eventInfo, toggle });
   }
 
-  deviceEventLogs(eventInfo): void {
-    HeadsetService.getInstance(this.config).triggerDeviceLogs(eventInfo);
+  deviceEventLogs(eventInfo: any): void {
+    this.emitEvent('deviceEventLogs', eventInfo);
   }
-
   // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {
   //   // this.headsetService.triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId});
   //   // HeadsetService.getInstance().triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId})
   // }
 }
+
+export interface VendorImplementation extends StrictEventEmitter<EventEmitter, HeadsetEvents> { };

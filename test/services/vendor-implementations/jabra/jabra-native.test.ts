@@ -1,5 +1,5 @@
 import JabraNativeService from '../../../../src/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import DeviceInfo from '../../../../src/models/device-info';
+import DeviceInfo from '../../../../src/types/device-info';
 import { mockLogger } from '../../test-utils';
 import { JabraNativeEvent } from '../../../../src/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
 import { JabraNativeEventNames } from '../../../../src/services/vendor-implementations/jabra/jabra-native/jabra-native-events';
@@ -17,7 +17,7 @@ function resetJabraNativeService(service: JabraNativeService) {
   service.isActive = false;
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
-  service.Logger = mockLogger;
+  service.logger = mockLogger;
   service.ignoreNextOffhookEvent = false;
   service._connectionInProgress = null;
 }
@@ -36,7 +36,7 @@ describe('JabraNativeService', () => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
 
-    jabraNativeService = JabraNativeService.getInstance();
+    jabraNativeService = JabraNativeService.getInstance({ logger: console });
     resetJabraNativeService(jabraNativeService);
 
     applicationService = ApplicationService.getInstance();
@@ -44,7 +44,7 @@ describe('JabraNativeService', () => {
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-      const jabraNativeService2 = JabraNativeService.getInstance();
+      const jabraNativeService2 = JabraNativeService.getInstance({ logger: console });
 
       expect(jabraNativeService).not.toBeFalsy();
       expect(jabraNativeService2).not.toBeFalsy();

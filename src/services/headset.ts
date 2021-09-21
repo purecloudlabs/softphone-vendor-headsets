@@ -1,28 +1,28 @@
 import { Observable, BehaviorSubject } from 'rxjs';
-import Implementation from './vendor-implementations/Implementation';
+import { VendorImplementation } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import ApplicationService from './application';
-import { HeadsetEvent, HeadsetEventName } from '../models/headset-event';
-import CallInfo from '../models/call-info';
+import { HeadsetEvent, HeadsetEventName } from '../types/headset-event';
+import CallInfo from '../types/call-info';
+import { VendorConversationIdEvent, VendorEvent, VendorEventWithInfo } from '../types/headset-events';
 
 export default class HeadsetService {
   private static instance: HeadsetService;
 
-  public plantronics: Implementation;
-  public jabraChrome: Implementation;
-  public jabraNative: Implementation;
-  public sennheiser: Implementation;
-
-  public application: ApplicationService;
-  public selectedImplementation: Implementation;
-  private _implementations: Implementation[];
+  plantronics: VendorImplementation;
+  jabraChrome: VendorImplementation;
+  jabraNative: VendorImplementation;
+  sennheiser: VendorImplementation;
+  application: ApplicationService;
+  selectedImplementation: VendorImplementation;
+  headsetEvents: Observable<HeadsetEvent>;
+  logHeadsetEvents: boolean;
 
   private $headsetEvents: BehaviorSubject<HeadsetEvent>;
-  public headsetEvents: Observable<HeadsetEvent>;
-  public logHeadsetEvents: boolean;
+  private _implementations: VendorImplementation[];
   private logger: any;
 
   private constructor(config: any) {
@@ -40,6 +40,9 @@ export default class HeadsetService {
     this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
+
+    [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser]
+      .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance(config: any) {
@@ -50,8 +53,8 @@ export default class HeadsetService {
     return HeadsetService.instance;
   }
 
-  get implementations(): Implementation[] {
-    const implementations: Implementation[] = [];
+  get implementations(): VendorImplementation[] {
+    const implementations: VendorImplementation[] = [];
     if (this.application.hostedContext.supportsJabra()) {
       implementations.push(
         this.application.hostedContext.isHosted() ? this.jabraNative : this.jabraChrome
@@ -68,6 +71,10 @@ export default class HeadsetService {
     return this.$headsetEvents;
   };
 
+  private subscribeToHeadsetEvents (implementation: VendorImplementation) {
+    implementation.on('deviceRejectedCall', this.handleDeviceRejectedCall.bind(this));
+  }
+
   // TODO: this function
   // _handleActiveMicChange: observer('implementations.[]', 'webrtc.defaultMicrophone', function () {
   //   const label = this.get('webrtc.defaultMicrophone.label');
@@ -79,10 +86,11 @@ export default class HeadsetService {
 
   // if possible, this should return information about the device
   // if not possible, return { deviceInfo: null }
-  changeImplementation(implementation: Implementation): void {
+  changeImplementation(implementation: VendorImplementation): void {
     if (implementation === this.selectedImplementation) {
       return;
     }
+    
 
     if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
@@ -166,31 +174,39 @@ export default class HeadsetService {
     return this.selectedImplementation.endAllCalls();
   }
 
-  triggerDeviceAnsweredCall(eventInfo) {
+  handleDeviceAnsweredCall(event: VendorEventWithInfo) {
+    if (event.vendor !== this.selectedImplementation) {
+      return;
+    }
+
     this.logger.info('Headset: device answered the call'); // TODO: Logger
-    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ANSWERED_CALL, eventInfo));
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ANSWERED_CALL, event.body));
   }
 
-  triggerDeviceRejectedCall(conversationId) {
+  handleDeviceRejectedCall(event: VendorConversationIdEvent) {
+    if (event.vendor !== this.selectedImplementation) {
+      return;
+    }
+
     this.logger.info('Headset: device rejected the call'); // TODO: Logger
     this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.DEVICE_REJECTED_CALL, conversationId)
+      new HeadsetEvent(HeadsetEventName.DEVICE_REJECTED_CALL, event.body.conversationId)
     );
   }
 
-  triggerDeviceEndedCall(eventInfo) {
+  handleDeviceEndedCall(eventInfo) {
     this.logger.info('Headset: device ended the call'); // TODO: Logger
     this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, eventInfo));
   }
 
-  triggerDeviceMuteStatusChanged(isMuted: boolean, eventInfo) {
+  handleDeviceMuteStatusChanged(isMuted: boolean, eventInfo) {
     this.logger.info('Headset: device mute status changed: ', isMuted); // TODO: Logger
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, eventInfo)
     );
   }
 
-  triggerDeviceHoldStatusChanged({ holdRequested, toggle }, eventInfo) {
+  handleDeviceHoldStatusChanged({ holdRequested, toggle }, eventInfo) {
     this.logger.info('Headset: device hold status changed', holdRequested); // TODO: Logger
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, eventInfo)
@@ -200,7 +216,7 @@ export default class HeadsetService {
   /* This function has no functional purpose in a real life example
    * It is here to help log all events in the call process at least for Plantronics
    */
-  triggerDeviceLogs(eventInfo) {
+  handleDeviceLogs(eventInfo) {
     this.$headsetEvents.next(new HeadsetEvent('loggableEvent' as HeadsetEventName, eventInfo));
   }
 

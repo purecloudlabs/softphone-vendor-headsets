@@ -4,8 +4,8 @@ import PlantronicsService from '../../src/services/vendor-implementations/plantr
 import SennheiserService from '../../src/services/vendor-implementations/sennheiser/sennheiser';
 import JabraChromeService from '../../src/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from '../../src/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import { HeadsetEventName } from '../../src/models/headset-event';
-import CallInfo from '../../src/models/call-info';
+import { HeadsetEventName } from '../../src/types/headset-event';
+import CallInfo from '../../src/types/call-info';
 import ApplicationService from '../../src/services/application';
 
 describe('HeadsetService', () => {
