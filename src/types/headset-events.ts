@@ -1,7 +1,7 @@
 import { VendorImplementation } from "../services/vendor-implementations/vendor-implementation";
 
 export interface HeadsetEvents {
-  deviceAnsweredCall: VendorEventWithInfo;
+  deviceAnsweredCall: VendorEvent<EventInfo>;
   deviceRejectedCall: VendorConversationIdEvent;
   deviceEndedCall: VendorEvent<any>;
   deviceMuteChanged: VendorMutedEvent;
@@ -15,7 +15,6 @@ export interface VendorEvent<Type> {
 }
 
 export interface VendorConversationIdEvent extends VendorEvent<{ conversationId: string}> {
-
 };
 
 export interface EventInfo {
@@ -23,8 +22,6 @@ export interface EventInfo {
   code?: string;
   event: any;
 }
-
-export interface VendorEventWithInfo extends VendorEvent<EventInfo> { };
 
 export interface VendorMutedEvent extends VendorEvent<EventInfo>{
   isMuted: boolean;

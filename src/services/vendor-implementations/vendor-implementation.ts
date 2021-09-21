@@ -106,11 +106,11 @@ export abstract class VendorImplementation {
   }
 
   deviceMuteChanged(isMuted: boolean, eventInfo?: any): void {
-    this.emitEvent('deviceMuteChanged', { isMuted, eventInfo });
+    this.emitEvent('deviceMuteChanged', { isMuted, ...eventInfo });
   }
 
   deviceHoldStatusChanged(holdRequested: boolean, eventInfo?: any, toggle?: any): void {
-    this.emitEvent('deviceHoldStatusChanged', { holdRequested, eventInfo, toggle });
+    this.emitEvent('deviceHoldStatusChanged', { holdRequested, ...eventInfo, toggle });
   }
 
   deviceEventLogs(eventInfo: any): void {
