@@ -1,5 +1,5 @@
 import PlantronicsService from '../../../../src/services/vendor-implementations/plantronics/plantronics';
-import DeviceInfo from '../../../../src/models/device-info';
+import DeviceInfo from '../../../../src/types/device-info';
 import { mockLogger } from '../../test-utils';
 import { isFirefox } from 'utils';
 
@@ -15,7 +15,7 @@ const config: any = {
 function resetService(plantronicsService: PlantronicsService) {
   plantronicsService.vendorName = 'Plantronics';
   plantronicsService.pluginName = 'emberApp2';
-  plantronicsService.deviceInfo = null;
+  plantronicsService._deviceInfo = null;
   plantronicsService.activePollingInterval = 2000;
   plantronicsService.connectedDeviceInterval = 6000;
   plantronicsService.disconnectedDeviceInterval = 2000;
@@ -29,7 +29,11 @@ describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
 
   beforeEach(() => {
+<<<<<<< HEAD
     plantronicsService = PlantronicsService.getInstance(config);
+=======
+    plantronicsService = PlantronicsService.getInstance({ logger: console });
+>>>>>>> ab571865acac9f966ae0cc69c407acd59e8c4598
     resetService(plantronicsService);
   });
 
@@ -39,7 +43,11 @@ describe('PlantronicsService', () => {
     });
 
     it('should be a singleton', () => {
+<<<<<<< HEAD
       const plantronicsService2 = PlantronicsService.getInstance(config);
+=======
+      const plantronicsService2 = PlantronicsService.getInstance({ logger: console });
+>>>>>>> ab571865acac9f966ae0cc69c407acd59e8c4598
 
       expect(plantronicsService).not.toBeFalsy();
       expect(plantronicsService2).not.toBeFalsy();
@@ -49,7 +57,7 @@ describe('PlantronicsService', () => {
 
   describe('deviceName', () => {
     it('should return the value of deviceInfo.ProductName', () => {
-      plantronicsService.deviceInfo = testDevice;
+      plantronicsService._deviceInfo = testDevice;
       const result = plantronicsService.deviceName;
       expect(result).toEqual(testDevice.ProductName);
     });
@@ -71,7 +79,11 @@ describe('PlantronicsService', () => {
 
   describe('deviceLabelMatchesVendor', () => {
     beforeEach(() => {
+<<<<<<< HEAD
       plantronicsService = PlantronicsService.getInstance(config);
+=======
+      plantronicsService = PlantronicsService.getInstance({ logger: console });
+>>>>>>> ab571865acac9f966ae0cc69c407acd59e8c4598
       plantronicsService.logger = mockLogger;
     });
     it('should return true when the device label contains the string "plantronics"', () => {

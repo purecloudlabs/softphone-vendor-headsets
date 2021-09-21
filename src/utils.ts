@@ -32,16 +32,14 @@ export function timedPromise(
   return Promise.race([promise, timeoutPromise]);
 }
 
-export function debounce(func: Function, delay: number) {
+export function debounce(func: () => void, delay: number) {
   let timer = null;
 
   return function() {
-    const args = arguments;
-
     clearTimeout(timer);
 
     timer = setTimeout(function() {
-      func.apply(null, args);
+      func();
     }, delay);
   };
 }

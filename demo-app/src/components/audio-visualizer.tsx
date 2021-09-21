@@ -1,19 +1,20 @@
-import React, {useEffect} from 'react';
+import React = require('react');
+import {useEffect} from 'react';
 
 const AudioVisualizer = props => {
     const {audioStream} = props;
     const backgroundColor = '#F5FCFF';
     const lineColor = '#4F7787';
 
-    let canvasEl = null;
-    let canvasContext = null;
-    let currentAnimationFrame = null;
+    let canvasEl: HTMLCanvasElement;
+    let canvasContext: any;
+    let currentAnimationFrame: any;
     let hasStarted = false;
-    let audioContext = null;
+    let audioContext: any = null;
 
 
     useEffect(() => {
-        const canvas = document.getElementById('audioVisualizer');
+        const canvas = document.getElementById('audioVisualizer') as HTMLCanvasElement;
         canvasEl = canvas;
         canvasContext = canvas.getContext('2d');
 
@@ -51,7 +52,7 @@ const AudioVisualizer = props => {
     }
 
     const _visualizeAudio = (stream) => {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const windowAudioContext = new AudioContext();
         audioContext = windowAudioContext;
         const analyzer = windowAudioContext.createAnalyser();

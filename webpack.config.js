@@ -1,51 +1,62 @@
-const { readFileSync, readFile } = require('fs');
-const yargs = require('yargs/yargs');
-const webpack = require('webpack');
+const path = require('path');
 
-const argv = {...yargs(process.argv).argv };
+module.exports = (env) => {
+  const minimize = env && env.production;
+  const mode = minimize ? 'production' : 'development';
 
-delete argv._;
-delete argv['$0'];
-console.log('Building with arguments:', argv);
+  let filename = 'softhphone-vendor-headsets';
+  let babelExcludes = [];
+  let babelOptions;
+  let externals = [];
 
-if (!argv.deployUrl) {
-    if (argv.prod) {
-        console.error(
-            'Attempting to make a production build without a `deployUrl`.' +
-            'Please pass in a `deployUrl` for production builds.\n' +
-            '   Example: `npm run build:prod -- --deployUrl=https://cdn.com/my-app/`\n\n' +
-            'Provided build arguments', argv
-        );
-        process.exit(1);
-    }
-}
+  /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
+  babelExcludes = [/node_modules\/(?!(core\-util\-is)).*/];
 
-if (argv.deployUrl && !argv.deployUrl.endsWith('/')) {
-    console.error(
-        '`deployUrl` must end with a trailing backlash (`/`). \n\n' +
-        'Provided build arguments: ', argv
-    );
-    process.exit(1);
-}
+  babelOptions = {
+    sourceType: 'unambiguous',
+    presets: [
+      '@babel/preset-env',
+      '@babel/preset-typescript'
+    ],
+    plugins: [
+      '@babel/plugin-proposal-class-properties'
+    ]
+  };
 
-module.exports = {
-    node: {
-        fs: 'empty'
+  filename += minimize ? '.min.js' : '.js';
+
+  console.log(`build mode: ${mode}`);
+
+  return {
+    target: 'web',
+    entry: './src/index.ts',
+    mode,
+    optimization: {
+      minimize
+    },
+    externals,
+    devtool: 'source-map',
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename,
+      library: 'SoftphoneVendorHeadsets',
+      // TODO: exporting the SDK class here does not allow CDN imports access to any
+      //  other files/modules of this lib. See: https://inindca.atlassian.net/browse/PCM-1708
+      libraryExport: '',
+      libraryTarget: 'umd'
     },
     resolve: {
-        alias: {
-            '@app': 'src/app',
-            '@environments': 'src/environments',
-            '@guards': 'src/app/core/guards',
-            '@interceptors': 'src/app/core/interceptors',
-            '@repositories': 'src/app/core/repositories',
-            '@services': 'src/app/core/services',
-            '@shared': 'src/app/shared'
-        }
+      extensions: ['.ts', '.js', '.cjs', '.mjs', '.json']
     },
-    plugins: [
-        new webpack.DefinePlugin({
-            __CDN_URL__: JSON.stringify(argv.deployUrl || '')
-        })
-    ]
-}
+    module: {
+      rules: [
+        {
+          test: /\.(cjs|mjs|js|ts)$/,
+          loader: 'babel-loader',
+          exclude: babelExcludes,
+          options: babelOptions
+        }
+      ]
+    }
+  };
+};
