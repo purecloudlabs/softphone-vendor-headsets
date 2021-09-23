@@ -25,7 +25,6 @@
     "strictNullChecks": false,
     "strictBindCallApply": true,
     "noImplicitThis": false,
-    "baseUrl": "./src/types",
     "types": [
       "node",
       "jest",
