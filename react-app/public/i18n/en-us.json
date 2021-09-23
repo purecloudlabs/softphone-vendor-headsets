@@ -1,0 +1,38 @@
+{
+    "dummy": {
+        "currentMicrophone": "Current Microphone",
+        "noMatch": "Microphone selection does not match an integration",
+        "controlInstructions": "Control simulated calls with these buttons and the buttons on your headset",
+        "environment": {
+            "native": "Environment: Native App",
+            "browser": "Environment: Browser"
+        },
+        "button": {
+            "simulateCall": "Simulate Incoming Call",
+            "answer": "Answer",
+            "mute": "Mute",
+            "unmute": "Unmute",
+            "resume": "Resume",
+            "hold": "Hold",
+            "endCall": {
+                "endCurrentCall": "End Current Call",
+                "endAllCalls": "End All Calls"
+            }
+        },
+        "currentCall": {
+            "callState": "Call State",
+            "contactName": "Contact Name",
+            "ringing": "Ringing",
+            "connected": "Connected",
+            "muted": "Mute State",
+            "held": "On Hold",
+            "noCall": "No Call"
+        },
+        "connectionStatus": {
+            "error": "Error occurred while establishing connection",
+            "connecting": "Implementation Connecting",
+            "connected": "Implementation Connected & Running",
+            "notRunning": "Implementation is not Running"
+        }
+    }
+}

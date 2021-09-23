@@ -1,0 +1,44 @@
+{
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./test/**/*"
+  ],
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
+    "lib": [
+      "es6",
+      "dom",
+      "ES2017"
+    ],
+    "moduleResolution": "node",
+    "declaration": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "outDir": "./dist/cjs",
+    "rootDir": "./src",
+    "downlevelIteration": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictBindCallApply": true,
+    "noImplicitThis": false,
+    "types": [
+      "node",
+      "jest",
+      "lodash",
+      "uuid"
+    ],
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "noEmit": true
+  }
+}
