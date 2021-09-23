@@ -1,6 +1,6 @@
 import { debounce, timedPromise } from '../../../../utils';
-import Implementation, { ImplementationConfig } from '../../Implementation';
-import DeviceInfo from '../../../../models/device-info';
+import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
+import DeviceInfo from '../../../../types/device-info';
 import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
 import { JabraNativeEvent } from './jabra-native-event';
 import { JabraNativeCommands } from './jabra-native-commands';
@@ -13,7 +13,7 @@ const JabraDeviceAttached = 'JabraDeviceAttached';
 const connectTimeout = 5000;
 const offHookThrottleTime = 500;
 
-export default class JabraNativeService extends Implementation {
+export default class JabraNativeService extends VendorImplementation {
   private static instance: JabraNativeService;
 
   applicationService: ApplicationService;
@@ -70,12 +70,12 @@ export default class JabraNativeService extends Implementation {
   }
 
   handleJabraDeviceAttached({ deviceName, deviceId, attached }): void {
-    this.Logger.debug('handling jabra attach/detach event', { deviceName, deviceId, attached });
+    this.logger.debug('handling jabra attach/detach event', { deviceName, deviceId, attached });
     this.updateDevices();
   }
 
   handleJabraEvent({ eventName, value }: JabraNativeEvent): void {
-    this.Logger.debug('handling jabra event', { eventName, value });
+    this.logger.debug('handling jabra event', { eventName, value });
     this._processEvent(eventName, value);
   }
 
@@ -114,7 +114,7 @@ export default class JabraNativeService extends Implementation {
 
   _sendCmd(cmd: JabraNativeCommands, value): void {
     const deviceId = this.activeDeviceId;
-    this.Logger.debug('Sending command to headset', { deviceId, cmd, value });
+    this.logger.debug('Sending command to headset', { deviceId, cmd, value });
     this.applicationService.hostedContext.sendJabraEventToDesktop(deviceId, cmd, value);
   }
 
@@ -184,11 +184,11 @@ export default class JabraNativeService extends Implementation {
           this.devices.clear();
           this.activeDeviceId = null;
 
-          this.Logger.error(new Error('No attached jabra devices'));
+          this.logger.error(new Error('No attached jabra devices'));
           return;
         }
 
-        this.Logger.info('connected jabra devices', data);
+        this.logger.info('connected jabra devices', data);
         this.devices.clear();
         data.forEach(device => this.devices.set(device.deviceID, device));
         this.activeDeviceId = data[0].deviceID;
@@ -198,7 +198,7 @@ export default class JabraNativeService extends Implementation {
         this.setMute(false);
       })
       .catch(err => {
-        this.Logger.error('Failed to connect to jabra', err);
+        this.logger.error('Failed to connect to jabra', err);
         this.disconnect();
       });
   }
@@ -231,7 +231,7 @@ export default class JabraNativeService extends Implementation {
     context.on(JabraDeviceAttached, this.deviceAttachedHandler);
 
     return timedPromise(this.updateDevices(), connectTimeout).catch(err => {
-      this.Logger.error('Failed to connect to Jabra', err);
+      this.logger.error('Failed to connect to Jabra', err);
     });
   }
 

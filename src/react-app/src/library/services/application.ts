@@ -14,10 +14,10 @@ const hostedContext = {
   requestJabraDevices: (): Promise<any> => {
     return Promise.resolve({});
   },
-  off: (eventName: string, handler: Function): void => {
+  off: (eventName: string, handler: (...params: any[]) => void): null => {
     return null;
   },
-  on: (eventName: string, handler: Function): void => {
+  on: (eventName: string, handler: (...params: any[]) => void): null => {
     return null;
   },
 };
@@ -26,6 +26,7 @@ export default class ApplicationService {
   static instance: ApplicationService;
   public hostedContext = hostedContext;
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
   static getInstance(): ApplicationService {

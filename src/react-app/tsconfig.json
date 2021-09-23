@@ -1,28 +1,45 @@
 {
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./test/**/*"
+  ],
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
+    "module": "esnext",
     "lib": [
+      "es6",
       "dom",
-      "dom.iterable",
-      "esnext"
+      "ES2017"
     ],
+    "moduleResolution": "node",
+    "declaration": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "outDir": "./dist/cjs",
+    "rootDir": "./src",
+    "downlevelIteration": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictBindCallApply": true,
+    "noImplicitThis": false,
+    "baseUrl": "./src/types",
+    "types": [
+      "node",
+      "jest",
+      "lodash",
+      "uuid"
+    ],
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
     "allowJs": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "experimentalDecorators": true,
-    "importHelpers": true
-  },
-  "include": [
-    "src"
-  ]
+    "noEmit": true
+  }
 }

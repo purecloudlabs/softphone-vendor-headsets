@@ -1,14 +1,16 @@
-import Implementation, { ImplementationConfig } from '../../Implementation';
-import DeviceInfo from '../../../../models/device-info';
+import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
+import DeviceInfo from '../../../../types/device-info';
 import { JabraChromeCommands } from './jabra-chrome-commands';
 import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';
 import { timedPromise } from '../../../../utils';
 import { EventTranslation } from './jabra-chrome-event-translation';
+import { v4 } from 'uuid';
 
 const incomingMessageName = 'jabra-headset-extension-from-content-script';
 const outgoingMessageName = 'jabra-headset-extension-from-page-script';
+const clientId = v4();
 
-export default class JabraChromeService extends Implementation {
+export default class JabraChromeService extends VendorImplementation {
   private static instance: JabraChromeService;
   static connectTimeout = 5000;
 
@@ -61,10 +63,12 @@ export default class JabraChromeService extends Implementation {
   }
 
   _sendCmd(cmd: JabraChromeCommands) {
-    this.Logger.debug('sending jabra event', { cmd });
+    this.logger.debug('sending jabra event', { cmd });
     window.postMessage(
       {
         direction: outgoingMessageName,
+        requestId: v4(),
+        apiClientId: clientId,
         message: cmd,
       },
       '*'
@@ -77,15 +81,15 @@ export default class JabraChromeService extends Implementation {
       event.data.direction &&
       event.data.direction === incomingMessageName
     ) {
-      this.Logger.debug('Incoming jabra event', event.data);
+      this.logger.debug('Incoming jabra event', event.data);
 
       if (this.logHeadsetEvents) {
-        this.Logger.info(event.data.message);
+        this.logger.info(event.data.message);
       }
 
       if (event.data.message.startsWith(JabraChromeRequestedEvents.GetVersion)) {
         const version = event.data.message.substring(JabraChromeRequestedEvents.GetVersion + 1);
-        this.Logger.info(`jabra version: ${version}`);
+        this.logger.info(`jabra version: ${version}`);
         this.version = version;
       }
 
@@ -112,7 +116,7 @@ export default class JabraChromeService extends Implementation {
 
         const translatedEvent = EventTranslation[event.data.message];
         if (!translatedEvent) {
-          this.Logger.info('Jabra event unknown or not handled', { event: event.data.message });
+          this.logger.info('Jabra event unknown or not handled', { event: event.data.message });
           return;
         }
 
@@ -151,7 +155,7 @@ export default class JabraChromeService extends Implementation {
         this._deviceDetached();
         break;
       default:
-        this.Logger.info('Unknown Jabra event: ', eventTranslation);
+        this.logger.info('Unknown Jabra event: ', eventTranslation);
     }
   }
 
@@ -235,7 +239,7 @@ export default class JabraChromeService extends Implementation {
     ).catch(err => {
       this.isConnected = false;
       this.isConnecting = false;
-      this.Logger.info(err);
+      this.logger.info(err);
     });
   }
 
@@ -248,7 +252,7 @@ export default class JabraChromeService extends Implementation {
       this._connectDeferred.resolve();
       this._connectDeferred = null;
     } else {
-      this.Logger.warn(new Error('_handleDeviceConnect called but there is no pending connection'));
+      this.logger.warn(new Error('_handleDeviceConnect called but there is no pending connection'));
     }
   }
 
@@ -263,14 +267,14 @@ export default class JabraChromeService extends Implementation {
       this._connectDeferred.reject(err);
       this._connectDeferred = null;
     } else {
-      this.Logger.warn(
+      this.logger.warn(
         new Error('_handleDeviceConnectionFailure was called but there is no pending connection')
       );
     }
   }
 
   _handleGetDevices(deviceList) {
-    this.Logger.debug('device list', deviceList);
+    this.logger.debug('device list', deviceList);
     const items = deviceList.split(',');
     const deviceMap = new Map<string, DeviceInfo>();
 
@@ -284,7 +288,7 @@ export default class JabraChromeService extends Implementation {
   }
 
   _handleGetActiveDevice(activeDeviceId: string) {
-    this.Logger.debug('active device info', activeDeviceId);
+    this.logger.debug('active device info', activeDeviceId);
     this.activeDeviceId = activeDeviceId;
   }
 }
