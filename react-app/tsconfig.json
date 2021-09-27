@@ -28,7 +28,6 @@
     "types": [
       "node",
       "jest",
-      "lodash",
       "uuid"
     ],
     "esModuleInterop": true,

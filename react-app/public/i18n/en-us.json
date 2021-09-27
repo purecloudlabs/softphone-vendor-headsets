@@ -21,12 +21,13 @@
         },
         "currentCall": {
             "callState": "Call State",
-            "contactName": "Contact Name",
-            "ringing": "Ringing",
             "connected": "Connected",
-            "muted": "Mute State",
+            "contactName": "Contact Name",
             "held": "On Hold",
-            "noCall": "No Call"
+            "id": "ID",
+            "muted": "Mute State",
+            "noCall": "No Call",
+            "ringing": "Ringing"
         },
         "connectionStatus": {
             "error": "Error occurred while establishing connection",
