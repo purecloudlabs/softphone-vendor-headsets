@@ -1,10 +1,10 @@
-import JabraNativeService from '../../../../src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import DeviceInfo from '../../../../src/library/models/device-info';
+import JabraNativeService from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native';
+import DeviceInfo from '../../../../library/models/device-info';
 import { mockLogger } from '../../test-utils';
-import { JabraNativeEvent } from '../../../../src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
-import { JabraNativeEventNames } from '../../../../src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-events';
-import { JabraNativeCommands } from '../../../../src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands';
-import ApplicationService from '../../../../src/library/services/application';
+import { JabraNativeEvent } from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
+import { JabraNativeEventNames } from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native-events';
+import { JabraNativeCommands } from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands';
+import ApplicationService from '../../../../library/services/application';
 
 const ASYNC_TIMEOUT = 1000;
 const testDevice1 = { deviceID: '123', deviceName: 'testDevice1' };
@@ -17,7 +17,7 @@ function resetJabraNativeService(service: JabraNativeService) {
   service.isActive = false;
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
-  service.Logger = mockLogger;
+  service.logger = mockLogger;
   service.ignoreNextOffhookEvent = false;
   service._connectionInProgress = null;
 }

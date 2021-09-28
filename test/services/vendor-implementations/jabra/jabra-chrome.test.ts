@@ -1,9 +1,9 @@
-import JabraChromeService from '../../../../src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import DeviceInfo from '../../../../src/library/models/device-info';
+import JabraChromeService from '../../../../library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
+import DeviceInfo from '../../../../library/models/device-info';
 import { mockLogger } from '../../test-utils';
-import { JabraChromeCommands } from '../../../../src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-commands';
+import { JabraChromeCommands } from '../../../../library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-commands';
 import { Subscription } from 'rxjs';
-import { JabraChromeRequestedEvents } from '../../../../src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-requested-events';
+import { JabraChromeRequestedEvents } from '../../../../library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-requested-events';
 
 const ASYNC_TIMEOUT = 1000;
 
@@ -32,7 +32,7 @@ function resetJabraChromeService(service: JabraChromeService): void {
   service.isActive = false;
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
-  service.Logger = mockLogger;
+  service.logger = mockLogger;
   service.logHeadsetEvents = false;
   service._connectDeferred = null;
 }
