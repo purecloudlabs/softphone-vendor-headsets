@@ -47,6 +47,7 @@ const sendScenario = function (scenario) {
   // ajax.setRequestHeader('Content-Type', 'application/json');
   // return ajax.send(JSON.stringify(scenario));
 }
+let callbackCount = 1;
 
 describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
@@ -55,6 +56,17 @@ describe('PlantronicsService', () => {
     // fetchMock.resetMocks();
     // nock.cleanAll();
     plantronicsService = PlantronicsService.getInstance({ logger: console });
+    plantronicsService._fetch = (url: string) => {
+      const fullUrl = `${url}&callback=${callbackCount++}`;
+      console.log('making api call', { fullUrl });
+
+      return fetch(fullUrl, {
+        method: 'get',
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+    };
     resetService(plantronicsService);
   });
 
@@ -199,7 +211,7 @@ describe('PlantronicsService', () => {
       jest.advanceTimersByTime(plantronicsService.disconnectedDeviceInterval);
       expect(pollForDeviceStatusSpy).toHaveBeenCalled();
     });
-    it('will call getDeviceStatusSpy if proper flags are met', () => {
+    it('will call getDeviceStatusSpy if proper flags are met', async () => {
       plantronicsService.isConnecting = false;
       const getDeviceStatusSpy = jest.spyOn(plantronicsService, 'getDeviceStatus');
       const pollForDeviceStatusSpy = jest.spyOn(plantronicsService, 'pollForDeviceStatus');

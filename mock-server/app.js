@@ -3,28 +3,17 @@ const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
 const plantronics = require('./plantronics/router');
-// const sennheiser = require('./sennheiser').router;
+const sennheiser = require('./sennheiser').router;
 
 const app = express();
+app.use(cors());
 
 app.use(logger('dev'));
 app.use(express.json());
 
-app.options('*', cors());
+// app.options('*', cors());
 app.use('/plantronics', plantronics);
-// app.use('/sennheiser', sennheiser);
-
-app.use((req, res, next) => {
-    next(createError(404));
-});
-
-app.use((err, req, res, next) => {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    res.status(err.status || 500);
-    res.render('error');
-});
+app.use('/sennheiser', sennheiser);
 
 app.listen(3000);
 

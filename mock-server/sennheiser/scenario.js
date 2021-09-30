@@ -55,10 +55,10 @@ function getScenario () {
 }
 
 function setScenario (scenario) {
-  for (const endpoint of Object.keys(scenario)) {
-    const definition = scenario[endpoint];
+  for (const event of Object.keys(scenario)) {
+    const definition = scenario[event];
     if (!definition.responses && !definition.repeatResponse && !definition.ignore) {
-      throw new Error(`Invalid endpoint definition for ${endpoint}`);
+      throw new Error(`Invalid event response definition for ${event}`);
     }
   }
 
@@ -69,32 +69,32 @@ function deleteScenario () {
   currentScenario = {};
 }
 
-function getResponseForEndpoint (requestedEndpoint) {
-  let endpointScenario;
-
-  for (const endpoint of Object.keys(currentScenario)) {
-    if (wildstring.match(endpoint, requestedEndpoint)) {
-      endpointScenario = currentScenario[endpoint];
+function getResponseForEvent (event) {
+  let eventResponseInfo;
+  const eventName = event.Event;
+  for (const event of Object.keys(currentScenario)) {
+    if (wildstring.match(event, eventName)) {
+      eventResponseInfo = currentScenario[event];
       break;
     }
   }
 
-  if (!endpointScenario) {
-    throw new Error(`No matching scenario for "${requestedEndpoint}"`);
+  if (!eventResponseInfo) {
+    return null;
   }
 
-  if (endpointScenario.ignore) {
-    return { Result: {} };
+  if (eventResponseInfo.ignore) {
+    return [];
   }
 
-  if (endpointScenario.repeatResponse) {
-    return endpointScenario.repeatResponse;
+  if (eventResponseInfo.repeatResponse) {
+    return eventResponseInfo.repeatResponse._triggersEvents;
   }
 
-  if (!endpointScenario.responses.length) {
+  if (!eventResponseInfo.responses.length) {
     return null;
   } else {
-    const response = endpointScenario.responses.splice(0, 1)[0];
+    const response = eventResponseInfo.responses.splice(0, 1)[0]._triggersEvents || [];
     return response;
   }
 }
@@ -103,5 +103,5 @@ module.exports = {
   getScenario,
   setScenario,
   deleteScenario,
-  getResponseForEndpoint
+  getResponseForEvent
 };

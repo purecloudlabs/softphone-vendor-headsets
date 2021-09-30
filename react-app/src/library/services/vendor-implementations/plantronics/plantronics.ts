@@ -94,9 +94,13 @@ export default class PlantronicsService extends VendorImplementation {
     return await this._makeRequest(endpoint, isRetry);
   }
 
+  _fetch(url: string) {
+    return fetchJsonp(url);
+  }
+
   async _makeRequest(endpoint, isRetry) {
     const plantronicsInstance = PlantronicsService.instance;
-    return await fetchJsonp(`${this.apiHost}${endpoint}`)
+    return this._fetch(`${this.apiHost}${endpoint}`)
       .then(response => {
         return response.json();
       })
