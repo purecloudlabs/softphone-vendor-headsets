@@ -27,6 +27,8 @@ router.get('/scenario', cors(), (req, res, next) => {
 });
 
 router.post('/scenario', cors(), (req, res) => {
+    console.log('within post of scenario');
+    // console.log('post req -> ', req);
     try {
         scenario.setScenario(req.body);
         res.json({success: true});
@@ -66,6 +68,8 @@ router.get('/CallServices/CallEvents', (req, res) => {
 })
 
 router.get('*', (req, res) => {
+    console.log('within all encapsuling get');
+    console.log('get req -> ', req);
     const requestUrl = req.originalUrl.split(req.baseUrl)[1].split('&callback=')[0];
     console.info(`Attempting to handle request: ${requestUrl}`);
 

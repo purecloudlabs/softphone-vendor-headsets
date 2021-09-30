@@ -17,11 +17,11 @@
     "pretest": "npm run start-mock-server",
     "posttest": "npm run stop-mock-server",
     "start-mock-server": "npm run stop-mock-server && cd scripts && start-mock-server.sh",
-    "stop-mock-server": "cd scripts && stop-mock-server.sh && cd ..",
-    "test:complete": "npm run pretest && npm run lint && npm run test:unit --collectCoverage=true --runInBand && npm run posttest",
-    "test:coverage": "npm run pretest && jest --collectCoverage=true --runInBand && npm run posttest",
-    "test:unit": "npm run pretest && jest --runInBand",
-    "test:watch": "npm run pretest && jest --watch --collectCoverage=false --runInBand && npm run posttest",
+    "stop-mock-server": "cd scripts && stop-mock-server.sh",
+    "test:complete": "npm run lint && npm run test:unit --collectCoverage=true --runInBand",
+    "test:coverage": "jest --collectCoverage=true --runInBand",
+    "test:unit": "jest --runInBand",
+    "test:watch": "jest --watch --collectCoverage=false --runInBand",
     "lint": "eslint -c .eslintrc.json --ext .ts src",
     "lint:fix": "npm run lint -- --fix"
   },
@@ -29,12 +29,12 @@
     "bootstrap": "^4.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
-    "jest-fetch-mock": "^3.0.3",
     "nock": "^13.1.3",
     "rxjs": "^6.5.5",
     "strict-event-emitter-types": "^2.0.0",
     "utils": "^0.3.1",
     "uuid": "^3.4.0",
+    "whatwg-fetch": "^3.6.2",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {
@@ -50,22 +50,34 @@
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "babel-loader": "^8.2.2",
+    "cors": "^2.8.5",
     "eslint": "^7.32.0",
+    "express": "^4.17.1",
+    "http-errors": "^1.8.0",
     "husky": "^4.0.10",
+    "jest-fetch-mock": "^3.0.3",
+    "morgan": "^1.9.0",
     "ts-jest": "^27.0.5",
     "ts-node": "~7.0.0",
     "tslib": "^2.3.1",
     "typescript": "~4.0.5",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "wildstring": "^1.0.9"
   },
   "husky": {
-    "hooks": {
-    }
+    "hooks": {}
   },
   "prettier": {
     "printWidth": 100,
     "semi": true,
     "singleQuote": true,
     "trailingComma": "es5"
+  },
+  "jest": {
+    "autoMock": false,
+    "resetMocks": false,
+    "setupFiles": [
+      "./setupJest.js"
+    ]
   }
 }

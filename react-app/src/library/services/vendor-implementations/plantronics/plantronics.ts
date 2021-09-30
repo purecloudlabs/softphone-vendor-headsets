@@ -67,7 +67,7 @@ export default class PlantronicsService extends VendorImplementation {
       await this.getCallEvents();
     }
     setTimeout(() => {
-      console.log('**** POLLING FOR CALL EVENTS ****');
+      // console.log('**** POLLING FOR CALL EVENTS ****');
       this.pollForCallEvents();
     }, this.activePollingInterval);
   }
@@ -78,7 +78,7 @@ export default class PlantronicsService extends VendorImplementation {
     }
     setTimeout(
       () => {
-        console.log('**** POLLING FOR DEVICE STATUS ****');
+        // console.log('**** POLLING FOR DEVICE STATUS ****');
         this.pollForDeviceStatus();
       },
       this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval
