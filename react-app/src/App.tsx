@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ApplicationService from './mocks/application-service';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
-import AudioVisualizer from './components/audioVisualizer';
+import AudioVisualizer from './components/audio-visualizer';
 import MockCall from './mocks/call';
 
 const App = () => {
