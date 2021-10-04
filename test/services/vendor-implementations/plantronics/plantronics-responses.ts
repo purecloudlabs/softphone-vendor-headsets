@@ -72,6 +72,7 @@ const responses = {
             },
 
             errorState: {
+                handled: true,
                 Description: '',
                 Err: {
                     Description: 'An error occurred',
@@ -207,6 +208,17 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false
+            },
+            errorState: {
+                Description: '',
+                Err: {
+                    Description: 'Test Error',
+                    Error_Code: 0,
+                    Type: 5
+                },
+                Type: 1,
+                Type_Name: 'Error',
+                isError: false
             }
         },
 
@@ -222,6 +234,18 @@ const responses = {
                 Type_Name: 'Error',
                 isError: true,
                 _triggersEvents: [PlantronicsCallEvents.CallIdle]
+            },
+            errorState: {
+                Description: '',
+                Err: {
+                    Description: 'Test Error',
+                    Error_Code: 0,
+                    Type: 5
+                },
+                Type: 1,
+                Type_Name: 'Error',
+                isError: true,
+                // _triggerEvents: [PlantronicsCallEvents.CallIdle]
             }
         }
     },

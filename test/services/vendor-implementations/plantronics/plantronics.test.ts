@@ -495,5 +495,55 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
+  });
+  describe('connect function', () => {
+    it('handles all scenarios appropriately for Register endpoint', async () => {
+      await sendScenario({
+        '/SessionManager/Register*': {
+          responses: [responses.SessionManager.Register.errorState]
+        }
+      });
+      return expect(plantronicsService.connect()).rejects.toEqual(responses.SessionManager.Register.errorState)
+    });
+    it('handles all scenarios appropriately for isActive endpoint',  async () => {
+      plantronicsService.logger.debug = jest.fn();
+      await sendScenario({
+        '/SessionManager/Register*': {
+          responses: [responses.SessionManager.Register.default]
+        },
+        '/SessionManager/IsActive*': {
+          responses: [responses.SessionManager.IsActive.errorState]
+        }
+      });
+      try {
+        await plantronicsService.connect();
+      } catch (err) {
+        expect(plantronicsService.logger.debug).toHaveBeenCalledWith('Is Active', responses.SessionManager.IsActive.errorState);
+      }
+    });
+    it('handles all scenarios appropriately for getActiveCalls endpoint', async () => {
+      plantronicsService.logger.info = jest.fn();
+      plantronicsService.logger.error = jest.fn();
+      await sendScenario({
+        '/SessionManager/Register*': {
+          responses: [responses.SessionManager.Register.default]
+        },
+        '/SessionManager/IsActive*': {
+          responses: [responses.SessionManager.IsActive.default]
+        },
+        '/UserPreference/SetDefaultSoftPhone*': {
+          responses: [responses.UserPreference.SetDefaultSoftPhone.default]
+        },
+        '/DeviceServices/Info*': {
+          responses: [responses.DeviceServices.Info.default]
+        },
+        '/CallServices/CallManagerState*' : {
+          responses: [responses.CallServices.CallManagerState.callsInProgress]
+        }
+      });
+      await plantronicsService.connect();
+      expect(plantronicsService.isActive).toBe(true);
+      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Currently active calls in the session');
+    });
   })
 });
