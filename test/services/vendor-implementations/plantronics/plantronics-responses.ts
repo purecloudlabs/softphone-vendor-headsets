@@ -44,6 +44,43 @@ const responses = {
                 Type: 9,
                 Type_Name: 'CallManagerState',
                 isError: false
+            },
+
+            callsInProgress: {
+                Description: 'Call Manager State',
+                Result: {
+                    CallOnHold: 1,
+                    Calls: [
+                        {
+                            CallId: 411145734,
+                            IsActive: false,
+                            Session: '5b9a53e5-6981-465c-9ffd-6483cb088d78',
+                            Source: 'genesys-cloud-headset-library'
+                        },
+                        {
+                            CallId: 437541114,
+                            IsActive: true,
+                            Session: '87d880bc-3846-dff9-c564-18965e35a9b5',
+                            Source: 'genesys-cloud-headset-library'
+                        }
+                    ],
+                    HasActiveCall: true
+                },
+                Type: 9,
+                Type_Name: 'CallManagerState',
+                isError: false
+            },
+
+            errorState: {
+                Description: '',
+                Err: {
+                    Description: 'An error occurred',
+                    Error_Code: 0,
+                    Type: 5
+                },
+                Type: 1,
+                Type_Name: 'Error',
+                isError: true,
             }
         },
 
@@ -146,6 +183,17 @@ const responses = {
                 Type: 4,
                 Type_Name: 'DeviceInfo',
                 isError: false
+            },
+            errorState: {
+                Description: '',
+                Err: {
+                    Description: 'An error occurred',
+                    Error_Code: 0,
+                    Type: 5
+                },
+                Type: 1,
+                Type_Name: 'Error',
+                isError: true,
             }
         }
     },

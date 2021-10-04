@@ -3,15 +3,10 @@ import PlantronicsService from '../../../../react-app/src/library/services/vendo
 import DeviceInfo from '../../../../react-app/src/library/types/device-info';
 import { mockLogger } from '../../test-utils';
 import responses from './plantronics-responses';
-import fetchJsonp from 'fetch-jsonp';
-import { mocked } from 'ts-jest/utils';
-const nock = require('nock');
+import HeadsetService from '../../../../react-app/src/library/services/headset';
 
-let ajax = new XMLHttpRequest();
-// jest.mock('fetch-jsonp');
-// const fetchMocked = mocked(fetch);
-// const fetchMock = jest.spyOn(window, 'fetch');
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
+HeadsetService.getInstance({logger: console}).logHeadsetEvents = true;
 
 const testDevice: DeviceInfo = {
   ProductName: 'testDevice1',
@@ -40,25 +35,31 @@ const sendScenario = function (scenario) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(scenario),
-    // credentials: "include",
     mode: 'cors'
   })
-  // ajax.open('POST', `${mockPlantronicsHost}/scenario`, true);
-  // ajax.setRequestHeader('Content-Type', 'application/json');
-  // return ajax.send(JSON.stringify(scenario));
 }
+
+const queueCallEvents = function (scenario) {
+  return fetch(`${mockPlantronicsHost}/callEvents`, {
+    method: 'PUT',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(scenario),
+    mode: 'cors'
+  })
+}
+
+
 let callbackCount = 1;
 
 describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
 
   beforeEach(() => {
-    // fetchMock.resetMocks();
-    // nock.cleanAll();
     plantronicsService = PlantronicsService.getInstance({ logger: console });
     plantronicsService._fetch = (url: string) => {
       const fullUrl = `${url}&callback=${callbackCount++}`;
-      console.log('making api call', { fullUrl });
 
       return fetch(fullUrl, {
         method: 'get',
@@ -71,7 +72,7 @@ describe('PlantronicsService', () => {
   });
 
   afterAll(() => {
-    jest.resetAllMocks();
+    resetService(plantronicsService);
   })
 
   describe('instantiation', () => {
@@ -212,6 +213,7 @@ describe('PlantronicsService', () => {
       expect(pollForDeviceStatusSpy).toHaveBeenCalled();
     });
     it('will call getDeviceStatusSpy if proper flags are met', async () => {
+      plantronicsService.isConnected = true;
       plantronicsService.isConnecting = false;
       const getDeviceStatusSpy = jest.spyOn(plantronicsService, 'getDeviceStatus');
       const pollForDeviceStatusSpy = jest.spyOn(plantronicsService, 'pollForDeviceStatus');
@@ -282,42 +284,216 @@ describe('PlantronicsService', () => {
   });
 
   describe('check various endpoint calls', () => {
-    beforeAll(() => {
-      jest.spyOn(window, 'fetch');
-    })
     it('connects properly with a clean state', async () => {
-      // fetchMocked.mockResolvedValueOnce((responses.SessionManager.Register.default) as any);
-      nock(mockPlantronicsHost)
-        .get(uri => uri.includes('/SessionManager/Register'))
-        .reply(200, responses.SessionManager.Register.default);
+      await sendScenario({
+        '/SessionManager/Register*': {
+          responses: [responses.SessionManager.Register.default]
+        },
+        '/SessionManager/IsActive*': {
+          responses: [responses.SessionManager.IsActive.default]
+        },
+        '/UserPreference/SetDefaultSoftPhone*': {
+          responses: [responses.UserPreference.SetDefaultSoftPhone.default]
+        },
+        '/DeviceServices/Info*': {
+          responses: [responses.DeviceServices.Info.default]
+        },
+        '/CallServices/CallManagerState*' : {
+          responses: [responses.CallServices.CallManagerState.default]
+        }
+      })
       await plantronicsService.connect();
-      // await plantronicsService.connect();
-      // expect().toHaveBeenCalled();
-      // await sendScenario({
-      //   '/SessionManager/Register*': {
-      //     responses: [responses.SessionManager.Register.default]
-      //   },
-      //   '/SessionManager/IsActive*': {
-      //     responses: [responses.SessionManager.IsActive.default]
-      //   },
-      //   '/UserPreference/SetDefaultSoftPhone*': {
-      //     responses: [responses.UserPreference.SetDefaultSoftPhone.default]
-      //   },
-      //   '/DeviceServices/Info*': {
-      //     responses: [responses.DeviceServices.Info.default]
-      //   },
-      //   '/CallServices/CallManagerState*' : {
-      //     responses: [responses.CallServices.CallManagerState.default]
-      //   }
-      // }).then(async () => {
-      //   console.log('within then');
-      //   await plantronicsService.connect();
-      //   expect(plantronicsService.isConnected).toBeTruthy();
-      //   expect(plantronicsService.isActive).toBeFalsy();
-      //   expect(plantronicsService.isConnecting).toBeFalsy();
-      // }).catch((err) => {
-      //   console.error(err);
-      // });
+      expect(plantronicsService.isConnected).toBeTruthy();
+      expect(plantronicsService.isActive).toBeFalsy();
+      expect(plantronicsService.isConnecting).toBeFalsy();
     }, 30000);
+    it('builds an endpoint for incoming calls', async () => {
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      let callInfo: any = {conversationId: 'convoId123', contactName: 'Dio Brando'};
+      const conversationIdString = `"Id":"${callInfo.conversationId}"`;
+      const contactNameString = `"Name":"${callInfo.contactName}"`;
+      const endpointParams = `?name=${plantronicsService.pluginName}&tones=Unknown&route=ToHeadset`;
+      let completeEndpoint = endpointParams;
+      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
+      completeEndpoint += encodeURI(`&contact={${encodeURI(contactNameString)}}`);
+      await plantronicsService.incomingCall({callInfo})
+      expect(plantronicsService.isActive).toBe(true);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/IncomingCall${completeEndpoint}`);
+      resetService(plantronicsService);
+
+      completeEndpoint = endpointParams;
+      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
+      callInfo = {conversationId: 'convoId123'};
+      await plantronicsService.incomingCall({ callInfo });
+      expect(plantronicsService.isActive).toBe(true);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/IncomingCall${completeEndpoint}`);
+      resetService(plantronicsService);
+
+      try {
+        callInfo = {contactName: 'Dio Brando'}
+        await plantronicsService.incomingCall({ callInfo });
+      } catch (err) {
+        expect(plantronicsService.isActive).toBe(false);
+        expect(err).toBeDefined();
+      }
+    });
+    it('builds an endpoint for outgoing calls', async () => {
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
+      await sendScenario({
+        '/CallServices/OutgoingCall*': {
+          responses: [responses.CallServices.OutgoingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      let callInfo: any = {conversationId: 'convoId123', contactName: 'Dio Brando'};
+      const conversationIdString = `"Id":"${callInfo.conversationId}"`;
+      const contactNameString = `"Name":"${callInfo.contactName}"`;
+      const endpointParams = `?name=${plantronicsService.pluginName}&tones=Unknown&route=ToHeadset`;
+      let completeEndpoint = endpointParams;
+      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
+      completeEndpoint += encodeURI(`&contact={${encodeURI(contactNameString)}}`);
+      await plantronicsService.outgoingCall({...callInfo})
+      expect(plantronicsService.isActive).toBe(true);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/OutgoingCall${completeEndpoint}`);
+      resetService(plantronicsService);
+
+      completeEndpoint = endpointParams;
+      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
+      callInfo = {conversationId: 'convoId123'};
+      await plantronicsService.outgoingCall({ ...callInfo });
+      expect(plantronicsService.isActive).toBe(true);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/OutgoingCall${completeEndpoint}`);
+      resetService(plantronicsService);
+
+      try {
+        callInfo = {contactName: 'Dio Brando'}
+        await plantronicsService.outgoingCall({ ...callInfo });
+      } catch (err) {
+        expect(plantronicsService.isActive).toBe(false);
+        expect(err).toBeDefined();
+      }
+    });
+    it('builds an endpoint for answering a call', async () => {
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
+      await sendScenario({
+        '/CallServices/AnswerCall*': {
+          responses: [responses.CallServices.AnswerCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      let completeEndpoint = `?name=${plantronicsService.pluginName}`;
+      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      await plantronicsService.answerCall('convoId123');
+      expect(plantronicsService.isActive).toBe(true);
+      expect(_makeRequestTaskSpy).toHaveBeenLastCalledWith(`/CallServices/AnswerCall${completeEndpoint}`);
+    });
+    it('builds an endpoint for terminating a call', async () => {
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
+      const getCallEventsSpy = jest.spyOn(plantronicsService, 'getCallEvents');
+      const _checkIsActiveTaskSpy = jest.spyOn(plantronicsService, '_checkIsActiveTask');
+      await sendScenario({
+        '/CallServices/TerminateCall*': {
+          responses: [responses.CallServices.TerminateCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      let completeEndpoint = `?name=${plantronicsService.pluginName}`;
+      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      await plantronicsService.endCall('convoId123');
+      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(6, `/CallServices/TerminateCall${completeEndpoint}`);
+      expect(getCallEventsSpy).toHaveBeenCalled();
+      expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
+    });
+    it('calls endCall an appropriate number of times for endAllCalls', async () => {
+      const endCallSpy = jest.spyOn(plantronicsService, 'endCall');
+      await sendScenario({
+        '/CallServices/CallManagerState*' : {
+          responses: [responses.CallServices.CallManagerState.callsInProgress]
+        }
+      });
+      await plantronicsService.endAllCalls();
+      expect(endCallSpy).toHaveBeenCalledTimes(2);
+    });
+    it('calls _makeRequestTask wth proper endpoint for mute', async () => {
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
+      await sendScenario({
+        '/CallServices/MuteCall*': {
+          responses: [responses.CallServices.MuteCall.mute, responses.CallServices.MuteCall.unmute]
+        }
+      });
+      await plantronicsService.setMute(true);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/MuteCall?name=${plantronicsService.pluginName}&muted=${true}`);
+
+      await plantronicsService.setMute(false);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/MuteCall?name=${plantronicsService.pluginName}&muted=${false}`);
+    });
+    it('calls _makeRequestTask with proper endpoint for hold', async () => {
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask')
+      await sendScenario({
+        '/CallServices/HoldCall*': {
+          responses: [responses.CallServices.HoldCall.default]
+        },
+        '/CallServices/ResumeCall*': {
+          responses: [responses.CallServices.ResumeCall.default]
+        }
+      });
+      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      let completeEndpoint = `?name=${plantronicsService.pluginName}`;
+      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      await plantronicsService.setHold('convoId123', true);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/HoldCall${completeEndpoint}`);
+
+      await plantronicsService.setHold('convoId123', false);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/ResumeCall${completeEndpoint}`);
+    });
+    it('checkIsActiveTask', async () => {
+      await sendScenario({
+        '/CallServices/CallManagerState*': {
+          responses: [responses.CallServices.CallManagerState.callsInProgress]
+        }
+      });
+      await plantronicsService._checkIsActiveTask();
+      expect(plantronicsService.isActive).toBe(true);
+    });
+    it('catches the error during _getActiveCalls', async () => {
+      await sendScenario({
+        '/CallServices/CallManagerState*': {
+          responses: [responses.CallServices.CallManagerState.errorState]
+        }
+      });
+      plantronicsService.logger.info = jest.fn();
+      const result = await plantronicsService._getActiveCalls();
+      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for active calls', responses.CallServices.CallManagerState.errorState);
+      expect(result).toStrictEqual([]);
+    });
+    it('catches the error during getDeviceStatus', async () => {
+      await sendScenario({
+        '/DeviceServices/Info*': {
+          responses: [responses.DeviceServices.Info.errorState]
+        }
+      });
+      plantronicsService.logger.info = jest.fn();
+      await plantronicsService.getDeviceStatus();
+      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
+    });
   })
 });

@@ -67,7 +67,7 @@ export default class PlantronicsService extends VendorImplementation {
       await this.getCallEvents();
     }
     setTimeout(() => {
-      // console.log('**** POLLING FOR CALL EVENTS ****');
+      console.log('**** POLLING FOR CALL EVENTS ****');
       this.pollForCallEvents();
     }, this.activePollingInterval);
   }
@@ -78,7 +78,7 @@ export default class PlantronicsService extends VendorImplementation {
     }
     setTimeout(
       () => {
-        // console.log('**** POLLING FOR DEVICE STATUS ****');
+        console.log('**** POLLING FOR DEVICE STATUS ****');
         this.pollForDeviceStatus();
       },
       this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval
@@ -139,8 +139,8 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  *_checkIsActiveTask() {
-    const calls = yield this._getActiveCalls();
+  async _checkIsActiveTask() {
+    const calls = await this._getActiveCalls();
     this.isActive = !!calls.length;
   }
 
@@ -154,10 +154,10 @@ export default class PlantronicsService extends VendorImplementation {
       return [];
     }
 
-    if (!Array.isArray(result.Calls)) {
+    if (!Array.isArray(result?.Result?.Calls)) {
       return [];
     }
-    return result.Calls.filter(call => call.Source === this.pluginName);
+    return result?.Result?.Calls.filter(call => call.Source === this.pluginName);
   }
 
   async getCallEvents() {

@@ -1,13 +1,13 @@
-import HeadsetService from '../../library/services/headset';
-import { VendorImplementation } from '../../library/services/vendor-implementations/vendor-implementation';
-import PlantronicsService from '../../library/services/vendor-implementations/plantronics/plantronics';
-import SennheiserService from '../../library/services/vendor-implementations/sennheiser/sennheiser';
-import JabraChromeService from '../../library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import JabraNativeService from '../../library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import { HeadsetEventName } from '../../library/types/headset-event';
-import CallInfo from '../../library/types/call-info';
-import ApplicationService from '../../library/services/application';
-import { EventInfo, VendorEvent } from '../../library/types/headset-events';
+import HeadsetService from '../../react-app/src/library/services/headset';
+import { VendorImplementation } from '../../react-app/src/library/services/vendor-implementations/vendor-implementation';
+import PlantronicsService from '../../react-app/src/library/services/vendor-implementations/plantronics/plantronics';
+import SennheiserService from '../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser';
+import JabraChromeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
+import JabraNativeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
+import { HeadsetEventName } from '../../react-app/src/library/types/headset-event';
+import CallInfo from '../../react-app/src/library/types/call-info';
+import ApplicationService from '../../react-app/src/library/services/application';
+import { EventInfo, VendorEvent } from '../../react-app/src/library/types/headset-events';
 
 describe('HeadsetService', () => {
   let plantronics: VendorImplementation;

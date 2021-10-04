@@ -11,7 +11,7 @@ function buildCallEventAction (eventCode) {
       Id: 0,
       InConference: false
     },
-    CallSource: 'emberApp2',
+    CallSource: 'genesys-cloud-headset-library',
     DeviceEvent: 4,
     DialedKey: 0
   };
