@@ -1,9 +1,10 @@
 import "whatwg-fetch";
 import PlantronicsService from '../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics';
 import DeviceInfo from '../../../../react-app/src/library/types/device-info';
-import { mockLogger } from '../../test-utils';
+import { eventValidation, mockLogger } from '../../test-utils';
 import responses from './plantronics-responses';
 import HeadsetService from '../../../../react-app/src/library/services/headset';
+import { PlantronicsCallEvents } from "../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics-call-events";
 
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
 HeadsetService.getInstance({logger: console}).logHeadsetEvents = true;
@@ -495,5 +496,25 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
-  })
+  });
+  
+  describe('getCallEvents', () => {
+    it('should answer from headset', async () => {
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      const deviceAnswered = eventValidation(plantronicsService, 'deviceAnsweredCall');
+
+      await queueCallEvents([PlantronicsCallEvents.AcceptCall, PlantronicsCallEvents.CallInProgress]);
+      await deviceAnswered;
+    });
+  });
 });
