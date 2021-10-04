@@ -170,8 +170,8 @@ describe('PlantronicsService', () => {
   });
 
   describe('pollForCallEvents', () => {
-    afterEach(() => {
-      jest.useRealTimers();
+    beforeEach(() => {
+      jest.useFakeTimers();
     })
     it('will not call getCallEventsSpy if proper flags are not met', () => {
       const getCallEventsSpy = jest.spyOn(plantronicsService, 'getCallEvents');

@@ -1,10 +1,10 @@
-import JabraNativeService from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import DeviceInfo from '../../../../library/models/device-info';
+import JabraNativeService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
+import DeviceInfo from '../../../../react-app/src/library/models/device-info';
 import { mockLogger } from '../../test-utils';
-import { JabraNativeEvent } from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
-import { JabraNativeEventNames } from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native-events';
-import { JabraNativeCommands } from '../../../../library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands';
-import ApplicationService from '../../../../library/services/application';
+import { JabraNativeEvent } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
+import { JabraNativeEventNames } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-events';
+import { JabraNativeCommands } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands';
+import ApplicationService from '../../../../react-app/src/library/services/application';
 
 const ASYNC_TIMEOUT = 1000;
 const testDevice1 = { deviceID: '123', deviceName: 'testDevice1' };
@@ -36,7 +36,7 @@ describe('JabraNativeService', () => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
 
-    jabraNativeService = JabraNativeService.getInstance();
+    jabraNativeService = JabraNativeService.getInstance({ logger: console });
     resetJabraNativeService(jabraNativeService);
 
     applicationService = ApplicationService.getInstance();
@@ -44,7 +44,7 @@ describe('JabraNativeService', () => {
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-      const jabraNativeService2 = JabraNativeService.getInstance();
+      const jabraNativeService2 = JabraNativeService.getInstance({ logger: console });
 
       expect(jabraNativeService).not.toBeFalsy();
       expect(jabraNativeService2).not.toBeFalsy();

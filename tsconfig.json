@@ -1,7 +1,8 @@
 {
   "include": [
-    "./react-app/**/*"
-, "test"  ],
+    "./react-app/**/*",
+    "test"
+  ],
   "exclude": [
     "./test/**/*"
   ],

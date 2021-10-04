@@ -363,7 +363,11 @@ describe('HeadsetService', () => {
     it(
       'should send a headset event of type DEVICE_ANSWERED_CALL', () => {
         headsetService.selectedImplementation = plantronics
+<<<<<<< HEAD
         headsetService.handleDeviceAnsweredCall({vendor: plantronics, body: {name: 'AcceptCall', code: '1', event: {}}} as VendorEvent<EventInfo>);
+=======
+        headsetService.handleDeviceAnsweredCall({vendor: plantronics, body: {name: 'AcceptCall', code: '1', event: {}}} as VendorEventWithInfo);
+>>>>>>> 47e9f4327474ff5fc9cb8c5b8dcbc602d69e1afc
 
         const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
 
@@ -457,6 +461,7 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
     })
+<<<<<<< HEAD
     it('should return the correct translation string depending on proper flags', () => {
       headsetService.selectedImplementation = plantronics;
 
@@ -473,3 +478,21 @@ describe('HeadsetService', () => {
     });
   });
 });
+=======
+    it('should return the correct string depending on proper flags', () => {
+      headsetService.selectedImplementation = plantronics;
+
+      expect(headsetService.connectionStatus).toBe('Implementation is not Running');
+
+      headsetService.selectedImplementation.isConnected = true;
+      expect(headsetService.connectionStatus).toBe('Implementation Connected & Running')
+
+      headsetService.selectedImplementation.isConnecting = true;
+      expect(headsetService.connectionStatus).toBe('Implementation Connecting');
+
+      headsetService.selectedImplementation.errorCode = 'Error';
+      expect(headsetService.connectionStatus).toBe('Error occurred while establishing connection');
+    });
+  });
+});
+>>>>>>> 47e9f4327474ff5fc9cb8c5b8dcbc602d69e1afc

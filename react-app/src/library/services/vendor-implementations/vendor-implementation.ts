@@ -13,11 +13,11 @@ export interface ImplementationConfig {
 
 export abstract class VendorImplementation {
   // TODO: rename this to something more descriptive
-  vendorName: string | undefined = 'Not Specified';
+  vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
   isConnected = false; // represents a connection to the headset controlling software, ex: plantronics hub
   isMuted = false;
-  errorCode: string | null = null;
+  errorCode: string = null;
   disableRetry = false;
   logger: any; // TODO: pass this in on creation?
   config: ImplementationConfig;
