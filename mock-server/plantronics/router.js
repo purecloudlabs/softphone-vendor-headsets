@@ -65,7 +65,7 @@ router.get('/CallServices/CallEvents', (req, res) => {
 
   pendingEvents.forEach(eventCode => responseBody.Result.push(buildCallEventAction(eventCode)));
   clearEvents();
-  res.jsonp(responseBody);
+  res.send(responseBody);
 });
 
 // This route will catch all requests directed to the plantronics api and will respond with the requested data
