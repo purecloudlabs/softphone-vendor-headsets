@@ -35,10 +35,10 @@ export default class HeadsetService {
     this.application = ApplicationService.getInstance();
     this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
     this.logger = config?.logger || console;
-    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, logHeadsetEvents: this.logHeadsetEvents });
-    this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger, logHeadsetEvents: this.logHeadsetEvents });
-    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger, logHeadsetEvents: this.logHeadsetEvents });
-    this.sennheiser = SennheiserService.getInstance({ logger: this.logger, logHeadsetEvents: this.logHeadsetEvents });
+    this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
+    this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
+    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
+    this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
     [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser]
       .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
