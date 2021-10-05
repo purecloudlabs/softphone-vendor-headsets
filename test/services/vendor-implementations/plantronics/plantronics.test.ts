@@ -496,6 +496,93 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
+    it('handles scenarios for getCallEvents function', async () => {
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      await queueCallEvents([PlantronicsCallEvents.AcceptCall, PlantronicsCallEvents.CallInProgress]);
+    })
+  });
+  describe('getCallEvents', () => {
+    it('should answer from headset', async () => {
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      const deviceAnswered = eventValidation(plantronicsService, 'deviceAnsweredCall');
+      await queueCallEvents([PlantronicsCallEvents.AcceptCall, PlantronicsCallEvents.CallInProgress]);
+      await deviceAnswered;
+    });
+    it('should mute and unmute from headset', async () => {
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      const deviceMuted = eventValidation(plantronicsService, 'deviceMuteChanged');
+      await queueCallEvents([PlantronicsCallEvents.Mute]);
+      await deviceMuted;
+
+      const deviceUnmuted = eventValidation(plantronicsService, 'deviceMuteChanged');
+      await queueCallEvents([PlantronicsCallEvents.Unmute]);
+      await deviceUnmuted;
+    });
+    it('should hold and resume from the headset', async () => {
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      // const deviceHeld = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
+      // await queueCallEvents([PlantronicsCallEvents.HoldCall]);
+      // await deviceHeld;
+
+      const deviceResumed = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
+      await queueCallEvents([PlantronicsCallEvents.ResumeCall]);
+      await deviceResumed;
+    });
+    it('should terminate the call from the headset', async () => {
+      await sendScenario({
+        '/CallServices/IncomingCall*': {
+          responses: [responses.CallServices.IncomingCall.default]
+        },
+        '/DeviceServices/Info*': {
+          repeatResponse: responses.DeviceServices.Info.default
+        }
+      });
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      const deviceTerminated = eventValidation(plantronicsService, 'deviceEndedCall');
+      await queueCallEvents([PlantronicsCallEvents.TerminateCall]);
+      await deviceTerminated;
+    });
   });
   describe('connect function', () => {
     it('handles all scenarios appropriately for Register endpoint', async () => {
@@ -524,7 +611,6 @@ describe('PlantronicsService', () => {
     });
     it('handles all scenarios appropriately for getActiveCalls endpoint', async () => {
       plantronicsService.logger.info = jest.fn();
-      plantronicsService.logger.error = jest.fn();
       await sendScenario({
         '/SessionManager/Register*': {
           responses: [responses.SessionManager.Register.default]
@@ -547,24 +633,31 @@ describe('PlantronicsService', () => {
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Currently active calls in the session');
     });
   })
+  describe('_makeRequest function', () => {
+    it('handles error from endpoint with 404 status and isRetry', async () => {
+      plantronicsService.isConnected = true;
+      plantronicsService.isActive = true;
+      const disconnectSpy = jest.spyOn(plantronicsService, 'disconnect');
+      plantronicsService.logger.info = jest.fn();
+      const isActiveResponseWithStatus = {
+        ...responses.SessionManager.IsActive.default,
+        status: 404,
+        'Type_Name': 'Error'
+      };
 
-  describe('getCallEvents', () => {
-    it('should answer from headset', async () => {
       await sendScenario({
-        '/CallServices/IncomingCall*': {
-          responses: [responses.CallServices.IncomingCall.default]
-        },
-        '/DeviceServices/Info*': {
-          repeatResponse: responses.DeviceServices.Info.default
+        '/SessionManager/IsActive*': {
+          responses: [isActiveResponseWithStatus]
         }
       });
 
-      plantronicsService.isActive = true;
-      plantronicsService.isConnected = true;
-      const deviceAnswered = eventValidation(plantronicsService, 'deviceAnsweredCall');
-
-      await queueCallEvents([PlantronicsCallEvents.AcceptCall, PlantronicsCallEvents.CallInProgress]);
-      await deviceAnswered;
-    });
-  });
+      try {
+        await plantronicsService._makeRequest(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, true);
+      } catch (err) {
+        expect(plantronicsService.isConnected).toBe(false);
+        expect(disconnectSpy).toHaveBeenCalled();
+        expect(plantronicsService.logger.info).toHaveBeenCalledWith(err);
+      }
+    })
+  })
 });
