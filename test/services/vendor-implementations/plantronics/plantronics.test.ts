@@ -560,9 +560,6 @@ describe('PlantronicsService', () => {
 
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
-      // const deviceHeld = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
-      // await queueCallEvents([PlantronicsCallEvents.HoldCall]);
-      // await deviceHeld;
 
       const deviceResumed = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
       await queueCallEvents([PlantronicsCallEvents.ResumeCall]);
