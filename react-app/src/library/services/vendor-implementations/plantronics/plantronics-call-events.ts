@@ -33,7 +33,7 @@ export enum PlantronicsCallEvents {
   CallUnansweredAndEnded = 31,
   DeviceChange = 32,
   DeviceArrived = 33,
-  DeviceRemoved = 3,
+  DeviceRemoved = 34,
 }
 
 // Don't need this, because CallEvents[code] will return the name
