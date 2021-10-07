@@ -8,11 +8,7 @@ export enum HeadsetEventName {
 }
 
 export class HeadsetEvent {
-    public eventName: HeadsetEventName;
-    public eventData: any;
-
-    constructor(eventName: HeadsetEventName, eventData: any) {
-        this.eventName = eventName;
-        this.eventData = eventData;
-    }
+    constructor(
+        public eventName: HeadsetEventName,
+        public eventData: any) { }
 }

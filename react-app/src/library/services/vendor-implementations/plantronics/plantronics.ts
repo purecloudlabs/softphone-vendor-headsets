@@ -50,10 +50,6 @@ export default class PlantronicsService extends VendorImplementation {
     return this._deviceInfo?.ProductName;
   }
 
-  // get apiHost(): string {
-  //   return 'https://127.0.0.1:32018/Spokes';
-  // }
-
   get deviceInfo(): DeviceInfo {
     return this._deviceInfo;
   }

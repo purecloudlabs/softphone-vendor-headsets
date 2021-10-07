@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-// import React, {useEffect} from 'react';
+import{ useEffect } from 'react';
 
 const AudioVisualizer = props => {
     const {audioStream} = props;
