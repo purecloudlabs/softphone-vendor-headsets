@@ -1,7 +1,6 @@
 import{ useEffect } from 'react';
 
-const AudioVisualizer = props => {
-    const {audioStream} = props;
+const AudioVisualizer = ({audioStream}: {audioStream: MediaStream}) => {
     const backgroundColor = '#F5FCFF';
     const lineColor = '#4F7787';
 
@@ -24,7 +23,7 @@ const AudioVisualizer = props => {
         return function cleanup() {
             _cleanupAnalyzer();
         }
-    }, [props.audioStream]);
+    }, [audioStream]);
 
     useEffect(() => {
         resetVisualization();

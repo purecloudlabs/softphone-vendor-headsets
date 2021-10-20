@@ -2,6 +2,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { VendorImplementation } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
+import JabraService from './vendor-implementations/jabra/jabra';
 import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import ApplicationService from './application';
@@ -15,6 +16,7 @@ export default class HeadsetService {
   plantronics: VendorImplementation;
   jabraChrome: VendorImplementation;
   jabraNative: VendorImplementation;
+  jabra: VendorImplementation;
   sennheiser: VendorImplementation;
   application: ApplicationService;
   selectedImplementation: VendorImplementation;
@@ -38,9 +40,10 @@ export default class HeadsetService {
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
     this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
+    this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser]
+    [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser, this.jabra]
       .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
@@ -56,11 +59,13 @@ export default class HeadsetService {
     const implementations: VendorImplementation[] = [];
     if (this.application.hostedContext.supportsJabra()) {
       implementations.push(
-        this.application.hostedContext.isHosted() ? this.jabraNative : this.jabraChrome
+        // this.application.hostedContext.isHosted() ? this.jabraNative : this.jabraChrome
+        this.application.hostedContext.isHosted() ? this.jabraNative : this.jabra
       );
     }
     implementations.push(this.plantronics);
     implementations.push(this.sennheiser);
+    console.log('implementations -> ', implementations)
 
     this._implementations = implementations;
     return this._implementations;
@@ -90,6 +95,9 @@ export default class HeadsetService {
 
   // if possible, this should return information about the device
   // if not possible, return { deviceInfo: null }
+
+  //TODO: Check why Plantronics is being called when Plantronics is not the selected Implementation/
+  // Find better way to handle Polling
   changeImplementation(implementation: VendorImplementation): void {
     if (implementation === this.selectedImplementation) {
       return;
@@ -97,6 +105,10 @@ export default class HeadsetService {
 
     if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
+    }
+
+    if (implementation.vendorName === 'Jabra') {
+
     }
 
     this.selectedImplementation = implementation;
@@ -114,7 +126,7 @@ export default class HeadsetService {
   incomingCall(callInfo: CallInfo, hasOtherActiveCalls?): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [incomingCall]'); // TODO: Logger
+      this.logger.info('Headset: No vendor headset connected [incomingCall]');
       return Promise.resolve();
     }
     return service.incomingCall({ callInfo, hasOtherActiveCalls });
@@ -124,7 +136,7 @@ export default class HeadsetService {
   outgoingCall(callInfo: CallInfo): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [outgoingCall]'); // TODO: Logger
+      this.logger.info('Headset: No vendor headset connected [outgoingCall]');
       return Promise.resolve();
     }
 
@@ -134,7 +146,7 @@ export default class HeadsetService {
   answerCall(conversationId: string): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [answerCall]'); // TODO: Logger
+      this.logger.info('Headset: No vendor headset connected [answerCall]');
       return Promise.resolve();
     }
     return service.answerCall(conversationId);
@@ -143,7 +155,7 @@ export default class HeadsetService {
   setMute(value): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No venddor headset connected [setMute]'); // TODO: Logger
+      this.logger.info('Headset: No venddor headset connected [setMute]');
       return Promise.resolve();
     }
     return service.setMute(value);
@@ -152,7 +164,7 @@ export default class HeadsetService {
   setHold(conversationId: string, value): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [setHold]'); // TODO: Logger
+      this.logger.info('Headset: No vendor headset connected [setHold]');
       return Promise.resolve();
     }
     return service.setHold(conversationId, value);
@@ -161,7 +173,7 @@ export default class HeadsetService {
   endCall(conversationId, hasOtherActiveCalls?): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [endCall]'); // TODO: Logger
+      this.logger.info('Headset: No vendor headset connected [endCall]');
       return Promise.resolve();
     }
     return service.endCall(conversationId, hasOtherActiveCalls);
@@ -170,7 +182,7 @@ export default class HeadsetService {
   endAllCalls(): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [endAllCalls]'); // TODO: Logger
+      this.logger.info('Headset: No vendor headset connected [endAllCalls]');
       return Promise.resolve();
     }
 
@@ -182,7 +194,7 @@ export default class HeadsetService {
       return;
     }
 
-    this.logger.info('Headset: device answered the call'); // TODO: Logger
+    this.logger.info('Headset: device answered the call');
     this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ANSWERED_CALL, event));
   }
 
@@ -191,26 +203,26 @@ export default class HeadsetService {
       return;
     }
 
-    this.logger.info('Headset: device rejected the call'); // TODO: Logger
+    this.logger.info('Headset: device rejected the call');
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_REJECTED_CALL, event.body.conversationId)
     );
   }
 
   handleDeviceEndedCall(event: VendorEvent<EventInfo>) {
-    this.logger.info('Headset: device ended the call'); // TODO: Logger
+    this.logger.info('Headset: device ended the call');
     this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, event));
   }
 
   handleDeviceMuteStatusChanged(event: VendorMutedEvent) {
-    this.logger.info('Headset: device mute status changed: ', event.isMuted); // TODO: Logger
+    this.logger.info('Headset: device mute status changed: ', event.isMuted);
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, event)
     );
   }
 
   handleDeviceHoldStatusChanged(event: VendorHoldEvent) {
-    this.logger.info('Headset: device hold status changed', event.holdRequested); // TODO: Logger
+    this.logger.info('Headset: device hold status changed', event.holdRequested);
     this.$headsetEvents.next(
       new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, event)
     ); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference

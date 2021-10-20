@@ -91,7 +91,8 @@ const App = () => {
       headset.changeImplementation(headset.plantronics);
     }
     if (label.indexOf('jabra') > -1) {
-      headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabraChrome']);
+      // headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabraChrome']);
+      headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabra']);
     }
     if (label.indexOf('sennheiser') > -1 || label.indexOf('senn') > -1) {
       headset.changeImplementation(headset.sennheiser);
