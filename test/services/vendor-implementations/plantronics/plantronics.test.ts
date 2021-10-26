@@ -260,7 +260,7 @@ describe('PlantronicsService', () => {
       plantronicsService.callCorrespondingFunction({
         name: 'Unmute'
       });
-      expect(deviceMuteChangedSpy).toHaveBeenLastCalledWith(false, {name: 'Unmute'});
+      expect(deviceMuteChangedSpy).toHaveBeenCalledWith(false, {name: 'Unmute'});
     });
     it('will call deviceHoldStatusChanged with the proper flag', () => {
       const deviceHoldStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceHoldStatusChanged');
@@ -401,7 +401,7 @@ describe('PlantronicsService', () => {
       completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
       await plantronicsService.answerCall('convoId123');
       expect(plantronicsService.isActive).toBe(true);
-      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(17, `/CallServices/AnswerCall${completeEndpoint}`);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/AnswerCall${completeEndpoint}`);
     });
     it('builds an endpoint for terminating a call', async () => {
       const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
@@ -420,7 +420,7 @@ describe('PlantronicsService', () => {
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
       completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
       await plantronicsService.endCall('convoId123');
-      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(20, `/CallServices/TerminateCall${completeEndpoint}`);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/TerminateCall${completeEndpoint}`);
       expect(getCallEventsSpy).toHaveBeenCalled();
       expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
     });

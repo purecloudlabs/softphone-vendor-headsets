@@ -158,7 +158,7 @@ describe('SennheiserService', () => {
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.MuteFromApp when the value argument is defined', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.MuteFromApp when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = 'testValue';
       const expectedPayload: SennheiserPayload = {
@@ -169,9 +169,8 @@ describe('SennheiserService', () => {
       await sennheiserService.setMute(value);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.UnmuteFromApp when the value argument is defined', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.UnmuteFromApp when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = null;
       const expectedPayload: SennheiserPayload = {
@@ -182,7 +181,6 @@ describe('SennheiserService', () => {
       await sennheiserService.setMute(value);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
   });
 
@@ -195,7 +193,7 @@ describe('SennheiserService', () => {
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.Hold when the value argument is defined', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.Hold when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = 'testValue';
       const conversationId = '23f897b';
@@ -209,9 +207,8 @@ describe('SennheiserService', () => {
       await sennheiserService.setHold(conversationId, value);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.Resume when the value argument is defined', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.Resume when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = null;
       const conversationId = '23f897b';
@@ -225,7 +222,6 @@ describe('SennheiserService', () => {
       await sennheiserService.setHold(conversationId, value);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
   });
 
@@ -238,7 +234,7 @@ describe('SennheiserService', () => {
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
 
@@ -254,7 +250,6 @@ describe('SennheiserService', () => {
       };
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
   });
 
@@ -267,7 +262,7 @@ describe('SennheiserService', () => {
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
       const CallID = 237894;
@@ -284,7 +279,6 @@ describe('SennheiserService', () => {
       await sennheiserService.answerCall(conversationId);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
   });
 
@@ -297,7 +291,7 @@ describe('SennheiserService', () => {
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
 
@@ -313,7 +307,6 @@ describe('SennheiserService', () => {
       };
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
   });
 
@@ -326,7 +319,7 @@ describe('SennheiserService', () => {
     afterEach(() => {
       sennheiserService.callMappings = {};
     });
-    it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async done => {
+    it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
       const CallID = 237894;
@@ -343,16 +336,14 @@ describe('SennheiserService', () => {
       await sennheiserService.endCall(conversationId);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-      done();
     });
-    it('should not call _sendMessage when there is no callId for the provided conversationId', async done => {
+    it('should not call _sendMessage when there is no callId for the provided conversationId', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
 
       await sennheiserService.endCall(conversationId);
 
       expect(sennheiserService._sendMessage).not.toHaveBeenCalled();
-      done();
     });
   });
 
@@ -559,7 +550,7 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
-        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(true);
+        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(true, { name: "CallHold" });
       });
     });
 
@@ -586,7 +577,7 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
-        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(false);
+        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(false, { name: "HeldCallResumed" });
       });
     });
 
@@ -594,7 +585,7 @@ describe('SennheiserService', () => {
       it('should call deviceMuteChanged(true)', () => {
         message = { data: `{ "Event": "${SennheiserEvents.MuteFromHeadset}" }` };
         sennheiserService._handleMessage(message);
-        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(true);
+        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(true, { name: "MuteSoftphone" });
       });
     });
 
@@ -602,7 +593,7 @@ describe('SennheiserService', () => {
       it('should call deviceMuteChanged(true)', () => {
         message = { data: `{ "Event": "${SennheiserEvents.UnmuteFromHeadset}" }` };
         sennheiserService._handleMessage(message);
-        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(false);
+        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(false, { name: "UnmuteSoftphone" });
       });
     });
 

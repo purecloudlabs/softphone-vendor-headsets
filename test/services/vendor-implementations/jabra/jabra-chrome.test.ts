@@ -33,7 +33,6 @@ function resetJabraChromeService(service: JabraChromeService): void {
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
   service.logger = mockLogger;
-  Object.defineProperty(service, 'logHeadsetEvents', { get: () => false });
   service._connectDeferred = null;
 }
 
@@ -151,12 +150,12 @@ describe('JabraChromeService', () => {
       jest.spyOn(window, 'postMessage').mockImplementationOnce(() => {});
       const expectedMessage = {
         direction: outgoingMessageName,
-        message: JabraChromeCommands.Hold,
+        message: JabraChromeCommands.Hold
       };
 
       jabraChromeService._sendCmd(JabraChromeCommands.Hold);
 
-      expect(window.postMessage).toHaveBeenCalledWith(expectedMessage, '*');
+      expect(window.postMessage).toHaveBeenCalledWith(expect.objectContaining(expectedMessage), '*');
     });
   });
 
@@ -227,7 +226,6 @@ describe('JabraChromeService', () => {
       });
 
       it('should log an info message if logHeasetEvents is true', () => {
-        Object.defineProperty(JabraChromeService, 'logHeadsetEvents', { get: () => true });
         event.data.message = 'test message';
         jest.spyOn(mockLogger, 'info');
 
