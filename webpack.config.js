@@ -29,7 +29,7 @@ module.exports = (env) => {
 
   return {
     target: 'web',
-    entry: './src/index.ts',
+    entry: './react-app/src/index.tsx',
     mode,
     optimization: {
       minimize

@@ -401,7 +401,7 @@ describe('PlantronicsService', () => {
       completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
       await plantronicsService.answerCall('convoId123');
       expect(plantronicsService.isActive).toBe(true);
-      expect(_makeRequestTaskSpy).toHaveBeenLastCalledWith(`/CallServices/AnswerCall${completeEndpoint}`);
+      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(17, `/CallServices/AnswerCall${completeEndpoint}`);
     });
     it('builds an endpoint for terminating a call', async () => {
       const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
@@ -420,7 +420,7 @@ describe('PlantronicsService', () => {
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
       completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
       await plantronicsService.endCall('convoId123');
-      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(6, `/CallServices/TerminateCall${completeEndpoint}`);
+      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(20, `/CallServices/TerminateCall${completeEndpoint}`);
       expect(getCallEventsSpy).toHaveBeenCalled();
       expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
     });

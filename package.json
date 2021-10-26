@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "author": "Genesys",
   "license": "MIT",
-  "cjs": "dist/cjs/index.js",
-  "module": "dist/es/index.js",
-  "main": "dist/softphone-vendor-headsets.js",
-  "browser": "dist/softphone-vendor-headsets.js",
-  "typings": "dist/es/index.d.ts",
+  "cjs": "dist/cjs/services/headset.js",
+  "module": "dist/es/services/headset.js",
+  "main": "dist/cjs/services/headset.js",
+  "typings": "dist/es/services/headset.js",
   "files": [
     "dist"
   ],
@@ -16,7 +15,7 @@
     "type": ""
   },
   "scripts": {
-    "build": "npm run build:src && npm run build:es && npm run build:module",
+    "build": "npm run build:src && npm run build:es",
     "build:src": "tsc -p . && node copy-version.js",
     "build:es": "tsc -p . --outDir ./dist/es --target es2015 --module es2015",
     "build:module": "webpack && webpack --env.production",

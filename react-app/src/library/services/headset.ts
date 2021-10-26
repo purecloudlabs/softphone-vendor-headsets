@@ -88,6 +88,16 @@ export default class HeadsetService {
   //   this.changeImplementation(newImplementation);
   // }),
 
+  handleActiveMicChange(newMicLabel) {
+    const implementation = this.implementations.find((implementation) => implementation.canHandleHeadset(newMicLabel));
+
+    if (implementation) {
+      this.changeImplementation(implementation);
+    } else if (this.selectedImplementation) {
+      this.selectedImplementation.disconnect();
+    }
+  }
+
   // if possible, this should return information about the device
   // if not possible, return { deviceInfo: null }
   changeImplementation(implementation: VendorImplementation): void {

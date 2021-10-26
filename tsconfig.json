@@ -1,10 +1,6 @@
 {
   "include": [
-    "./react-app/**/*",
-    "test"
-  ],
-  "exclude": [
-    "./test/**/*"
+    "./react-app/src/library/**/*",
   ],
   "compilerOptions": {
     /* Basic Options */
@@ -26,7 +22,7 @@
     "sourceMap": true, /* Generates corresponding '.map' file. */
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
     "outDir": "./dist/cjs", /* Redirect output structure to the directory. */
-    "rootDir": "./react-app", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    "rootDir": "./react-app/src/library", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "composite": true,                     /* Enable project compilation */
     // "incremental": true,                   /* Enable incremental compilation */
     // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */

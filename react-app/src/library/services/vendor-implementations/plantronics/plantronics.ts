@@ -74,6 +74,10 @@ export default class PlantronicsService extends VendorImplementation {
     return PlantronicsService.instance;
   }
 
+  canHandleHeadset(newMicLabel: string): boolean {
+    return newMicLabel.indexOf('plantronics') > -1 || newMicLabel.indexOf('plt') > -1;
+  }
+
   get deviceName(): string | undefined {
     return this._deviceInfo?.ProductName;
   }

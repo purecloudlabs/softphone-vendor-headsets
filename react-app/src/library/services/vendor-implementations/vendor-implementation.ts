@@ -33,6 +33,8 @@ export abstract class VendorImplementation {
     this.logger = config.logger;
   }
 
+  abstract canHandleHeadset(newMicLabel: string): boolean;
+
   get logHeadsetEvents(): boolean {
     if (typeof this.config.logHeadsetEvents === 'undefined' || this.config.logHeadsetEvents === null) {
       return true;

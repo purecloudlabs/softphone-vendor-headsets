@@ -144,6 +144,7 @@ describe('HeadsetService', () => {
         expect(headsetEventSubject.eventData).toBeTruthy();
         expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
         expect(headsetEventSubject.eventData instanceof VendorImplementation).toBe(true);
+        expect(headsetEventSubject.eventData).toBe(plantronics);
       }
     );
     it(
@@ -472,4 +473,35 @@ describe('HeadsetService', () => {
       expect(headsetService.connectionStatus).toBe(`dummy.connectionStatus.error`);
     });
   });
+
+  describe('external mic change', () => {
+    beforeEach(() => {
+      headsetService = HeadsetService.getInstance(config);
+    })
+    it('should check a values label to determine which microphone is selected', () => {
+      headsetService = HeadsetService.getInstance(config);
+      jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
+      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
+      const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
+      const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
+
+      headsetService.handleActiveMicChange('jabra');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(jabraChrome);
+
+      headsetService.handleActiveMicChange('plantronics test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(plantronics);
+      headsetService.handleActiveMicChange('plt test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(plantronics);
+
+      headsetService.handleActiveMicChange('sennheiser test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser);
+      headsetService.handleActiveMicChange('senn test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser);
+      headsetService.handleActiveMicChange('epos test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser);
+
+      headsetService.handleActiveMicChange('test test');
+      expect(disconnectSpy).toHaveBeenCalled();
+    })
+  })
 });
