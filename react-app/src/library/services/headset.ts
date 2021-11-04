@@ -9,8 +9,10 @@ import ApplicationService from './application';
 import { HeadsetEvent, HeadsetEventName } from '../types/headset-event';
 import CallInfo from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, VendorHoldEvent, VendorMutedEvent } from '../types/headset-events';
+import { webHidPairing, init, IApi, RequestedBrowserTransport } from '@gnaudio/jabra-js';
+import { EventEmitter } from 'events';
 
-export default class HeadsetService {
+export default class HeadsetService extends EventEmitter {
   private static instance: HeadsetService;
 
   plantronics: VendorImplementation;
@@ -22,12 +24,14 @@ export default class HeadsetService {
   selectedImplementation: VendorImplementation;
   headsetEvents: Observable<HeadsetEvent>;
   logHeadsetEvents: boolean = false;
+  jabraSdk: Promise<IApi>;
 
   private $headsetEvents: BehaviorSubject<HeadsetEvent>;
   private _implementations: VendorImplementation[];
   private logger: any;
 
   private constructor(config: any) {
+    super();
     this.$headsetEvents = new BehaviorSubject<HeadsetEvent>({
       eventName: '' as HeadsetEventName,
       eventData: {},
@@ -37,10 +41,11 @@ export default class HeadsetService {
     this.application = ApplicationService.getInstance();
     this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
     this.logger = config?.logger || console;
+    this.jabraSdk = this.initializeJabraSdk();
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
     this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
-    this.jabra = JabraService.getInstance({ logger: this.logger });
+    this.jabra = JabraService.getInstance({ logger: this.logger, externalSdk: this.jabraSdk });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
     [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser, this.jabra]
@@ -65,10 +70,17 @@ export default class HeadsetService {
     }
     implementations.push(this.plantronics);
     implementations.push(this.sennheiser);
-    console.log('implementations -> ', implementations)
 
     this._implementations = implementations;
     return this._implementations;
+  }
+
+  async initializeJabraSdk(): Promise<IApi> {
+    return await init({
+      appId: 'softphone-vendor-headsets',
+      appName: 'Softphone Headset Library',
+      transport: RequestedBrowserTransport.WEB_HID
+    });
   }
 
   getHeadSetEventsSubject = () => {
@@ -98,7 +110,17 @@ export default class HeadsetService {
 
   //TODO: Check why Plantronics is being called when Plantronics is not the selected Implementation/
   // Find better way to handle Polling
-  changeImplementation(implementation: VendorImplementation): void {
+  activeMicChange(newMicLabel) {
+    const implementation = this.implementations.find((implementation) => implementation.canHandleHeadset(newMicLabel));
+
+    if (implementation) {
+      this.changeImplementation(implementation, newMicLabel);
+    } else if (this.selectedImplementation) {
+      this.selectedImplementation.disconnect();
+    }
+  }
+
+  async changeImplementation(implementation: VendorImplementation, deviceLabel: string): Promise<void> {
     if (implementation === this.selectedImplementation) {
       return;
     }
@@ -108,13 +130,17 @@ export default class HeadsetService {
     }
 
     if (implementation.vendorName === 'Jabra') {
-
+      (await this.jabraSdk).deviceList.subscribe((devices) => {
+        if (devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
+          this.emit('jabraPermissionRequested', { webHidPairing: webHidPairing });
+        }
+      });
     }
 
     this.selectedImplementation = implementation;
 
     if (implementation) {
-      implementation.connect();
+      implementation.connect(deviceLabel);
     }
 
     this.$headsetEvents.next(

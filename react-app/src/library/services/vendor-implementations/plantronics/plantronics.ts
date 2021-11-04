@@ -38,6 +38,10 @@ export default class PlantronicsService extends VendorImplementation {
   //   clearTimeout(this.get('deviceStatusTimer'));
   // },
 
+  canHandleHeadset(newMicLabel: string): boolean {
+    return newMicLabel.indexOf('plantronics') > -1 || newMicLabel.indexOf('plt') > -1;
+  }
+
   static getInstance(config: ImplementationConfig) {
     if (!PlantronicsService.instance) {
       PlantronicsService.instance = new PlantronicsService(config);

@@ -9,6 +9,7 @@ export interface ImplementationConfig {
   logger: any;
   vendorName?: string;
   logHeadsetEvents?: boolean;
+  externalSdk?: any;
 }
 
 export abstract class VendorImplementation {
@@ -21,6 +22,7 @@ export abstract class VendorImplementation {
   disableRetry = false;
   logger: any; // TODO: pass this in on creation?
   config: ImplementationConfig;
+  externalSdk: any;
 
   constructor(config: ImplementationConfig) {
     const eventEmitter = new EventEmitter();
@@ -31,7 +33,10 @@ export abstract class VendorImplementation {
     this.config = config;
     this.vendorName = config.vendorName;
     this.logger = config.logger;
+    this.externalSdk = config.externalSdk;
   }
+
+  abstract canHandleHeadset(newMicLabel: string): boolean;
 
   get logHeadsetEvents(): boolean {
     if (typeof this.config.logHeadsetEvents === 'undefined' || this.config.logHeadsetEvents === null) {
@@ -51,7 +56,7 @@ export abstract class VendorImplementation {
     throw new Error(`${this.vendorName} - deviceLabelMatchesVendor() not implemented`);
   }
 
-  connect(): Promise<any> {
+  connect(selectedMicLabel?: string): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - connect() not implemented`));
   }
 

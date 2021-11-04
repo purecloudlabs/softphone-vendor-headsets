@@ -29,6 +29,10 @@ export default class JabraChromeService extends VendorImplementation {
     window.addEventListener('message', this._messageHandler.bind(this));
   }
 
+  canHandleHeadset(newMicLabel: string): boolean {
+    return newMicLabel.indexOf('jabra') > -1;
+  }
+
   static getInstance(config: ImplementationConfig) {
     if (!JabraChromeService.instance) {
       JabraChromeService.instance = new JabraChromeService(config);

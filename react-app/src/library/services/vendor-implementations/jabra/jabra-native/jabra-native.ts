@@ -37,6 +37,10 @@ export default class JabraNativeService extends VendorImplementation {
     this.applicationService = ApplicationService.getInstance();
   }
 
+  canHandleHeadset(newMicLabel: string): boolean {
+    return newMicLabel.indexOf('jabra') > -1;
+  }
+
   static getInstance(config: ImplementationConfig) {
     if (!JabraNativeService.instance) {
       JabraNativeService.instance = new JabraNativeService(config);

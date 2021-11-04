@@ -41,11 +41,11 @@ const App = () => {
             break;
           case 'deviceHoldStatusChanged':
             handleHeadsetEvent(value.eventData);
-            toggleSoftwareHold(value.eventData.name === 'Hold', true);
+            toggleSoftwareHold(value.eventData.holdRequested, true);
             break;
           case 'deviceMuteStatusChanged':
             handleHeadsetEvent(value.eventData);
-            toggleSoftwareMute(value.eventData.name === 'Mute', true);
+            toggleSoftwareMute(value.eventData.isMuted, true);
             break;
           case 'deviceAnsweredCall':
             handleHeadsetEvent(value.eventData);
@@ -88,14 +88,14 @@ const App = () => {
     }
     const label = mic.label.toLowerCase();
     if (label.indexOf('plantronics') > -1 || label.indexOf('plt') > -1) {
-      headset.changeImplementation(headset.plantronics);
+      headset.changeImplementation(headset.plantronics, label);
     }
     if (label.indexOf('jabra') > -1) {
       // headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabraChrome']);
-      headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabra']);
+      headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabra'], label);
     }
     if (label.indexOf('sennheiser') > -1 || label.indexOf('senn') > -1) {
-      headset.changeImplementation(headset.sennheiser);
+      headset.changeImplementation(headset.sennheiser, label);
     }
   }
 

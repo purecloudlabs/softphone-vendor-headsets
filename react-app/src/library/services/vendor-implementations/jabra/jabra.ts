@@ -1,12 +1,22 @@
 import { VendorImplementation, ImplementationConfig } from "../vendor-implementation";
 import DeviceInfo from "../../../types/device-info";
-import { JabraCommands } from './jabra-commands';
-// import { JabraRequestedEvents } from './jabra-requested-events';
 import { timedPromise } from "../../../utils";
-// import { EventTranslation } from './jabra-event-translation';
 import { v4 } from 'uuid';
-import { EventTranslation } from "./jabra-chrome/jabra-chrome-event-translation";
-import { onInputReport } from "./webHidHelpers";
+import {
+    IApi,
+    EasyCallControlFactory,
+    CallControlFactory,
+    IMultiCallControl,
+    webHidPairing,
+    init,
+    RequestedBrowserTransport,
+    SignalType,
+    ICallControl,
+    AcceptIncomingCallBehavior,
+    IJabraError,
+    JabraError,
+    ErrorType
+} from '@gnaudio/jabra-js';
 
 const incomingMessageName = 'jabra-headset-extension-from-content-script';
 const outgoingMessageName = 'jabra-headset-extension-from-content-script';
@@ -26,42 +36,34 @@ export default class JabraService extends VendorImplementation {
     version: string = null;
     _connectDeferred: any; // { resolve: Function, reject: Function }
     device = null;
-    listOfActions = [];
+    jabraSdk: IApi;
+    easyCallControlFactory: EasyCallControlFactory;
+    callControlFactory: CallControlFactory;
+    multiCallControl: IMultiCallControl;
+    callControl: ICallControl;
+    ongoingCalls: number = 0;
+    callLock: boolean = false;
 
     private constructor(config: ImplementationConfig) {
         super(config);
         this.vendorName = 'Jabra';
         this.devices = new Map<string, DeviceInfo>();
-
+        // this.jabraSdk = config.externalSdk;
         //TODO: Prompt user to select device
         const button = document.createElement('button');
-        button.addEventListener('click', this.requestJabraDevice);
+        button.addEventListener('click', async () => {
+            try {
+                await webHidPairing();
+            } catch(err) {
+                this.logger.error(err);
+            }
+        });
         const root = document.getElementById('root');
         root.appendChild(button);
-        // button.click()
-        // this.requestJabraDevice();
     }
 
-    async requestJabraDevice() {
-        [this.device] = await (navigator as any).hid.requestDevice({ filters: [{ vendorId: jabraVendorId }]});
-        if (!this.device) {
-            console.log('No selection was made');
-            return;
-        }
-
-        await this.device.open();
-        if (!this.device.opened) {
-            console.log('Unable to open device');
-            return;
-        } else {
-            console.log('Opened device');
-        }
-
-        this.device.oninputreport = (event) => {
-            this.listOfActions = onInputReport(event);
-            this.handleActions();
-        }
-        console.log(this.device);
+    canHandleHeadset(newMicLabel: string): boolean {
+        return newMicLabel.indexOf('jabra') > -1;
     }
 
     static getInstance(config: ImplementationConfig) {
@@ -92,155 +94,123 @@ export default class JabraService extends VendorImplementation {
         return label.toLowerCase().includes('jabra');
     }
 
-    _getHeadsetIntoVanillaState(): void {
+    resetState(): void {
         this.setHold(null, false);
         this.setMute(false);
     }
 
-    _sendCmd(cmd: JabraCommands) {
-        this.logger.debug('sending jabra event', { cmd });
-        window.postMessage(
-            {
-                direction: outgoingMessageName,
-                requestId: v4(),
-                apiClientId: clientId,
-                message: cmd
-            },
-            '*'
-        );
-    }
-
-    _messageHandler(event): void {
-        if(
-            event.source === window &&
-            event.data.direction &&
-            event.data.direction === incomingMessageName
-        ) {
-            this.logger.debug('Incoming jabra event', event.data);
-
-            if (this.logHeadsetEvents) {
-                this.logger.info(event.data.message);
-            }
-
-            if (event.data.message.startsWith(JabraCommands.GetVersion)) {
-                const version = event.data.message.substring(JabraCommands.GetVersion + 1);
-                this.logger.info(`jabra version: ${version}`);
-                this.version = version;
-            }
-
-            if (this.isConnecting) {
-                if (event.data.error !== null && event.data.error !== undefined) {
-                    this._handleDeviceConnectionFailure(event.data.error);
-                } else {
-                    this._handleDeviceConnect();
+    async _processEvents(callControl: ICallControl) {
+        callControl.deviceSignals.subscribe(async (signal) => {
+            if (this.callLock) {
+                switch (SignalType[signal.type]) {
+                    case 'HOOK_SWITCH':
+                        if (signal.value) {
+                            callControl.offHook(true);
+                            callControl.ring(false);
+                            this.deviceAnsweredCall();
+                        } else {
+                            callControl.mute(false);
+                            callControl.hold(false);
+                            callControl.offHook(false);
+                            this.deviceEndedCall();
+                            try {
+                                await callControl.releaseCallLock();
+                            } catch({message, type}) {
+                                this.logger.info(message, type);
+                            } finally {
+                                this.callLock = false;
+                            }
+                        }
+                        break;
+                    case 'FLASH':
+                    case 'ALT_HOLD':
+                        this.isHeld = !this.isHeld;
+                        callControl.hold(this.isHeld);
+                        this.deviceHoldStatusChanged(this.isHeld);
+                        break;
+                    case 'PHONE_MUTE':
+                        this.isMuted = !this.isMuted;
+                        callControl.mute(this.isMuted);
+                        this.deviceMuteChanged(this.isMuted);
+                        break;
+                    case 'REJECT_CALL':
+                        callControl.offHook(false);
+                        callControl.ring(false);
+                        this.deviceRejectedCall(null);
+                        try {
+                            await callControl.releaseCallLock();
+                        } catch({message, type}) {
+                            this.logger.info(message, type);
+                        } finally {
+                            this.callLock = false;
+                        }
                 }
             } else {
-                if (event.data.message.startsWith(JabraCommands.GetDevices)) {
-                    this._handleGetDevices(
-                        event.data.message.substring(JabraCommands.GetDevices.length + 1)
-                    );
-                    return;
-                }
-
-                if (event.data.message.startsWith(JabraCommands.GetActiveDevice)) {
-                    this._handleGetActiveDevice(
-                        event.data.message.substring(JabraCommands.GetActiveDevice.length + 1)
-                    );
-                    return;
-                }
-
-                const translatedEvent = EventTranslation[event.data.message];
-                if (!translatedEvent) {
-                    this.logger.info('Jabra event unknown or not handled', { event: event.data.message });
-                    return;
-                }
-
-                this._processEvent(translatedEvent);
+                this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions');
             }
-        }
-    }
-
-    _processEvent(eventTranslation) {
-        switch(eventTranslation) {
-            case 'Mute':
-                this.setMute(true);
-                this.deviceMuteChanged(true);
-                break;
-            case 'Unmute':
-                this.setMute(false);
-                this.deviceMuteChanged(false);
-                break;
-            case 'AcceptCall':
-                this.deviceAnsweredCall();
-                break;
-            case 'TerminateCall':
-                this._getHeadsetIntoVanillaState();
-                this.deviceEndedCall();
-                break;
-            case 'IgnoreCall':
-                this.deviceRejectedCall(null);
-                break;
-            case 'Flash':
-                this.deviceHoldStatusChanged(null, true);
-                break;
-            case 'Attached':
-                this._deviceAttached();
-                break;
-            case 'Detached':
-                this._deviceDetached();
-                break;
-            default:
-                this.logger.info('Unknown Jabra event: ', eventTranslation);
-        }
-    }
-
-    handleActions() {
-        
-    }
-
-    onInputReport(event) {
-        console.log('onInputReport event => ', event);
-        console.log('**** ARRAY BUFFER ****', event.data.getUint8(0));
-        let reportId = event.reportId;
-        let reportData = event.data;
-
-        if (reportData === 7) {
-            this.isMuted = !this.isMuted;
-        }
+        })
     }
 
     setMute(value: boolean): Promise<void> {
-        // this._sendCmd(JabraCommands[value ? 'Mute' : 'Unmute']);
+        if (this.callLock) {
+            this.isMuted = value;
+            this.callControl.mute(value);
+        }
         return Promise.resolve();
     }
 
     setHold(conversationId: string, value: boolean): Promise<void> {
-        // this._sendCmd(JabraCommands[value ? 'Hold' : 'Resume']);
-        return Promise.resolve();
-    }
-
-    incomingCall(opts: any): Promise<void> {
-        if (opts && !opts.hasOtherActiveCalls) {
-            // this._sendCmd(JabraCommands.Ring);
+        if (this.callLock) {
+            this.isHeld = value;
+            this.callControl.hold(value);
         }
         return Promise.resolve();
     }
 
+    async incomingCall(opts: any): Promise<void> {
+        // if (opts && !opts.hasOtherActiveCalls) {
+        if (opts) {
+            try {
+                this.callLock = await this.callControl.takeCallLock();
+            } catch ({message, type}) {
+                if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock')) {
+                    this.logger.info(message);
+                    this.callControl.ring(true);
+                } else {
+                    this.logger.error(type, message);
+                }
+            } finally {
+                if (this.callLock) {
+                    this.callControl.ring(true);
+                }
+                return Promise.resolve();
+            }
+        }
+    }
+
     answerCall(): Promise<void> {
-        // this._sendCmd(JabraCommands.OffHook);
+        if (this.callLock) {
+            this.callControl.offHook(true);
+        }
         return Promise.resolve();
     }
 
-    outgoingCall(): Promise<void> {
-        // this._sendCmd(JabraCommands.Offhook);
-        return Promise.resolve();
-    }
-
-    //Since answerCall and outgoingCall are identical, I combined them
-    //into one function; Use this for answerCall and outgoingCall
-    offHookCommand(): Promise<void> {
-        // this._sendCmd(JabraCommands.OffHook);
-        return Promise.resolve();
+    async outgoingCall(): Promise<void> {
+        try {
+            this.callLock = await this.callControl.takeCallLock();
+        } catch({message, type}) {
+            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock')) {
+                this.logger.info(message);
+                this.callControl.offHook(true);
+            } else {
+                this.logger.error(type, message);
+            }
+        } finally {
+            if (this.callLock) {
+                this.callControl.offHook(true);
+                return Promise.resolve();
+            }
+        }
     }
 
     endCall(conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
@@ -248,60 +218,88 @@ export default class JabraService extends VendorImplementation {
             return Promise.resolve();
         }
 
-        this._getHeadsetIntoVanillaState();
-        // this._sendCmd(JabraCommands.OnHook);
-        return Promise.resolve();
+        try {
+            if (this.callLock) {
+                this.callControl.offHook(false);
+            } else {
+                this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions')
+            }
+            this.callControl.releaseCallLock();
+        } catch ({message, type}) {
+            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('callLock')) {
+                this.logger.info(message);
+            } else {
+                this.logger.error(type, message);
+            }
+        } finally {
+            this.callLock = false;
+            this.resetState();
+            return Promise.resolve();
+        }
     }
 
     endAllCalls(): Promise<void> {
-        // this._sendCmd(JabraCommands.OnHook);
-        return Promise.resolve();
-    }
-
-    _deviceAttached(): void {
-        // this._sendCmd(JabraCommands.GetActiveDevice);
-        // this._sendCmd(JabraCommands.GetDevices);
-    }
-
-    _deviceDetached() {
-        this.devices = null;
-        this.activeDeviceId = null;
-
-        // this._sendCmd(JabraCommands.GetActiveDevice);
-        // this._sendCmd(JabraCommands.GetDevices);
-    }
-
-    connect(): Promise<any> {
-        this.isConnecting = true;
-        const connectionPromise = new Promise((resolve, reject) => {
-            this._connectDeferred = { resolve, reject };
-            // this._sendCmd(JabraCommands.GetVersion);
-        });
-
-        const connectionError = new Error('Jabra connection request timed out');
-        return timedPromise(
-            connectionPromise,
-            JabraService.connectTimeout,
-            connectionError
-        ).catch(err => {
-            this.isConnected = false;
-            this.isConnecting = false;
-            this.logger.info(err);
-        });
-    }
-
-    async _handleDeviceConnect() {
-        if (this._connectDeferred) {
-            // this._sendCmd(JabraCommands.GetActiveDevice);
-            // this._sendCmd(JabraCommands.GetDevices);
-            this.isConnecting = false;
-            this.isConnected = true;
-            this._connectDeferred.resolve();
-            this._connectDeferred = null;
-        } else {
-            this.logger.warn(new Error('_handleDeviceConnect called but there is no pending connection'));
+        try {
+            if (this.callLock) {
+                this.callControl.offHook(false);
+            } else {
+                this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions')
+            }
+            this.callControl.releaseCallLock();
+        } catch ({message, type}) {
+            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('callLock')) {
+                this.logger.info(message);
+            } else {
+                this.logger.error(type, message);
+            }
+        } finally {
+            this.callLock = false;
+            this.resetState();
+            return Promise.resolve();
         }
     }
+
+    // _deviceAttached(): void {
+    //     // this._sendCmd(JabraCommands.GetActiveDevice);
+    //     // this._sendCmd(JabraCommands.GetDevices);
+    // }
+
+    // _deviceDetached() {
+        //     this.devices = null;
+        //     this.activeDeviceId = null;
+
+        //     // this._sendCmd(JabraCommands.GetActiveDevice);
+        //     // this._sendCmd(JabraCommands.GetDevices);
+        // }
+
+    async connect(deviceLabel): Promise<any> {
+        this.isConnecting = true;
+        this.jabraSdk = await this.config.externalSdk;
+        this.callControlFactory = new CallControlFactory(this.jabraSdk);
+        this.jabraSdk.deviceList.subscribe(async (devices) => {
+            console.log(devices);
+            if (devices.length > 0) {
+                const connectedDevice = devices.find((device) => deviceLabel.includes(device.name.toLowerCase()));
+                this.callControl = await this.callControlFactory.createCallControl(connectedDevice);
+                this._processEvents(this.callControl);
+                this.isConnecting = false;
+                this.isConnected = true;
+            }
+        })
+    }
+
+    // async _handleDeviceConnect() {
+    //     if (this._connectDeferred) {
+    //         // this._sendCmd(JabraCommands.GetActiveDevice);
+    //         // this._sendCmd(JabraCommands.GetDevices);
+    //         this.isConnecting = false;
+    //         this.isConnected = true;
+    //         this._connectDeferred.resolve();
+    //         this._connectDeferred = null;
+    //     } else {
+    //         this.logger.warn(new Error('_handleDeviceConnect called but there is no pending connection'));
+    //     }
+    // }
 
     disconnect(): Promise<void> {
         this.isConnecting = false;
@@ -309,36 +307,33 @@ export default class JabraService extends VendorImplementation {
         return Promise.resolve();
     }
 
-    _handleDeviceConnectionFailure(err) {
-        if (this._connectDeferred) {
-            this._connectDeferred.reject(err);
-            this._connectDeferred = null;
-        } else {
-            this.logger.warn(
-                new Error('_handleDeviceConnectionFailure was called but there is no pending connection')
-            )
-        }
-    }
+    // _handleDeviceConnectionFailure(err) {
+    //     if (this._connectDeferred) {
+    //         this._connectDeferred.reject(err);
+    //         this._connectDeferred = null;
+    //     } else {
+    //         this.logger.warn(
+    //             new Error('_handleDeviceConnectionFailure was called but there is no pending connection')
+    //         )
+    //     }
+    // }
 
-    _handleGetDevices(deviceList) {
-        this.logger.debug('device list', deviceList);
-        const items = deviceList.split(',');
-        const deviceMap = new Map<string, DeviceInfo>();
+    // _handleGetDevices(deviceList) {
+    //     this.logger.debug('device list', deviceList);
+    //     const items = deviceList.split(',');
+    //     const deviceMap = new Map<string, DeviceInfo>();
 
-        for (let i = 0; i < items.length; i += 2) {
-            const deviceId = items[i];
-            const deviceName = items[i + 1];
-            deviceMap.set(deviceId, { deviceId, deviceName });
-        }
+    //     for (let i = 0; i < items.length; i += 2) {
+    //         const deviceId = items[i];
+    //         const deviceName = items[i + 1];
+    //         deviceMap.set(deviceId, { deviceId, deviceName });
+    //     }
 
-        this.devices = deviceMap;
-    }
+    //     this.devices = deviceMap;
+    // }
 
-    _handleGetActiveDevice(activeDeviceId: string) {
-        this.logger.debug('active device info', activeDeviceId);
-        this.activeDeviceId = activeDeviceId;
-    }
-
-    //TODO: Handle reports sent from headsets (oninputreport)
-    //TODO: Handle reports sent to headsets (sendReport)
+    // _handleGetActiveDevice(activeDeviceId: string) {
+    //     this.logger.debug('active device info', activeDeviceId);
+    //     this.activeDeviceId = activeDeviceId;
+    // }
 }

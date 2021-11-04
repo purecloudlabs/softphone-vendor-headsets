@@ -31,6 +31,10 @@ export default class SennheiserService extends VendorImplementation {
     return SennheiserService.instance;
   }
 
+  canHandleHeadset(newMicLabel: string): boolean {
+    return newMicLabel.indexOf('sennheiser') > -1 || newMicLabel.indexOf('senn') > -1 || newMicLabel.indexOf('epos') > -1;
+  }
+
   get deviceName(): string {
     return this.deviceInfo && this.deviceInfo.ProductName;
   }
