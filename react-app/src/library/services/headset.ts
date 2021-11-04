@@ -235,9 +235,10 @@ export default class HeadsetService extends EventEmitter {
     );
   }
 
-  handleDeviceEndedCall(event: VendorEvent<EventInfo>) {
+  async handleDeviceEndedCall(event: VendorEvent<EventInfo>) {
     this.logger.info('Headset: device ended the call');
-    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, event));
+    await this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, event));
+    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.CLEAR_HEADSET_EVENTS, event))
   }
 
   handleDeviceMuteStatusChanged(event: VendorMutedEvent) {

@@ -5,6 +5,7 @@ export enum HeadsetEventName {
     DEVICE_ENDED_CALL = 'deviceEndedCall',
     DEVICE_MUTE_STATUS_CHANGED = 'deviceMuteStatusChanged',
     DEVICE_HOLD_STATUS_CHANGED = 'deviceHoldStatusChanged',
+    CLEAR_HEADSET_EVENTS = 'clear_headset_events'
 }
 
 export class HeadsetEvent {
