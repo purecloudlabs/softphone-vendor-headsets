@@ -41,11 +41,11 @@ const App = () => {
             break;
           case 'deviceHoldStatusChanged':
             handleHeadsetEvent(value.eventData);
-            toggleSoftwareHold(value.eventData.name === 'Hold', true);
+            toggleSoftwareHold(value.eventData.holdRequested, true);
             break;
           case 'deviceMuteStatusChanged':
             handleHeadsetEvent(value.eventData);
-            toggleSoftwareMute(value.eventData.name === 'Mute', true);
+            toggleSoftwareMute(value.eventData.isMuted, true);
             break;
           case 'deviceAnsweredCall':
             handleHeadsetEvent(value.eventData);
@@ -79,23 +79,7 @@ const App = () => {
     await webrtc.ensureAudioPermissions();
     const devices = await navigator.mediaDevices.enumerateDevices();
     setMicrophones(devices.filter((device) => device.kind === 'audioinput'));
-    activateImplementationForMicrophone(webrtc.getDefaultMicrophone());
-  }
-
-  const activateImplementationForMicrophone = (mic) => {
-    if (!mic) {
-      return;
-    }
-    const label = mic.label.toLowerCase();
-    if (label.indexOf('plantronics') > -1 || label.indexOf('plt') > -1) {
-      headset.changeImplementation(headset.plantronics);
-    }
-    if (label.indexOf('jabra') > -1) {
-      headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabraChrome']);
-    }
-    if (label.indexOf('sennheiser') > -1 || label.indexOf('senn') > -1) {
-      headset.changeImplementation(headset.sennheiser);
-    }
+    headset.handleActiveMicChange(webrtc.getDefaultMicrophone().label.toLowerCase());
   }
 
   const handleHeadsetEvent = ({name, code}) => {
@@ -136,7 +120,7 @@ const App = () => {
     if (mic) {
       webrtc.setDefaultMicrophone(mic);
       console.info('**** MICROPHONE CHANGED ****', mic);
-      activateImplementationForMicrophone(mic);
+      headset.handleActiveMicChange(mic.label.toLowerCase());
     }
   }
 
