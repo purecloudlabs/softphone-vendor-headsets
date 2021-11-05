@@ -5,6 +5,7 @@ import { SennheiserEventTypes } from '../../../../react-app/src/library/services
 import * as utils from '../../../../react-app/src/library/utils';
 import DeviceInfo from '../../../../react-app/src/library/types/device-info';
 import { mockWebSocket, mockLogger } from '../../test-utils';
+import CallInfo from '../../../../react-app/src/library/types/call-info';
 
 function resetService() {
   const sennheiserService = SennheiserService.getInstance({ logger: console });
@@ -236,13 +237,16 @@ describe('SennheiserService', () => {
     });
     it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
-      const conversationId = '23f897b';
+      const callInfo: CallInfo = {
+        contactName: 'Ted Danson',
+        conversationId: '23f897b'
+      }
 
       // Run Test
-      await sennheiserService.incomingCall({ conversationId });
+      await sennheiserService.incomingCall({ callInfo });
 
       // Get generated call mapping to create expected payload
-      const generatedCallId = sennheiserService.callMappings[conversationId];
+      const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCall,
         EventType: SennheiserEventTypes.Request,
@@ -294,12 +298,16 @@ describe('SennheiserService', () => {
     it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
+      const callInfo: CallInfo = {
+        contactName: 'Joe Fixit',
+        conversationId: '23f897b'
+      }
 
       // Run Test
-      await sennheiserService.outgoingCall({ conversationId });
+      await sennheiserService.outgoingCall({ callInfo });
 
       // Get generated call mapping to create expected payload
-      const generatedCallId = sennheiserService.callMappings[conversationId];
+      const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.OutgoingCall,
         EventType: SennheiserEventTypes.Request,
