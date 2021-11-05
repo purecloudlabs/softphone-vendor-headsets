@@ -48,18 +48,6 @@ export default class JabraService extends VendorImplementation {
         super(config);
         this.vendorName = 'Jabra';
         this.devices = new Map<string, DeviceInfo>();
-        // this.jabraSdk = config.externalSdk;
-        //TODO: Prompt user to select device
-        const button = document.createElement('button');
-        button.addEventListener('click', async () => {
-            try {
-                await webHidPairing();
-            } catch(err) {
-                this.logger.error(err);
-            }
-        });
-        const root = document.getElementById('root');
-        root.appendChild(button);
     }
 
     canHandleHeadset(newMicLabel: string): boolean {

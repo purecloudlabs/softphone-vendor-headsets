@@ -8,12 +8,14 @@ import { HeadsetEventName } from '../../react-app/src/library/types/headset-even
 import CallInfo from '../../react-app/src/library/types/call-info';
 import ApplicationService from '../../react-app/src/library/services/application';
 import { EventInfo, VendorEvent } from '../../react-app/src/library/types/headset-events';
+import JabraService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra';
 
 describe('HeadsetService', () => {
   let plantronics: VendorImplementation;
   let sennheiser: VendorImplementation;
   let jabraNative: VendorImplementation;
   let jabraChrome: VendorImplementation;
+  let jabra: VendorImplementation;
   let headsetService: HeadsetService;
   let application: ApplicationService;
   let config: any = { logger: console};
@@ -24,6 +26,7 @@ describe('HeadsetService', () => {
     sennheiser = SennheiserService.getInstance({...config, vendorName: 'Sennheiser'});
     jabraNative = JabraNativeService.getInstance({...config, vendorName: 'JabraNative'});
     jabraChrome = JabraChromeService.getInstance({...config, vendorName: 'JabraChrome'});
+    jabra = JabraService.getInstance({...config, vendorName: 'Jabra'});
 
     jest.spyOn(sennheiser, 'connect').mockResolvedValue(true);
     jest.spyOn(plantronics, 'connect').mockResolvedValue(true);
@@ -37,6 +40,7 @@ describe('HeadsetService', () => {
     sennheiser = null;
     jabraNative = null;
     jabraChrome = null;
+    jabra = null;
     jest.resetAllMocks();
     jest.resetModules();
   });
@@ -77,10 +81,10 @@ describe('HeadsetService', () => {
       headsetService = HeadsetService.getInstance(config);
 
       const implementations = headsetService.implementations;
-      const filteredImplementations = implementations.filter(i => i instanceof JabraChromeService);
+      const filteredImplementations = implementations.filter(i => i instanceof JabraService);
 
       expect(filteredImplementations.length).toEqual(1);
-      expect(filteredImplementations[0]).toBe(jabraChrome);
+      expect(filteredImplementations[0]).toBe(jabra);
     });
     it('should include an implementation for jabra-native upon instantiation if the application context is hosted and supports jabra', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
@@ -115,13 +119,13 @@ describe('HeadsetService', () => {
       headsetService.selectedImplementation = sennheiser;
       jest.spyOn(sennheiser, 'disconnect');
 
-      headsetService.changeImplementation(sennheiser);
+      headsetService.changeImplementation(sennheiser, 'test label');
 
       expect(sennheiser.disconnect).not.toHaveBeenCalled();
     });
     it('should change the selected implementation to what was passed in', () => {
       headsetService.selectedImplementation = sennheiser;
-      headsetService.changeImplementation(plantronics);
+      headsetService.changeImplementation(plantronics, 'test label');
       expect(headsetService.selectedImplementation).toBe(plantronics);
     });
     it('should call disconnect on the old implementation, and connect on the new implementation', () => {
@@ -129,32 +133,32 @@ describe('HeadsetService', () => {
       jest.spyOn(plantronics, 'connect');
       headsetService.selectedImplementation = sennheiser;
 
-      headsetService.changeImplementation(plantronics);
+      headsetService.changeImplementation(plantronics, 'test label');
 
       expect(sennheiser.disconnect).toHaveBeenCalled();
       expect(plantronics.connect).toHaveBeenCalled();
     });
     it(
+      'should trigger implementationChanged event when clearing the implementation', async () => {
+        headsetService.selectedImplementation = plantronics;
+        await headsetService.changeImplementation(null, '');
+
+        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
+
+        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
+        expect(headsetEventSubject.eventData).toBeNull();
+      }
+    );
+    it(
       'should trigger implementationChanged event for new implementation', () => {
         headsetService.selectedImplementation = sennheiser;
-        headsetService.changeImplementation(plantronics);
+        headsetService.changeImplementation(plantronics, 'test label');
 
         const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
 
         expect(headsetEventSubject.eventData).toBeTruthy();
         expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
         expect(headsetEventSubject.eventData instanceof VendorImplementation).toBe(true);
-      }
-    );
-    it(
-      'should trigger implementationChanged event when clearing the implementation', () => {
-        headsetService.selectedImplementation = plantronics;
-        headsetService.changeImplementation(null);
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventData).toBeNull();
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
       }
     );
   });

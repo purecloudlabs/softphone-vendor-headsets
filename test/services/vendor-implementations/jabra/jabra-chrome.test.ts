@@ -33,7 +33,6 @@ function resetJabraChromeService(service: JabraChromeService): void {
   service.devices = new Map<string, DeviceInfo>();
   service.activeDeviceId = null;
   service.logger = mockLogger;
-  Object.defineProperty(service, 'logHeadsetEvents', { get: () => false });
   service._connectDeferred = null;
 }
 
@@ -47,7 +46,7 @@ describe('JabraChromeService', () => {
   let jabraChromeService: JabraChromeService;
 
   beforeEach(() => {
-    jabraChromeService = JabraChromeService.getInstance({ logger: console });
+    jabraChromeService = JabraChromeService.getInstance({ logger: console, logHeadsetEvents: true });
     resetJabraChromeService(jabraChromeService);
   });
 
@@ -156,7 +155,7 @@ describe('JabraChromeService', () => {
 
       jabraChromeService._sendCmd(JabraChromeCommands.Hold);
 
-      expect(window.postMessage).toHaveBeenCalledWith(expectedMessage, '*');
+      expect(window.postMessage).toHaveBeenCalledWith(expect.objectContaining(expectedMessage), '*');
     });
   });
 

@@ -120,7 +120,7 @@ export default class HeadsetService extends EventEmitter {
     }
   }
 
-  async changeImplementation(implementation: VendorImplementation, deviceLabel: string): Promise<void> {
+  async changeImplementation(implementation: VendorImplementation | null, deviceLabel: string): Promise<void> {
     if (implementation === this.selectedImplementation) {
       return;
     }
@@ -129,7 +129,7 @@ export default class HeadsetService extends EventEmitter {
       this.selectedImplementation.disconnect();
     }
 
-    if (implementation.vendorName === 'Jabra') {
+    if (implementation?.vendorName === 'Jabra') {
       (await this.jabraSdk).deviceList.subscribe((devices) => {
         if (devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
           this.emit('jabraPermissionRequested', { webHidPairing: webHidPairing });

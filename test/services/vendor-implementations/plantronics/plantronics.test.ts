@@ -5,7 +5,7 @@ import { eventValidation, mockLogger } from '../../test-utils';
 import responses from './plantronics-responses';
 import HeadsetService from '../../../../react-app/src/library/services/headset';
 import { PlantronicsCallEvents } from "../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics-call-events";
-
+import 'regenerator-runtime';
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
 HeadsetService.getInstance({logger: console}).logHeadsetEvents = true;
 
@@ -308,6 +308,29 @@ describe('PlantronicsService', () => {
       expect(plantronicsService.isActive).toBeFalsy();
       expect(plantronicsService.isConnecting).toBeFalsy();
     }, 30000);
+    it('connects properly with a clean state', async () => {
+      await sendScenario({
+        '/SessionManager/Register*': {
+          responses: [responses.SessionManager.Register.default]
+        },
+        '/SessionManager/IsActive*': {
+          responses: [responses.SessionManager.IsActive.default]
+        },
+        '/UserPreference/SetDefaultSoftPhone*': {
+          responses: [responses.UserPreference.SetDefaultSoftPhone.default]
+        },
+        '/DeviceServices/Info*': {
+          responses: [responses.DeviceServices.Info.default]
+        },
+        '/CallServices/CallManagerState*' : {
+          responses: [responses.CallServices.CallManagerState.default]
+        }
+      })
+      await plantronicsService.connect();
+      expect(plantronicsService.isConnected).toBeTruthy();
+      expect(plantronicsService.isActive).toBeFalsy();
+      expect(plantronicsService.isConnecting).toBeFalsy();
+    }, 30000);
     it('builds an endpoint for incoming calls', async () => {
       const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
       await sendScenario({
@@ -420,7 +443,7 @@ describe('PlantronicsService', () => {
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
       completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
       await plantronicsService.endCall('convoId123');
-      expect(_makeRequestTaskSpy).toHaveBeenNthCalledWith(6, `/CallServices/TerminateCall${completeEndpoint}`);
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/TerminateCall${completeEndpoint}`);
       expect(getCallEventsSpy).toHaveBeenCalled();
       expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
     });
@@ -658,6 +681,18 @@ describe('PlantronicsService', () => {
         expect(disconnectSpy).toHaveBeenCalled();
         expect(plantronicsService.logger.info).toHaveBeenCalledWith(err);
       }
+    })
+  })
+  describe('canHandleHeadset', () => {
+    it('tests if passed in label can be used by instance', () => {
+      let result = plantronicsService.canHandleHeadset('test plantronics headset');
+      expect(result).toBe(true);
+
+      result = plantronicsService.canHandleHeadset('test plt headset');
+      expect(result).toBe(true);
+
+      result = plantronicsService.canHandleHeadset('something else entirely');
+      expect(result).toBe(false);
     })
   })
 });
