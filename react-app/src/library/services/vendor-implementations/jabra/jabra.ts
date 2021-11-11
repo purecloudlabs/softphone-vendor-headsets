@@ -7,14 +7,8 @@ import {
     EasyCallControlFactory,
     CallControlFactory,
     IMultiCallControl,
-    webHidPairing,
-    init,
-    RequestedBrowserTransport,
     SignalType,
     ICallControl,
-    AcceptIncomingCallBehavior,
-    IJabraError,
-    JabraError,
     ErrorType
 } from '@gnaudio/jabra-js';
 
@@ -214,7 +208,7 @@ export default class JabraService extends VendorImplementation {
             }
             this.callControl.releaseCallLock();
         } catch ({message, type}) {
-            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('callLock')) {
+            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock')) {
                 this.logger.info(message);
             } else {
                 this.logger.error(type, message);
@@ -235,7 +229,7 @@ export default class JabraService extends VendorImplementation {
             }
             this.callControl.releaseCallLock();
         } catch ({message, type}) {
-            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('callLock')) {
+            if (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock')) {
                 this.logger.info(message);
             } else {
                 this.logger.error(type, message);
@@ -263,17 +257,22 @@ export default class JabraService extends VendorImplementation {
     async connect(deviceLabel): Promise<any> {
         this.isConnecting = true;
         this.jabraSdk = await this.config.externalSdk;
-        this.callControlFactory = new CallControlFactory(this.jabraSdk);
+        this.callControlFactory = this.createCallControlFactory(this.jabraSdk);
         this.jabraSdk.deviceList.subscribe(async (devices) => {
-            console.log(devices);
             if (devices.length > 0) {
-                const connectedDevice = devices.find((device) => deviceLabel.includes(device.name.toLowerCase()));
+                const connectedDevice = devices.find((device) => deviceLabel.includes(device?.name?.toLowerCase()));
                 this.callControl = await this.callControlFactory.createCallControl(connectedDevice);
                 this._processEvents(this.callControl);
                 this.isConnecting = false;
                 this.isConnected = true;
+            } else {
+                this.isConnecting = false;
             }
         })
+    }
+
+    createCallControlFactory (sdk) {
+        return new CallControlFactory(sdk);
     }
 
     // async _handleDeviceConnect() {

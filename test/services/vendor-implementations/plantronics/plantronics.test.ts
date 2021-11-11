@@ -6,6 +6,10 @@ import responses from './plantronics-responses';
 import HeadsetService from '../../../../react-app/src/library/services/headset';
 import { PlantronicsCallEvents } from "../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics-call-events";
 import 'regenerator-runtime';
+import { BroadcastChannel } from "broadcast-channel";
+
+jest.mock('broadcast-channel');
+
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
 HeadsetService.getInstance({logger: console}).logHeadsetEvents = true;
 
@@ -285,29 +289,11 @@ describe('PlantronicsService', () => {
   });
 
   describe('check various endpoint calls', () => {
-    it('connects properly with a clean state', async () => {
-      await sendScenario({
-        '/SessionManager/Register*': {
-          responses: [responses.SessionManager.Register.default]
-        },
-        '/SessionManager/IsActive*': {
-          responses: [responses.SessionManager.IsActive.default]
-        },
-        '/UserPreference/SetDefaultSoftPhone*': {
-          responses: [responses.UserPreference.SetDefaultSoftPhone.default]
-        },
-        '/DeviceServices/Info*': {
-          responses: [responses.DeviceServices.Info.default]
-        },
-        '/CallServices/CallManagerState*' : {
-          responses: [responses.CallServices.CallManagerState.default]
-        }
-      })
-      await plantronicsService.connect();
-      expect(plantronicsService.isConnected).toBeTruthy();
-      expect(plantronicsService.isActive).toBeFalsy();
-      expect(plantronicsService.isConnecting).toBeFalsy();
-    }, 30000);
+    Object.defineProperty(window.navigator, 'hid', { get: () => ({
+      getDevices: () => { return [] }
+    })});
+    Object.defineProperty(window.navigator, 'locks', { get: () => ({})});
+    (window as any).BroadcastChannel = BroadcastChannel;
     it('connects properly with a clean state', async () => {
       await sendScenario({
         '/SessionManager/Register*': {
