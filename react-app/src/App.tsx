@@ -79,23 +79,7 @@ const App = () => {
     await webrtc.ensureAudioPermissions();
     const devices = await navigator.mediaDevices.enumerateDevices();
     setMicrophones(devices.filter((device) => device.kind === 'audioinput'));
-    activateImplementationForMicrophone(webrtc.getDefaultMicrophone());
-  }
-
-  const activateImplementationForMicrophone = (mic) => {
-    if (!mic) {
-      return;
-    }
-    const label = mic.label.toLowerCase();
-    if (label.indexOf('plantronics') > -1 || label.indexOf('plt') > -1) {
-      headset.changeImplementation(headset.plantronics, label);
-    }
-    if (label.indexOf('jabra') > -1) {
-      headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabra'], label);
-    }
-    if (label.indexOf('sennheiser') > -1 || label.indexOf('senn') > -1 || label.indexOf('epos') > -1) {
-      headset.changeImplementation(headset.sennheiser, label);
-    }
+    headset.activeMicChange(webrtc.getDefaultMicrophone().label.toLowerCase());
   }
 
   const handleHeadsetEvent = ({name, code}) => {
@@ -135,7 +119,7 @@ const App = () => {
     if (mic) {
       webrtc.setDefaultMicrophone(mic);
       console.info('**** MICROPHONE CHANGED ****', mic);
-      activateImplementationForMicrophone(mic);
+      headset.activeMicChange(mic.label.toLowerCase());
     }
   }
 
