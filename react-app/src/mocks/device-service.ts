@@ -1,6 +1,6 @@
 export default class DeviceService {
     private hasPermissions = false;
-    private defaultMicrophone = {} as MediaDeviceInfo;
+    private static defaultMicrophone = {} as MediaDeviceInfo;
 
     initialize = async () => {
         this.ensureAudioPermissions();
@@ -10,7 +10,7 @@ export default class DeviceService {
         if (!mic) {
             mic = audioDevices[0];
         }
-        this.defaultMicrophone = mic;
+        DeviceService.defaultMicrophone = mic;
     }
 
     ensureAudioPermissions = async () => {
@@ -24,10 +24,10 @@ export default class DeviceService {
     }
 
     getDefaultMicrophone = () => {
-        return this.defaultMicrophone;
+        return DeviceService.defaultMicrophone;
     }
 
     setDefaultMicrophone = (microphone: MediaDeviceInfo) => {
-        this.defaultMicrophone = microphone;
+        DeviceService.defaultMicrophone = microphone;
     }
 }

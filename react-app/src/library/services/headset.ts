@@ -108,11 +108,8 @@ export default class HeadsetService extends EventEmitter {
   // if possible, this should return information about the device
   // if not possible, return { deviceInfo: null }
 
-  //TODO: Check why Plantronics is being called when Plantronics is not the selected Implementation/
-  // Find better way to handle Polling
   activeMicChange(newMicLabel) {
     const implementation = this.implementations.find((implementation) => implementation.canHandleHeadset(newMicLabel));
-
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
     } else if (this.selectedImplementation) {

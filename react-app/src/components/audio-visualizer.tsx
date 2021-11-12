@@ -1,4 +1,4 @@
-import{ useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 const AudioVisualizer = ({audioStream}: {audioStream: MediaStream}) => {
     const backgroundColor = '#F5FCFF';

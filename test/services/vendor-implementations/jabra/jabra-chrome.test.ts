@@ -150,7 +150,7 @@ describe('JabraChromeService', () => {
       jest.spyOn(window, 'postMessage').mockImplementationOnce(() => {});
       const expectedMessage = {
         direction: outgoingMessageName,
-        message: JabraChromeCommands.Hold,
+        message: JabraChromeCommands.Hold
       };
 
       jabraChromeService._sendCmd(JabraChromeCommands.Hold);

@@ -159,6 +159,7 @@ describe('HeadsetService', () => {
         expect(headsetEventSubject.eventData).toBeTruthy();
         expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
         expect(headsetEventSubject.eventData instanceof VendorImplementation).toBe(true);
+        expect(headsetEventSubject.eventData).toStrictEqual(plantronics);
       }
     );
   });
@@ -476,4 +477,35 @@ describe('HeadsetService', () => {
       expect(headsetService.connectionStatus).toBe(`dummy.connectionStatus.error`);
     });
   });
+
+  describe('external mic change', () => {
+    beforeEach(() => {
+      headsetService = HeadsetService.getInstance(config);
+    })
+    it('should check a values label to determine which microphone is selected', () => {
+      headsetService = HeadsetService.getInstance(config);
+      jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
+      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
+      const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
+      const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
+
+      headsetService.activeMicChange('jabra');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(jabra, 'jabra');
+
+      headsetService.activeMicChange('plantronics test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(plantronics, 'plantronics test');
+      headsetService.activeMicChange('plt test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(plantronics, 'plt test');
+
+      headsetService.activeMicChange('sennheiser test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'sennheiser test');
+      headsetService.activeMicChange('senn test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'senn test');
+      headsetService.activeMicChange('epos test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'epos test');
+
+      headsetService.activeMicChange('test test');
+      expect(disconnectSpy).toHaveBeenCalled();
+    })
+  })
 });

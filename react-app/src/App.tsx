@@ -91,10 +91,9 @@ const App = () => {
       headset.changeImplementation(headset.plantronics, label);
     }
     if (label.indexOf('jabra') > -1) {
-      // headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabraChrome']);
       headset.changeImplementation(headset[isNativeApp ? 'jabraNative' : 'jabra'], label);
     }
-    if (label.indexOf('sennheiser') > -1 || label.indexOf('senn') > -1) {
+    if (label.indexOf('sennheiser') > -1 || label.indexOf('senn') > -1 || label.indexOf('epos') > -1) {
       headset.changeImplementation(headset.sennheiser, label);
     }
   }
@@ -115,10 +114,9 @@ const App = () => {
   }
 
   const endHeadsetAudio = async () => {
-    if (!audioStream) {
-      return;
+    if (audioStream) {
+      audioStream?.getTracks()?.forEach(track => track.stop());
     }
-    audioStream.getTracks().forEach(track => track.stop());
     setAudioStream(null);
   }
 
@@ -128,8 +126,8 @@ const App = () => {
       call.end();
       !fromHeadset && headset.endCall(call.id);
     }
-    endHeadsetAudio();
     setCurrentCall(null);
+    endHeadsetAudio();
   }
 
   const changeMic = (event) => {

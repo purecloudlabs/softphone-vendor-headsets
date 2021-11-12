@@ -159,7 +159,8 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  incomingCall({ conversationId }): Promise<void> {
+  incomingCall({ callInfo }): Promise<void> {
+    const { conversationId } = callInfo;
     const callId = this._createCallMapping(conversationId);
 
     this._sendMessage({
@@ -180,7 +181,8 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  outgoingCall({ conversationId }): Promise<void> {
+  outgoingCall({ callInfo }): Promise<void> {
+    const { conversationId } = callInfo;
     const callId = this._createCallMapping(conversationId);
 
     this._sendMessage({
