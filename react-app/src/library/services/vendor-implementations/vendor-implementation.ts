@@ -36,8 +36,6 @@ export abstract class VendorImplementation {
     this.externalSdk = config.externalSdk;
   }
 
-  abstract canHandleHeadset(newMicLabel: string): boolean;
-
   get logHeadsetEvents(): boolean {
     if (typeof this.config.logHeadsetEvents === 'undefined' || this.config.logHeadsetEvents === null) {
       return true;

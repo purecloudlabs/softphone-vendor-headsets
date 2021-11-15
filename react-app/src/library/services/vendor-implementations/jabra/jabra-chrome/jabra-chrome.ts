@@ -29,8 +29,8 @@ export default class JabraChromeService extends VendorImplementation {
     window.addEventListener('message', this._messageHandler.bind(this));
   }
 
-  canHandleHeadset(newMicLabel: string): boolean {
-    return newMicLabel.indexOf('jabra') > -1;
+  deviceLabelMatchesVendor(label: string): boolean {
+    return label.toLowerCase().includes('jabra');
   }
 
   static getInstance(config: ImplementationConfig) {
@@ -55,10 +55,6 @@ export default class JabraChromeService extends VendorImplementation {
 
   get isDeviceAttached(): boolean {
     return !!this.deviceInfo;
-  }
-
-  deviceLabelMatchesVendor(label: string): boolean {
-    return label.toLowerCase().includes('jabra');
   }
 
   _getHeadsetIntoVanillaState(): void {

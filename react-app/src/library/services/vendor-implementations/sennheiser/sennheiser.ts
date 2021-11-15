@@ -31,8 +31,8 @@ export default class SennheiserService extends VendorImplementation {
     return SennheiserService.instance;
   }
 
-  canHandleHeadset(newMicLabel: string): boolean {
-    return newMicLabel.indexOf('sennheiser') > -1 || newMicLabel.indexOf('senn') > -1 || newMicLabel.indexOf('epos') > -1;
+  deviceLabelMatchesVendor(label: string): boolean {
+    return label.toLowerCase().includes('sennheiser') || label.toLowerCase().includes('senn') || label.toLowerCase().includes('epos');
   }
 
   get deviceName(): string {
@@ -41,10 +41,6 @@ export default class SennheiserService extends VendorImplementation {
 
   get isDeviceAttached(): boolean {
     return !!this.deviceInfo;
-  }
-
-  deviceLabelMatchesVendor(label: string): boolean {
-    return label.toLowerCase().includes('sennheiser');
   }
 
   _handleError(payload: SennheiserPayload): void {

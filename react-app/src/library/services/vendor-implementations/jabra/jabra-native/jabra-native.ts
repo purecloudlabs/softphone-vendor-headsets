@@ -37,8 +37,8 @@ export default class JabraNativeService extends VendorImplementation {
     this.applicationService = ApplicationService.getInstance();
   }
 
-  canHandleHeadset(newMicLabel: string): boolean {
-    return newMicLabel.indexOf('jabra') > -1;
+  deviceLabelMatchesVendor(label: string): boolean {
+    return label.toLowerCase().includes('jabra');
   }
 
   static getInstance(config: ImplementationConfig) {
@@ -67,10 +67,6 @@ export default class JabraNativeService extends VendorImplementation {
 
   get isDeviceAttached(): boolean {
     return !!this.deviceInfo;
-  }
-
-  deviceLabelMatchesVendor(label: string): boolean {
-    return label.toLowerCase().includes('jabra');
   }
 
   handleJabraDeviceAttached({ deviceName, deviceId, attached }): void {

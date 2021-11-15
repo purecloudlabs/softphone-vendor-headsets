@@ -66,8 +66,9 @@ export default class PlantronicsService extends VendorImplementation {
     clearTimeout(this.deviceStatusTimerId);
   }
 
-  canHandleHeadset(newMicLabel: string): boolean {
-    return newMicLabel.indexOf('plantronics') > -1 || newMicLabel.indexOf('plt') > -1;
+  deviceLabelMatchesVendor(label) {
+    // includes vendor name or vendorId (chrome only)
+    return label.toLowerCase().includes('plantronics') || label.toLowerCase().includes('plt') || label.toLowerCase().includes('(047f:');
   }
 
   static getInstance(config: ImplementationConfig) {
@@ -121,11 +122,6 @@ export default class PlantronicsService extends VendorImplementation {
         this.pollForDeviceStatus();
       }, this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval
     )
-  }
-
-  deviceLabelMatchesVendor(label) {
-    // includes vendor name or vendorId (chrome only)
-    return label.toLowerCase().includes('plantronics') || label.toLowerCase().includes('(047f:');
   }
 
   async _makeRequestTask(endpoint, isRetry?) {

@@ -61,7 +61,7 @@ export default class ApplicationService {
     }
 
     sendJabraEventToDesktop(deviceID, event, value) {
-        (window as any)._HostedContextFunctions.sendEventToDesktop(
+        ((window as any)._HostedContextFunctions as any).sendEventToDesktop(
             EVENTS.JABRA_EVENT,
             {
                 deviceID,

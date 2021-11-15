@@ -34,15 +34,18 @@ const hostedContext = {
   supportsJabra: () => {
     return true;
   },
-  sendJabraEventToDesktop: (deviceId: string, event: JabraNativeCommands, value: any) => {
-    (window as any)._HostedContextFunctions.sendEventToDesktop(
-      'jabraEvent',
-      {
-        deviceId,
-        event,
-        value
-      }
-    )
+  // sendJabraEventToDesktop: (deviceId: string, event: JabraNativeCommands, value: any) => {
+  //   (window as any)._HostedContextFunctions.sendEventToDesktop(
+  //     'jabraEvent',
+  //     {
+  //       deviceId,
+  //       event,
+  //       value
+  //     }
+  //   )
+  // },
+  sendJabraEventToDesktop: (deviceId: string, cmd: JabraNativeCommands, value: any) => {
+    return null;
   },
   requestJabraDevices: async (): Promise<any> => {
     return await requestDesktopPromise({ cmd: 'requestJabraDevices' });

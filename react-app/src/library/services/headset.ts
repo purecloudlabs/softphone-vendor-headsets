@@ -109,7 +109,7 @@ export default class HeadsetService extends EventEmitter {
   // if not possible, return { deviceInfo: null }
 
   activeMicChange(newMicLabel) {
-    const implementation = this.implementations.find((implementation) => implementation.canHandleHeadset(newMicLabel));
+    const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
     } else if (this.selectedImplementation) {
