@@ -115,6 +115,58 @@ describe('SennheiserService', () => {
       result = sennheiserService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(false);
     });
+    it('should return true when the device label contains the string "senn"', () => {
+      let testLabel = 'senn headset';
+      let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset SeNN made';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset of Senn';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+    });
+    it('should return false when the device label does not contain the string "senn"', () => {
+      let testLabel = 'standard headset';
+      let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset plantronics made';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset of awesome';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+    });
+    it('should return true when the device label contains the string "epos"', () => {
+      let testLabel = 'EPOS headset';
+      let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset EpOs made';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'A headset of ePoS';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+    });
+    it('should return false when the device label does not contain the string "epos"', () => {
+      let testLabel = 'standard headset';
+      let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset plantronics made';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+
+      testLabel = 'A headset of awesome';
+      result = sennheiserService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+    });
   });
 
   describe('disconnect', () => {

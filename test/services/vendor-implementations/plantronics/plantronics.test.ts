@@ -146,6 +146,24 @@ describe('PlantronicsService', () => {
       result = plantronicsService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(false);
     });
+    it('should return true when device label contains the string "plt"', () => {
+      let testLabel = 'plt: a sandwich';
+      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'test test PlT';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+
+      testLabel = 'test pLt test';
+      result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(true);
+    });
+    it('should return false when device label does not contain the string "plt"', () => {
+      let testLabel = 'standard headset';
+      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      expect(result).toBe(false);
+    })
     it('should return true when the device label contains the string "(047f:"', () => {
       let testLabel = '(047f: headset';
       let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
@@ -667,18 +685,6 @@ describe('PlantronicsService', () => {
         expect(disconnectSpy).toHaveBeenCalled();
         expect(plantronicsService.logger.info).toHaveBeenCalledWith(err);
       }
-    })
-  })
-  describe('canHandleHeadset', () => {
-    it('tests if passed in label can be used by instance', () => {
-      let result = plantronicsService.canHandleHeadset('test plantronics headset');
-      expect(result).toBe(true);
-
-      result = plantronicsService.canHandleHeadset('test plt headset');
-      expect(result).toBe(true);
-
-      result = plantronicsService.canHandleHeadset('something else entirely');
-      expect(result).toBe(false);
     })
   })
 });

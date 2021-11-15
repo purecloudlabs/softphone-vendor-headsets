@@ -122,14 +122,6 @@ describe('JabraService', () => {
     });
 
     describe('various functions', () => {
-        it('checks if canHandleHeadset returns expected outcome', () => {
-            let result;
-            result = jabraService.canHandleHeadset('test jabra label');
-            expect(result).toBe(true);
-
-            result = jabraService.canHandleHeadset('Totally Not Correct');
-            expect(result).toBe(false);
-        })
         it('deviceLabelMatchesVendor', () => {
             let result;
             result = jabraService.deviceLabelMatchesVendor('Test Jabra Label');
