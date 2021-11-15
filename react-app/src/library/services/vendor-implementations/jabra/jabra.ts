@@ -89,12 +89,12 @@ export default class JabraService extends VendorImplementation {
                         if (signal.value) {
                             callControl.offHook(true);
                             callControl.ring(false);
-                            this.deviceAnsweredCall();
+                            this.deviceAnsweredCall({ name: 'CallOffHook', code: signal.type });
                         } else {
                             callControl.mute(false);
                             callControl.hold(false);
                             callControl.offHook(false);
-                            this.deviceEndedCall();
+                            this.deviceEndedCall({ name: 'CallOnHook', code: signal.type });
                             try {
                                 await callControl.releaseCallLock();
                             } catch({message, type}) {
@@ -108,12 +108,12 @@ export default class JabraService extends VendorImplementation {
                     case 'ALT_HOLD':
                         this.isHeld = !this.isHeld;
                         callControl.hold(this.isHeld);
-                        this.deviceHoldStatusChanged(this.isHeld);
+                        this.deviceHoldStatusChanged(this.isHeld, { name: this.isHeld ? 'OnHold' : 'ResumedCall', code: signal.type });
                         break;
                     case 'PHONE_MUTE':
                         this.isMuted = !this.isMuted;
                         callControl.mute(this.isMuted);
-                        this.deviceMuteChanged(this.isMuted);
+                        this.deviceMuteChanged(this.isMuted, { name: this.isMuted ? 'CallMuted' : 'CallUnmuted', code: signal.type });
                         break;
                     case 'REJECT_CALL':
                         callControl.offHook(false);
@@ -126,6 +126,7 @@ export default class JabraService extends VendorImplementation {
                         } finally {
                             this.callLock = false;
                         }
+                        break;
                 }
             } else {
                 this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions');
