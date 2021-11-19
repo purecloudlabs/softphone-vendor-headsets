@@ -4,11 +4,26 @@ import PlantronicsService from '../../react-app/src/library/services/vendor-impl
 import SennheiserService from '../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser';
 import JabraChromeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import { HeadsetEventName } from '../../react-app/src/library/types/headset-event';
-import CallInfo from '../../react-app/src/library/types/call-info';
+import { CallInfo } from '../../react-app/src/library/types/call-info';
 import ApplicationService from '../../react-app/src/library/services/application';
 import { EventInfo, VendorEvent } from '../../react-app/src/library/types/headset-events';
 import JabraService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra';
+import 'regenerator-runtime';
+import { BroadcastChannel } from 'broadcast-channel';
+import { IApi, IDevice, init, RequestedBrowserTransport, webHidPairing } from '@gnaudio/jabra-js';
+import { BehaviorSubject } from 'rxjs';
+
+jest.mock('broadcast-channel');
+
+const initializeSdk = async (subject) => {
+  const sdk = await init({
+    appId: 'softphone-vendor-headsets-test',
+    appName: 'Softphone Headset Library Test',
+    transport: RequestedBrowserTransport.WEB_HID
+  });
+  sdk.deviceList = subject.asObservable() as any;
+  return sdk;
+}
 
 describe('HeadsetService', () => {
   let plantronics: VendorImplementation;
@@ -18,9 +33,12 @@ describe('HeadsetService', () => {
   let jabra: VendorImplementation;
   let headsetService: HeadsetService;
   let application: ApplicationService;
+  let jabraSdk: Promise<IApi>;
   let config: any = { logger: console};
+  const subject = new BehaviorSubject<IDevice[]>([]);
 
   beforeEach(() => {
+    jabraSdk = initializeSdk(subject);
     application = ApplicationService.getInstance();
     plantronics = PlantronicsService.getInstance({...config, vendorName: 'Plantronics'});
     sennheiser = SennheiserService.getInstance({...config, vendorName: 'Sennheiser'});
@@ -75,28 +93,24 @@ describe('HeadsetService', () => {
       expect(filteredImplementations.length).toEqual(1);
       expect(filteredImplementations[0]).toBe(sennheiser);
     });
-    it('should include an implementation for jabra-chrome upon instantiation if the application context is not hosted and supports jabra', () => {
-      jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
-      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
+    it('should return the same implementations if some already exist', () => {
       headsetService = HeadsetService.getInstance(config);
-
-      const implementations = headsetService.implementations;
-      const filteredImplementations = implementations.filter(i => i instanceof JabraService);
-
-      expect(filteredImplementations.length).toEqual(1);
-      expect(filteredImplementations[0]).toBe(jabra);
+      const expectedArray = [jabra, plantronics, sennheiser];
+      expect(headsetService.implementations).toStrictEqual(expectedArray);
+      Object.defineProperty(headsetService, '_implementations', { value: [undefined, undefined, undefined] });
     });
-    it('should include an implementation for jabra-native upon instantiation if the application context is hosted and supports jabra', () => {
+    it('should include an implementation for jabra-native upon instantiation if the application context is hosted and supports jabra', async () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
-      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => true);
+      jest.spyOn(application.hostedContext, 'isHosted').mockImplementation(() => true);
       headsetService = HeadsetService.getInstance(config);
-
-      const filteredImplementations = headsetService.implementations.filter(
+      // console.log(headsetService.implementations);
+      const filteredImplementations = await headsetService.implementations.filter(
         i => i instanceof JabraNativeService
       );
 
       expect(filteredImplementations.length).toEqual(1);
       expect(filteredImplementations[0]).toBe(jabraNative);
+      Object.defineProperty(headsetService, '_implementations', { value: [undefined, undefined, undefined] });
     });
     it('should not include any jabra implementations if jabra is not supported', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => false);
@@ -104,7 +118,7 @@ describe('HeadsetService', () => {
       headsetService = HeadsetService.getInstance(config);
 
       const filteredImplementations = headsetService.implementations.filter(
-        i => i instanceof JabraNativeService || i instanceof JabraChromeService
+        i => i instanceof JabraNativeService || i instanceof JabraChromeService || i instanceof JabraService
       );
 
       expect(filteredImplementations.length).toEqual(0);
@@ -138,30 +152,35 @@ describe('HeadsetService', () => {
       expect(sennheiser.disconnect).toHaveBeenCalled();
       expect(plantronics.connect).toHaveBeenCalled();
     });
+    it('should trigger implementationChanged event for new implementation', (done) => {
+      headsetService.headsetEvents$.subscribe((event) => {
+        expect(event.event).toBe('implementationChanged');
+        expect(event.payload).toStrictEqual(plantronics);
+        expect(event.payload instanceof VendorImplementation).toBe(true);
+        done();
+      })
+      headsetService.selectedImplementation = sennheiser;
+      headsetService.changeImplementation(plantronics, 'test label');
+    })
     it(
-      'should trigger implementationChanged event when clearing the implementation', async () => {
+      'should trigger implementationChanged event when clearing the implementation', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe('implementationChanged');
+          expect(event.payload).toBeNull();
+          done();
+        })
         headsetService.selectedImplementation = plantronics;
-        await headsetService.changeImplementation(null, '');
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
-        expect(headsetEventSubject.eventData).toBeNull();
+        headsetService.changeImplementation(null, '');
       }
     );
-    it(
-      'should trigger implementationChanged event for new implementation', () => {
-        headsetService.selectedImplementation = sennheiser;
-        headsetService.changeImplementation(plantronics, 'test label');
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventData).toBeTruthy();
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
-        expect(headsetEventSubject.eventData instanceof VendorImplementation).toBe(true);
-        expect(headsetEventSubject.eventData).toStrictEqual(plantronics);
-      }
-    );
+    it('should handle a Jabra device that has not yet been connected to WebHID', async () => {
+      const emitEventCallback = jest.fn();
+      headsetService.on('jabraPermissionRequested', emitEventCallback);
+      await headsetService.changeImplementation(jabra, 'absolutely not');
+      expect(emitEventCallback).toHaveBeenCalledWith({
+        webHidPairing: webHidPairing
+      })
+    })
   });
 
   describe('incomingCall', () => {
@@ -175,7 +194,7 @@ describe('HeadsetService', () => {
     });
 
     it('should call incomingCall on the selected implementation when the implementation is connected', () => {
-      const callInfo: CallInfo = new CallInfo('1234', 'fred');
+      const callInfo: CallInfo = { conversationId: '1234', contactName: 'CM Punk' };
       const hasOtherActiveCalls = false;
       plantronics.isConnected = true;
 
@@ -184,7 +203,7 @@ describe('HeadsetService', () => {
       expect(plantronics.incomingCall).toHaveBeenCalledWith({ callInfo, hasOtherActiveCalls });
     });
     it('shouldnot call incomingCall on the selected implmenetation when the implementation is not connected', () => {
-      const callInfo: CallInfo = new CallInfo('1234', 'fred');
+      const callInfo: CallInfo = { conversationId: '4321', contactName: 'Bryan Danielson' };
       const hasOtherActiveCalls = false;
       plantronics.isConnected = false;
 
@@ -204,7 +223,7 @@ describe('HeadsetService', () => {
       jest.resetAllMocks();
     });
     it('should call outgoingCall on the selected implementation when the implementation is connected', () => {
-      const callInfo: CallInfo = new CallInfo('1234', 'fred');
+      const callInfo: CallInfo = { conversationId: '4567', contactName: 'Adam Cole' };
       plantronics.isConnected = true;
 
       headsetService.outgoingCall(callInfo);
@@ -212,7 +231,7 @@ describe('HeadsetService', () => {
       expect(plantronics.outgoingCall).toHaveBeenCalledWith(callInfo);
     });
     it('shouldnot call outgoingCall on the selected implmenetation when the implementation is not connected', () => {
-      const callInfo: CallInfo = new CallInfo('1234', 'fred');
+      const callInfo: CallInfo = { conversationId: '7654', contactName: 'Marc Spector' };
       plantronics.isConnected = false;
 
       headsetService.outgoingCall(callInfo);
@@ -355,24 +374,30 @@ describe('HeadsetService', () => {
   });
 
   describe('triggerDeviceAnsweredCall', () => {
+    Object.defineProperty(window.navigator, 'hid', { get: () => ({
+      getDevices: () => { return [] }
+    })});
+    Object.defineProperty(window.navigator, 'locks', { get: () => ({})});
+    (window as any).BroadcastChannel = BroadcastChannel
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
     });
     it(
-      'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {
-        headsetService.handleDeviceAnsweredCall({vendor: {} as VendorImplementation, body: {name: 'AcceptCall', code: '1', event: {}}});
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.IMPLEMENTATION_CHANGED);
+      'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {;
+        const result = headsetService.handleDeviceAnsweredCall({vendor: {} as VendorImplementation, body: {name: 'AcceptCall', code: '1', event: {}}});
+        expect(result).toBeUndefined();
       }
     );
     it(
-      'should send a headset event of type DEVICE_ANSWERED_CALL', () => {
+      'should send a headset event of type DEVICE_ANSWERED_CALL', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe('deviceAnsweredCall');
+          expect(event.payload).toStrictEqual(testEvent.body);
+          done();
+        });
         headsetService.selectedImplementation = plantronics
-        headsetService.handleDeviceAnsweredCall({vendor: plantronics, body: {name: 'AcceptCall', code: '1', event: {}}} as VendorEvent<EventInfo>);
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.DEVICE_ANSWERED_CALL);
+        const testEvent = {vendor: plantronics, body: {name: 'AcceptCall', code: '1', event: {}}}
+        headsetService.handleDeviceAnsweredCall(testEvent as VendorEvent<EventInfo>);
       }
     );
   });
@@ -383,19 +408,20 @@ describe('HeadsetService', () => {
     });
     it(
       'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {
-        headsetService.handleDeviceRejectedCall({vendor: {} as VendorImplementation, body: {conversationId: 'a1b2c3'}});
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.DEVICE_ANSWERED_CALL);
+        const result = headsetService.handleDeviceRejectedCall({vendor: {} as VendorImplementation, body: {conversationId: 'a1b2c3'}});
+        expect(result).toBeUndefined();
       }
     );
     it(
-      'should send a headset event of type DEVICE_REJECTED_CALL', () => {
-        headsetService.selectedImplementation = plantronics
-        headsetService.handleDeviceRejectedCall({vendor: plantronics, body: {conversationId: 'a1b2c3'}});
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.DEVICE_REJECTED_CALL);
+      'should send a headset event of type DEVICE_REJECTED_CALL', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe('deviceRejectedCall');
+          expect(event.payload).toStrictEqual({ conversationId: 'a1b2c3' });
+          done();
+        });
+        headsetService.selectedImplementation = plantronics;
+        const testEvent = {vendor: plantronics, body: {conversationId: 'a1b2c3'}}
+        headsetService.handleDeviceRejectedCall(testEvent);
       }
     );
   });
@@ -405,12 +431,17 @@ describe('HeadsetService', () => {
       headsetService = HeadsetService.getInstance(config);
     });
     it(
-      'should send a headset event of type DEVICE_ENDED_CALL', () => {
-        headsetService.handleDeviceEndedCall({vendor: {} as VendorImplementation, body: {name: 'TerminateCall', code: '2', event: {}}});
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.DEVICE_ENDED_CALL);
+      'should send a headset event of type DEVICE_ENDED_CALL', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe('deviceEndedCall');
+          expect(event.payload).toStrictEqual(testEvent.body);
+          done();
+          expect(event.event).toBe('loggableEvent');
+          expect(event.payload).toStrictEqual(testEvent.body);
+          done();
+        });
+        const testEvent = {vendor: {} as VendorImplementation, body: {name: 'TerminateCall', code: '2', event: {}}}
+        headsetService.handleDeviceEndedCall(testEvent);
       }
     );
   });
@@ -420,12 +451,14 @@ describe('HeadsetService', () => {
       headsetService = HeadsetService.getInstance(config);
     });
     it(
-      'should send a headset event of type DEVICE_MUTE_STATUS_CHANGED', () => {
-        headsetService.handleDeviceMuteStatusChanged({vendor: {} as VendorImplementation, isMuted: false, body: { name: 'Unmute', code: '12', event: {}}});
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED);
+      'should send a headset event of type DEVICE_MUTE_STATUS_CHANGED', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe('deviceMuteStatusChanged');
+          expect(event.payload).toStrictEqual(testEvent.body);
+          done();
+        });
+        const testEvent = {vendor: {} as VendorImplementation, body: { name: 'Unmute', code: '12', event: {}, isMuted: false}}
+        headsetService.handleDeviceMuteStatusChanged(testEvent);
       }
     );
   });
@@ -435,12 +468,14 @@ describe('HeadsetService', () => {
       headsetService = HeadsetService.getInstance(config);
     });
     it(
-      'should send a headset event of type DEVICE_HOLD_STATUS_CHANGED', () => {
-        headsetService.handleDeviceHoldStatusChanged({vendor: {} as VendorImplementation, holdRequested: true, toggle: false, body: {name: 'HoldCall', code: '3', event: {}}});
-
-        const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-        expect(headsetEventSubject.eventName).toEqual(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED);
+      'should send a headset event of type DEVICE_HOLD_STATUS_CHANGED', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe('deviceHoldStatusChanged');
+          expect(event.payload).toStrictEqual(testEvent.body);
+          done();
+        });
+        const testEvent = {vendor: {} as VendorImplementation, body: {name: 'HoldCall', code: '3', event: {}, holdRequested: true, toggle: false}}
+        headsetService.handleDeviceHoldStatusChanged(testEvent);
       }
     );
   });
@@ -449,12 +484,14 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
     });
-    it('should send the "loggableEvent" event to the observable', () => {
-      headsetService.handleDeviceLogs({name: 'CallRinging', code: 7, event: {}});
-
-      const headsetEventSubject = headsetService.getHeadSetEventsSubject().getValue();
-
-      expect(headsetEventSubject.eventName).toEqual('loggableEvent');
+    it('should send the "loggableEvent" event to the observable', (done) => {
+      headsetService.headsetEvents$.subscribe((event) => {
+        expect(event.event).toBe('loggableEvent');
+        expect(event.payload).toStrictEqual(testEvent.body);
+        done();
+      });
+      const testEvent = {vendor: 'plantronics', body: { name: 'CallRinging', code: 7, event: {} }};
+      headsetService.handleDeviceLogs(testEvent);
     })
   });
 
@@ -481,9 +518,9 @@ describe('HeadsetService', () => {
   describe('external mic change', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
+      Object.defineProperty(headsetService, '_implementations', { value: [undefined, undefined, undefined] });
     })
     it('should check a values label to determine which microphone is selected', () => {
-      headsetService = HeadsetService.getInstance(config);
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
       jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
       const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');

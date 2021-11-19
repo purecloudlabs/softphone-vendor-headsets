@@ -1,15 +1,29 @@
-export enum HeadsetEventName {
-    IMPLEMENTATION_CHANGED = 'implementationChanged',
-    DEVICE_ANSWERED_CALL = 'deviceAnsweredCall',
-    DEVICE_REJECTED_CALL = 'deviceRejectedCall',
-    DEVICE_ENDED_CALL = 'deviceEndedCall',
-    DEVICE_MUTE_STATUS_CHANGED = 'deviceMuteStatusChanged',
-    DEVICE_HOLD_STATUS_CHANGED = 'deviceHoldStatusChanged',
-    CLEAR_HEADSET_EVENTS = 'clear_headset_events'
+import { VendorImplementation } from "../services/vendor-implementations/vendor-implementation";
+
+type Events = {
+    implementationChanged: VendorImplementation;
+    deviceHoldStatusChanged: EventInfo;
+    deviceMuteStatusChanged: EventInfo;
+    deviceAnsweredCall: EventInfo;
+    deviceEndedCall: EventInfo
+    deviceRejectedCall: RejectCallEventInfo
+    loggableEvent: EventInfo;
 }
 
-export class HeadsetEvent {
-    constructor(
-        public eventName: HeadsetEventName,
-        public eventData: any) { }
+type EventInfo = {
+    name: string;
+    event: any;
+    code?: string;
+    isMuted?: boolean;
+    holdRequested?: boolean;
+    toggle?: boolean;
+    conversationId?: string;
+};
+
+type RejectCallEventInfo = {
+    conversationId: string;
 }
+
+export type HeadsetEvent<T = keyof Events> = T extends keyof Events
+    ? { event: T, payload: Events[T] }
+    : never;

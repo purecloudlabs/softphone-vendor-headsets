@@ -5,7 +5,7 @@ import { SennheiserEventTypes } from '../../../../react-app/src/library/services
 import * as utils from '../../../../react-app/src/library/utils';
 import DeviceInfo from '../../../../react-app/src/library/types/device-info';
 import { mockWebSocket, mockLogger } from '../../test-utils';
-import CallInfo from '../../../../react-app/src/library/types/call-info';
+import { CallInfo } from '../../../../react-app/src/library/types/call-info';
 
 function resetService() {
   const sennheiserService = SennheiserService.getInstance({ logger: console });

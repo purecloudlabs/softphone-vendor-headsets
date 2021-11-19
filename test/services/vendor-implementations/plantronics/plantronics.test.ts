@@ -11,7 +11,6 @@ import { BroadcastChannel } from "broadcast-channel";
 jest.mock('broadcast-channel');
 
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
-HeadsetService.getInstance({logger: console}).logHeadsetEvents = true;
 
 const testDevice: DeviceInfo = {
   ProductName: 'testDevice1',

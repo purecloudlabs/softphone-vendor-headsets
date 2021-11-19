@@ -1,5 +1,5 @@
 import JabraChromeService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import DeviceInfo from '../../../../react-app/src/library/models/device-info';
+import DeviceInfo from '../../../../react-app/src/library/types/device-info';
 import { mockLogger } from '../../test-utils';
 import { JabraChromeCommands } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-commands';
 import { Subscription } from 'rxjs';
@@ -46,7 +46,7 @@ describe('JabraChromeService', () => {
   let jabraChromeService: JabraChromeService;
 
   beforeEach(() => {
-    jabraChromeService = JabraChromeService.getInstance({ logger: console, logHeadsetEvents: true });
+    jabraChromeService = JabraChromeService.getInstance({ logger: console });
     resetJabraChromeService(jabraChromeService);
   });
 
@@ -226,7 +226,6 @@ describe('JabraChromeService', () => {
       });
 
       it('should log an info message if logHeasetEvents is true', () => {
-        Object.defineProperty(JabraChromeService, 'logHeadsetEvents', { get: () => true });
         event.data.message = 'test message';
         jest.spyOn(mockLogger, 'info');
 

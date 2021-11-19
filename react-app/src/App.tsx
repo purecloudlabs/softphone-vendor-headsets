@@ -22,7 +22,6 @@ const App = () => {
   const isNativeApp = appService.isHosted;
 
   useEffect(() => {
-    headset.logHeadsetEvents = true;
     webrtc.initialize();
     _updateDeviceList();
     window.addEventListener('message', receiveMessage.bind(this), false);
@@ -34,29 +33,29 @@ const App = () => {
 
   useEffect(() => {
     if (currentCall) {
-      headset.headsetEvents.subscribe(value => {
-        switch(value.eventName) {
+      headset.headsetEvents$.subscribe(value => {
+        switch(value.event) {
           case 'implementationChanged':
-            handleHeadsetEvent(value.eventData);
+            logImplementationChange(value?.payload?.vendorName);
             break;
           case 'deviceHoldStatusChanged':
-            handleHeadsetEvent(value.eventData);
-            toggleSoftwareHold(value.eventData.holdRequested, true);
+            handleHeadsetEvent(value.payload);
+            toggleSoftwareHold(value.payload.holdRequested, true);
             break;
           case 'deviceMuteStatusChanged':
-            handleHeadsetEvent(value.eventData);
-            toggleSoftwareMute(value.eventData.isMuted, true);
+            handleHeadsetEvent(value.payload);
+            toggleSoftwareMute(value.payload.isMuted, true);
             break;
           case 'deviceAnsweredCall':
-            handleHeadsetEvent(value.eventData);
+            handleHeadsetEvent(value.payload);
             answerIncomingCall(true);
             break;
           case 'deviceEndedCall':
-            handleHeadsetEvent(value.eventData);
+            handleHeadsetEvent(value.payload);
             endCurrentCall(true);
             break;
           default:
-            handleHeadsetEvent(value.eventData);
+            handleHeadsetEvent(value.payload);
         }
       });
     }
@@ -82,8 +81,14 @@ const App = () => {
     headset.activeMicChange(webrtc.getDefaultMicrophone().label.toLowerCase());
   }
 
-  const handleHeadsetEvent = ({name, code}) => {
+  const handleHeadsetEvent = (eventData) => {
+    const { name, code } = eventData;
     eventLogs.push({name, code, time: new Date().toLocaleTimeString()});
+    setEventLogsJson(JSON.stringify(eventLogs, null, 2));
+  }
+
+  const logImplementationChange = (vendorName) => {
+    eventLogs.push({ name: 'ImplementationChanged', vendor: vendorName, time: new Date().toLocaleTimeString()});
     setEventLogsJson(JSON.stringify(eventLogs, null, 2));
   }
 

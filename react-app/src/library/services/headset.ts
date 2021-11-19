@@ -1,18 +1,20 @@
-import { Observable, BehaviorSubject } from 'rxjs';
-import { VendorImplementation } from './vendor-implementations/vendor-implementation';
+import { Observable, Subject } from 'rxjs';
+import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
+import { JabraRequest } from '../types/jabra-request';
 import ApplicationService from './application';
-import { HeadsetEvent, HeadsetEventName } from '../types/headset-event';
-import CallInfo from '../types/call-info';
-import { EventInfo, VendorConversationIdEvent, VendorEvent, VendorHoldEvent, VendorMutedEvent } from '../types/headset-events';
+import { HeadsetEvent } from '../types/headset-event';
+import { CallInfo } from '../types/call-info';
+import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/headset-events';
 import { webHidPairing, init, IApi, RequestedBrowserTransport } from '@gnaudio/jabra-js';
 import { EventEmitter } from 'events';
+import StrictEventEmitter from 'strict-event-emitter-types';
 
-export default class HeadsetService extends EventEmitter {
+export default class HeadsetService extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, JabraRequest> }) {
   private static instance: HeadsetService;
 
   plantronics: VendorImplementation;
@@ -22,21 +24,17 @@ export default class HeadsetService extends EventEmitter {
   sennheiser: VendorImplementation;
   application: ApplicationService;
   selectedImplementation: VendorImplementation;
-  headsetEvents: Observable<HeadsetEvent>;
-  logHeadsetEvents: boolean = false;
+  headsetEvents$: Observable<HeadsetEvent>;
   jabraSdk: Promise<IApi>;
 
-  private $headsetEvents: BehaviorSubject<HeadsetEvent>;
-  private _implementations: VendorImplementation[];
+  private _headsetEvents$: Subject<HeadsetEvent>;
+  private _implementations: VendorImplementation[] = [];
   private logger: any;
 
-  private constructor(config: any) {
+  private constructor(config: ImplementationConfig) {
     super();
-    this.$headsetEvents = new BehaviorSubject<HeadsetEvent>({
-      eventName: '' as HeadsetEventName,
-      eventData: {},
-    });
-    this.headsetEvents = this.$headsetEvents.asObservable();
+    this._headsetEvents$ = new Subject<HeadsetEvent>();
+    this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.application = ApplicationService.getInstance();
     this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
@@ -52,7 +50,7 @@ export default class HeadsetService extends EventEmitter {
       .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
-  static getInstance(config: any) {
+  static getInstance(config: ImplementationConfig) {
     if (!HeadsetService.instance) {
       HeadsetService.instance = new HeadsetService(config);
     }
@@ -61,6 +59,10 @@ export default class HeadsetService extends EventEmitter {
   }
 
   get implementations(): VendorImplementation[] {
+    if (this._implementations.find((implementation) => implementation)) {
+      return this._implementations;
+    }
+
     const implementations: VendorImplementation[] = [];
     if (this.application.hostedContext.supportsJabra()) {
       implementations.push(
@@ -84,7 +86,7 @@ export default class HeadsetService extends EventEmitter {
   }
 
   getHeadSetEventsSubject = () => {
-    return this.$headsetEvents;
+    return this._headsetEvents$;
   };
 
   private subscribeToHeadsetEvents (implementation: VendorImplementation) {
@@ -95,18 +97,6 @@ export default class HeadsetService extends EventEmitter {
     implementation.on('deviceHoldStatusChanged', this.handleDeviceHoldStatusChanged.bind(this));
     implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this))
   }
-
-  // TODO: this function
-  // _handleActiveMicChange: observer('implementations.[]', 'webrtc.defaultMicrophone', function () {
-  //   const label = this.get('webrtc.defaultMicrophone.label');
-
-  //   const newImplementation = label && this.get('implementations').find((implementation) => implementation.deviceLabelMatchesVendor(label));
-
-  //   this.changeImplementation(newImplementation);
-  // }),
-
-  // if possible, this should return information about the device
-  // if not possible, return { deviceInfo: null }
 
   activeMicChange(newMicLabel) {
     const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
@@ -127,8 +117,8 @@ export default class HeadsetService extends EventEmitter {
     }
 
     if (implementation?.vendorName === 'Jabra') {
-      (await this.jabraSdk).deviceList.subscribe((devices) => {
-        if (devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
+      (await this.jabraSdk).deviceList.forEach((devices) => {
+        if (!devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
           this.emit('jabraPermissionRequested', { webHidPairing: webHidPairing });
         }
       });
@@ -140,9 +130,7 @@ export default class HeadsetService extends EventEmitter {
       implementation.connect(deviceLabel);
     }
 
-    this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.IMPLEMENTATION_CHANGED, implementation)
-    );
+    this._headsetEvents$.next({ event: 'implementationChanged', payload: implementation});
   }
 
   // possible options: conversationId, contactName
@@ -213,12 +201,13 @@ export default class HeadsetService extends EventEmitter {
   }
 
   handleDeviceAnsweredCall(event: VendorEvent<EventInfo>) {
+    console.log('event answered Call -> ', event);
     if (event.vendor !== this.selectedImplementation) {
       return;
     }
 
     this.logger.info('Headset: device answered the call');
-    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ANSWERED_CALL, event));
+    this._headsetEvents$.next({ event: 'deviceAnsweredCall', payload: { ...event.body }});
   }
 
   handleDeviceRejectedCall(event: VendorConversationIdEvent) {
@@ -227,36 +216,30 @@ export default class HeadsetService extends EventEmitter {
     }
 
     this.logger.info('Headset: device rejected the call');
-    this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.DEVICE_REJECTED_CALL, event.body.conversationId)
-    );
+    this._headsetEvents$.next({ event: 'deviceRejectedCall', payload: { conversationId: event.body.conversationId }});
   }
 
-  async handleDeviceEndedCall(event: VendorEvent<EventInfo>) {
+  handleDeviceEndedCall(event: VendorEvent<EventInfo>) {
     this.logger.info('Headset: device ended the call');
-    await this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.DEVICE_ENDED_CALL, event));
-    this.$headsetEvents.next(new HeadsetEvent(HeadsetEventName.CLEAR_HEADSET_EVENTS, event))
+    this._headsetEvents$.next({ event: 'deviceEndedCall', payload: { ...event.body } });
+    this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...event.body } });
   }
 
-  handleDeviceMuteStatusChanged(event: VendorMutedEvent) {
-    this.logger.info('Headset: device mute status changed: ', event.isMuted);
-    this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.DEVICE_MUTE_STATUS_CHANGED, event)
-    );
+  handleDeviceMuteStatusChanged(event: VendorEvent<MutedEventInfo>) {
+    this.logger.info('Headset: device mute status changed: ', event?.body?.isMuted);
+    this._headsetEvents$.next({ event: 'deviceMuteStatusChanged', payload: { ...event.body }});
   }
 
-  handleDeviceHoldStatusChanged(event: VendorHoldEvent) {
-    this.logger.info('Headset: device hold status changed', event.holdRequested);
-    this.$headsetEvents.next(
-      new HeadsetEvent(HeadsetEventName.DEVICE_HOLD_STATUS_CHANGED, event)
-    ); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
+  handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>) {
+    this.logger.info('Headset: device hold status changed', event?.body?.holdRequested);
+    this._headsetEvents$.next({ event: 'deviceHoldStatusChanged', payload: { ...event.body }}); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
   }
 
   /* This function has no functional purpose in a real life example
    * It is here to help log all events in the call process at least for Plantronics
    */
   handleDeviceLogs(eventInfo) {
-    this.$headsetEvents.next(new HeadsetEvent('loggableEvent' as HeadsetEventName, eventInfo));
+    this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...eventInfo.body }});
   }
 
   get connectionStatus(): string {

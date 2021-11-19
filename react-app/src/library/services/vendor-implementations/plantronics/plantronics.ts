@@ -3,8 +3,6 @@ import { VendorImplementation, ImplementationConfig } from '../vendor-implementa
 import { PlantronicsCallEvents } from './plantronics-call-events';
 import browserama from 'browserama';
 import DeviceInfo from '../../../types/device-info';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
 
 /**
  * TODO:  This looks like a feasible way to implement the polling we need
@@ -25,11 +23,9 @@ export default class PlantronicsService extends VendorImplementation {
   deviceStatusTimer = null;
   isRetry = false;
   _deviceInfo: DeviceInfo;
-  lastStatusUpdate: Observable<string>;
   callEventsTimerId: any;
   deviceStatusTimerId: any;
 
-  private $lastStatusUpdate: BehaviorSubject<string>;
 
   private constructor(config: ImplementationConfig) {
     super(config);
@@ -37,22 +33,6 @@ export default class PlantronicsService extends VendorImplementation {
     this._deviceInfo = null;
     this.callEventsTimerId = null;
     this.deviceStatusTimerId = null;
-    this.$lastStatusUpdate = new BehaviorSubject<string>('');
-    this.lastStatusUpdate = this.$lastStatusUpdate.asObservable();
-    this.lastStatusUpdate.pipe(distinctUntilChanged()).subscribe(value => {
-      switch(value) {
-        case 'isActive':
-          this.pollForCallEvents();
-          break;
-        case 'isConnecting':
-          this.pollForDeviceStatus();
-          break;
-        case 'isConnected':
-        case 'disableEventPolling':
-          this.pollForCallEvents();
-          this.pollForDeviceStatus();
-      }
-    })
   }
 
   // TODO: replace this if needed
@@ -91,34 +71,33 @@ export default class PlantronicsService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  async pollForCallEvents() {
+  pollForCallEvents() {
     if (this.callEventsTimerId) {
       clearTimeout(this.callEventsTimerId);
       this.callEventsTimerId = null;
     }
 
     if(this.isConnected && this.isActive && !this.disableEventPolling) {
-      await this.getCallEvents();
-    }
-
-    this.callEventsTimerId = setTimeout(() => {
       console.log('**** POLLING FOR CALL EVENTS ****');
+      this.getCallEvents();
+    }
+    this.callEventsTimerId = setTimeout(() => {
       this.pollForCallEvents();
     }, this.activePollingInterval);
   }
 
-  async pollForDeviceStatus() {
+  pollForDeviceStatus() {
     if (this.deviceStatusTimerId) {
       clearTimeout(this.deviceStatusTimerId);
       this.deviceStatusTimerId = null;
     }
 
     if (this.isConnected && !this.isConnecting && !this.disableEventPolling) {
-      await this.getDeviceStatus();
+      console.log('**** POLLING FOR DEVICE STATUS ****');
+      this.getDeviceStatus();
     }
 
     this.deviceStatusTimerId = setTimeout(() => {
-        console.log('**** POLLING FOR DEVICE STATUS ****');
         this.pollForDeviceStatus();
       }, this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval
     )
@@ -143,7 +122,6 @@ export default class PlantronicsService extends VendorImplementation {
           if (response.status === 404) {
             if (isRetry) {
               plantronicsInstance.isConnected = false;
-              plantronicsInstance.$lastStatusUpdate.next('isConnected');
               plantronicsInstance.disconnect();
               const error = new Error(
                 'Headset: Failed connection to middleware. Headset features unavailable.'
@@ -166,7 +144,6 @@ export default class PlantronicsService extends VendorImplementation {
             return Promise.reject(new Error('Application destroyed.'));
           }
           plantronicsInstance.isConnected = true;
-          plantronicsInstance.$lastStatusUpdate.next('isConnected');
           return response;
         }
       })
@@ -178,7 +155,6 @@ export default class PlantronicsService extends VendorImplementation {
   async _checkIsActiveTask() {
     const calls = await this._getActiveCalls();
     this.isActive = !!calls.length;
-    this.$lastStatusUpdate.next('isActive');
   }
 
   async _getActiveCalls() {
@@ -213,11 +189,9 @@ export default class PlantronicsService extends VendorImplementation {
           return this.logger.info('Unknown call event from headset', { event });
         }
 
-        if (this.logHeadsetEvents) {
-          const eventInfo = { name: eventType, code: event.Action, event };
-          this.logger.debug('headset info', eventInfo);
-          this.callCorrespondingFunction(eventInfo);
-        }
+        const eventInfo = { name: eventType, code: event.Action, event };
+        this.logger.debug('headset info', eventInfo);
+        this.callCorrespondingFunction(eventInfo);
       });
     }
   }
@@ -266,7 +240,8 @@ export default class PlantronicsService extends VendorImplementation {
 
   connect() {
     this.isConnecting = true;
-    this.$lastStatusUpdate.next('isConnecting');
+    this.pollForDeviceStatus();
+    this.pollForCallEvents();
     return this._makeRequestTask(`/SessionManager/Register?name=${this.pluginName}`)
       .catch(response => {
         if (response.Err && response.Err.Description === 'Plugin exists') {
@@ -301,7 +276,6 @@ export default class PlantronicsService extends VendorImplementation {
       .then(calls => {
         if (calls.length) {
           this.isActive = true;
-          this.$lastStatusUpdate.next('isActive');
           return this.logger.info('Currently active calls in the session');
         } else {
           return this.getCallEvents();
@@ -315,7 +289,6 @@ export default class PlantronicsService extends VendorImplementation {
       })
       .finally(() => {
         this.isConnecting = false;
-        this.$lastStatusUpdate.next('isConnecting');
       });
   }
 
@@ -328,10 +301,10 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     return promise.then(() => {
+      this.clearTimeouts();
       this._deviceInfo = null;
       this.isConnected = false;
       this.isActive = false;
-      this.clearTimeouts();
     });
   }
 
@@ -351,7 +324,6 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     this.isActive = true;
-    this.$lastStatusUpdate.next('isActive');
     return this._makeRequestTask(`/CallServices/IncomingCall${encodeURI(params)}`);
   }
 
@@ -370,7 +342,6 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     this.isActive = true;
-    this.$lastStatusUpdate.next('isActive');
     return this._makeRequestTask(`/CallServices/OutgoingCall${encodeURI(params)}`);
   }
 
@@ -379,7 +350,6 @@ export default class PlantronicsService extends VendorImplementation {
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     this.isActive = true;
-    this.$lastStatusUpdate.next('isActive');
     return this._makeRequestTask(`/CallServices/AnswerCall${encodeURI(params)}`);
   }
 

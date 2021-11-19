@@ -78,21 +78,21 @@ export default class JabraService extends VendorImplementation {
     }
 
     async _processEvents(callControl: ICallControl) {
-        callControl.deviceSignals.subscribe(async (signal) => {
+        callControl.deviceSignals.subscribe((signal) => {
             if (this.callLock) {
                 switch (SignalType[signal.type]) {
                     case 'HOOK_SWITCH':
                         if (signal.value) {
                             callControl.offHook(true);
                             callControl.ring(false);
-                            this.deviceAnsweredCall();
+                            this.deviceAnsweredCall({name: 'CallOffHook', code: signal.type});
                         } else {
                             callControl.mute(false);
                             callControl.hold(false);
                             callControl.offHook(false);
-                            this.deviceEndedCall();
+                            this.deviceEndedCall({name: 'CallOnHook', code: signal.type});
                             try {
-                                await callControl.releaseCallLock();
+                                callControl.releaseCallLock();
                             } catch({message, type}) {
                                 this.logger.info(message, type);
                             } finally {
@@ -104,19 +104,19 @@ export default class JabraService extends VendorImplementation {
                     case 'ALT_HOLD':
                         this.isHeld = !this.isHeld;
                         callControl.hold(this.isHeld);
-                        this.deviceHoldStatusChanged(this.isHeld);
+                        this.deviceHoldStatusChanged(this.isHeld, { name: this.isHeld ? 'OnHold' : 'ResumeCall', code: signal.type });
                         break;
                     case 'PHONE_MUTE':
                         this.isMuted = !this.isMuted;
                         callControl.mute(this.isMuted);
-                        this.deviceMuteChanged(this.isMuted);
+                        this.deviceMuteChanged(this.isMuted, { name: this.isMuted ? 'CallMuted' : 'CallUnmuted', code: signal.type });
                         break;
                     case 'REJECT_CALL':
                         callControl.offHook(false);
                         callControl.ring(false);
                         this.deviceRejectedCall(null);
                         try {
-                            await callControl.releaseCallLock();
+                            callControl.releaseCallLock();
                         } catch({message, type}) {
                             this.logger.info(message, type);
                         } finally {
@@ -250,7 +250,7 @@ export default class JabraService extends VendorImplementation {
         //     // this._sendCmd(JabraCommands.GetDevices);
         // }
 
-    async connect(deviceLabel): Promise<any> {
+    async connect(deviceLabel: string): Promise<void> {
         this.isConnecting = true;
         this.jabraSdk = await this.config.externalSdk;
         this.callControlFactory = this.createCallControlFactory(this.jabraSdk);
@@ -267,7 +267,7 @@ export default class JabraService extends VendorImplementation {
         })
     }
 
-    createCallControlFactory (sdk) {
+    createCallControlFactory (sdk: IApi): CallControlFactory {
         return new CallControlFactory(sdk);
     }
 

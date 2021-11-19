@@ -1,5 +1,5 @@
 import JabraNativeService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import DeviceInfo from '../../../../react-app/src/library/models/device-info';
+import DeviceInfo from '../../../../react-app/src/library/types/device-info';
 import { mockLogger } from '../../test-utils';
 import { JabraNativeEvent } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
 import { JabraNativeEventNames } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-events';

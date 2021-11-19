@@ -214,12 +214,12 @@ describe('JabraService', () => {
             deviceSignalsSubject.next({ type: 33, value: true} as any);
             expect(jabraService.isHeld).toBe(true);
             expect(callControl.hold).toHaveBeenCalledWith(true);
-            expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith(true);
+            expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith(true, { code: 33, name: 'OnHold' });
 
             deviceSignalsSubject.next({ type: 35, value: true } as any);
             expect(jabraService.isHeld).toBe(false);
             expect(callControl.hold).toHaveBeenCalledWith(false);
-            expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith(false);
+            expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith(false, { code: 35, name: 'ResumeCall' });
         });
         it('properly handles mute call events passed in from headset', () => {
             const deviceMuteChangedSpy = jest.spyOn(jabraService, 'deviceMuteChanged');
@@ -227,12 +227,12 @@ describe('JabraService', () => {
             deviceSignalsSubject.next({ type: 47, value: true} as any);
             expect(jabraService.isMuted).toBe(true);
             expect(callControl.mute).toHaveBeenCalledWith(true);
-            expect(deviceMuteChangedSpy).toHaveBeenCalledWith(true);
+            expect(deviceMuteChangedSpy).toHaveBeenCalledWith(true, { code: 47, name: 'CallMuted'} );
 
             deviceSignalsSubject.next({ type: 47, value: true } as any);
             expect(jabraService.isMuted).toBe(false);
             expect(callControl.mute).toHaveBeenCalledWith(false);
-            expect(deviceMuteChangedSpy).toHaveBeenCalledWith(false);
+            expect(deviceMuteChangedSpy).toHaveBeenCalledWith(false, { code: 47, name: 'CallUnmuted'} );
         });
         it('properly handles reject call events passed in from headset with a successful callLock release', async () => {
             const deviceRejectedCallSpy = jest.spyOn(jabraService, 'deviceRejectedCall');

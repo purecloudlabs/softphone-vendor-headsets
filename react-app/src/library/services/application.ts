@@ -62,7 +62,6 @@ export default class ApplicationService {
   static instance: ApplicationService;
   public hostedContext = hostedContext;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {
     if (hostedContext.isHosted) {
       const assetURL = window.location.origin + window.location.pathname;

@@ -83,9 +83,7 @@ export default class JabraChromeService extends VendorImplementation {
     ) {
       this.logger.debug('Incoming jabra event', event.data);
 
-      if (this.logHeadsetEvents) {
-        this.logger.info(event.data.message);
-      }
+      this.logger.info(event.data.message);
 
       if (event.data.message.startsWith(JabraChromeRequestedEvents.GetVersion)) {
         const version = event.data.message.substring(JabraChromeRequestedEvents.GetVersion + 1);

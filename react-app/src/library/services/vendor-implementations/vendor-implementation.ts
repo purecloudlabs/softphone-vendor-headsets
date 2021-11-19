@@ -2,14 +2,14 @@ import DeviceInfo from '../../types/device-info';
 import StrictEventEmitter from 'strict-event-emitter-types';
 import { EventEmitter } from 'events';
 import { HeadsetEvents } from '../../types/headset-events';
+import { IApi } from '@gnaudio/jabra-js';
 
 type HeadsetEventName = keyof HeadsetEvents;
 
 export interface ImplementationConfig {
   logger: any;
   vendorName?: string;
-  logHeadsetEvents?: boolean;
-  externalSdk?: any;
+  externalSdk?: Promise<IApi>;
 }
 
 export abstract class VendorImplementation {
@@ -34,14 +34,6 @@ export abstract class VendorImplementation {
     this.vendorName = config.vendorName;
     this.logger = config.logger;
     this.externalSdk = config.externalSdk;
-  }
-
-  get logHeadsetEvents(): boolean {
-    if (typeof this.config.logHeadsetEvents === 'undefined' || this.config.logHeadsetEvents === null) {
-      return true;
-    }
-
-    return this.config.logHeadsetEvents;
   }
 
   get isDeviceAttached(): boolean {
@@ -93,7 +85,7 @@ export abstract class VendorImplementation {
   }
 
   private emitEvent(eventName: HeadsetEventName, eventBody: any) {
-    this.emit(eventName, { vendor: this, ...eventBody })
+    this.emit(eventName, { vendor: this, body: {...eventBody } })
   }
 
   deviceAnsweredCall(eventInfo?: any): void {
