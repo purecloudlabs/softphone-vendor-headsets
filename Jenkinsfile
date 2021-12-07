@@ -19,7 +19,7 @@ webappPipeline {
             export CDN_URL="$(npx cdn --ecosystem pc --name $APP_NAME --build $BUILD_ID --version $VERSION)"
             echo "CDN_URL $CDN_URL"
             npm ci && npm run lint && npm test && npm run build
-            cd demo-app && npm ci && npm run build
+            cd react-app && npm ci && npm run build
         ''')
     }
 
