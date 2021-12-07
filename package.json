@@ -28,7 +28,7 @@
     "test:coverage": "npm run pretest; jest --collectCoverage=true --runInBand; npm run posttest",
     "test:unit": "npm run pretest; jest --runInBand; npm run posttest",
     "test:watch": "npm run pretest; jest --watch --collectCoverage=false --runInBand; npm run posttest",
-    "lint": "eslint -c .eslintrc.json ./react-app/src/library --ext .ts",
+    "lint": "eslint ./react-app/src/library --ext .ts",
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {

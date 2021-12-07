@@ -1,7 +1,7 @@
 import { VendorImplementation, ImplementationConfig } from "../vendor-implementation";
 import DeviceInfo from "../../../types/device-info";
-import { timedPromise } from "../../../utils";
-import { v4 } from 'uuid';
+// import { timedPromise } from "../../../utils";
+// import { v4 } from 'uuid';
 import {
     IApi,
     EasyCallControlFactory,
@@ -12,10 +12,10 @@ import {
     ErrorType
 } from '@gnaudio/jabra-js';
 
-const incomingMessageName = 'jabra-headset-extension-from-content-script';
-const outgoingMessageName = 'jabra-headset-extension-from-content-script';
-const clientId = v4();
-const jabraVendorId = '0x0b0e';
+// const incomingMessageName = 'jabra-headset-extension-from-content-script';
+// const outgoingMessageName = 'jabra-headset-extension-from-content-script';
+// const clientId = v4();
+// const jabraVendorId = '0x0b0e';
 
 export default class JabraService extends VendorImplementation {
     private static instance: JabraService;
