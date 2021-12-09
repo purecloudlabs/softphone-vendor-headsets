@@ -7,7 +7,6 @@ import HeadsetService from './library/services/headset';
 import AudioVisualizer from './components/audio-visualizer';
 import MockCall from './mocks/call';
 
-
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const App = () => {
 /* eslint-enable */
