@@ -14,7 +14,7 @@ export type VendorEvent<Type> = {
   body: Type;
 }
 
-export interface VendorConversationIdEvent extends VendorEvent<{ conversationId: string}> {};
+export type VendorConversationIdEvent = VendorEvent<{ conversationId: string}>;
 
 export interface EventInfo {
   name: string;

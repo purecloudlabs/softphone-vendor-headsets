@@ -231,7 +231,7 @@ describe('JabraNativeService', () => {
     it('should call deviceHoldStatusChanged() with null and true', () => {
       jest.spyOn(jabraNativeService, 'deviceHoldStatusChanged');
       jabraNativeService._handleHoldEvent();
-      expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith(null, true);
+      expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith(true);
     });
   });
 
@@ -254,14 +254,13 @@ describe('JabraNativeService', () => {
     it('should log a debug message', () => {
       jabraNativeService.activeDeviceId = 'asdf';
       jest.spyOn(mockLogger, 'debug');
-      const value = {};
       const expectedLogData = {
         deviceId: jabraNativeService.activeDeviceId,
         cmd: JabraNativeCommands.Mute,
-        value: value,
+        value: true,
       };
 
-      jabraNativeService._sendCmd(JabraNativeCommands.Mute, value);
+      jabraNativeService._sendCmd(JabraNativeCommands.Mute, true);
 
       expect(mockLogger.debug).toHaveBeenCalledWith('Sending command to headset', expectedLogData);
     });
@@ -269,15 +268,14 @@ describe('JabraNativeService', () => {
       jabraNativeService.activeDeviceId = testDevice1.deviceID;
       jest.spyOn(applicationService.hostedContext, 'sendJabraEventToDesktop');
       const cmd = JabraNativeCommands.Mute;
-      const value = {};
 
-      jabraNativeService._sendCmd(cmd, value);
+      jabraNativeService._sendCmd(cmd, true);
 
       expect(applicationService.hostedContext.sendJabraEventToDesktop).toHaveBeenCalledTimes(1);
       expect(applicationService.hostedContext.sendJabraEventToDesktop).toHaveBeenCalledWith(
         jabraNativeService.activeDeviceId,
         cmd,
-        value
+        true
       );
     });
   });

@@ -352,7 +352,7 @@ describe('PlantronicsService', () => {
       let completeEndpoint = endpointParams;
       completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
       completeEndpoint += encodeURI(`&contact={${encodeURI(contactNameString)}}`);
-      await plantronicsService.incomingCall({callInfo})
+      await plantronicsService.incomingCall(callInfo)
       expect(plantronicsService.isActive).toBe(true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/IncomingCall${completeEndpoint}`);
       resetService(plantronicsService);
@@ -360,14 +360,14 @@ describe('PlantronicsService', () => {
       completeEndpoint = endpointParams;
       completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
       callInfo = {conversationId: 'convoId123'};
-      await plantronicsService.incomingCall({ callInfo });
+      await plantronicsService.incomingCall(callInfo);
       expect(plantronicsService.isActive).toBe(true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/IncomingCall${completeEndpoint}`);
       resetService(plantronicsService);
 
       try {
         callInfo = {contactName: 'Dio Brando'}
-        await plantronicsService.incomingCall({ callInfo });
+        await plantronicsService.incomingCall(callInfo);
       } catch (err) {
         expect(plantronicsService.isActive).toBe(false);
         expect(err).toBeDefined();

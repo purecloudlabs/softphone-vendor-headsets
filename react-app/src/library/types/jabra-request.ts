@@ -3,5 +3,5 @@ export interface JabraRequest {
 }
 
 export interface WebHidPermission {
-    webHidPairing: Function
+    webHidPairing: any
 }

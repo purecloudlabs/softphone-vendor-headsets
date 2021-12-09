@@ -41,7 +41,7 @@ export default class JabraNativeService extends VendorImplementation {
     return label.toLowerCase().includes('jabra');
   }
 
-  static getInstance(config: ImplementationConfig) {
+  static getInstance(config: ImplementationConfig): JabraNativeService {
     if (!JabraNativeService.instance) {
       JabraNativeService.instance = new JabraNativeService(config);
     }
@@ -69,7 +69,7 @@ export default class JabraNativeService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  handleJabraDeviceAttached({ deviceName, deviceId, attached }): void {
+  handleJabraDeviceAttached({ deviceName, deviceId, attached } : DeviceInfo): void {
     this.logger.debug('handling jabra attach/detach event', { deviceName, deviceId, attached });
     this.updateDevices();
   }
@@ -104,7 +104,7 @@ export default class JabraNativeService extends VendorImplementation {
 
   _handleHoldEvent(): void {
     // jabra requires you to echo the event back in acknowledgement
-    this.deviceHoldStatusChanged(null, true);
+    this.deviceHoldStatusChanged(true);
   }
 
   _getHeadsetIntoVanillaState(): void {
@@ -112,7 +112,7 @@ export default class JabraNativeService extends VendorImplementation {
     this.setMute(false);
   }
 
-  _sendCmd(cmd: JabraNativeCommands, value): void {
+  _sendCmd(cmd: JabraNativeCommands, value: boolean): void {
     const deviceId = this.activeDeviceId;
     this.logger.debug('Sending command to headset', { deviceId, cmd, value });
     this.applicationService.hostedContext.sendJabraEventToDesktop(deviceId, cmd, value);
@@ -203,7 +203,7 @@ export default class JabraNativeService extends VendorImplementation {
       });
   }
 
-  _processEvent(eventName: any, value: any) {
+  _processEvent(eventName: any, value: any): void {
     switch (eventName) {
       case JabraNativeEventNames.OffHook:
         debounce(() => this._handleOffhookEvent(value), offHookThrottleTime)();

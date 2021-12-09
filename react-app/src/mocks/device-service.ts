@@ -2,10 +2,10 @@ export default class DeviceService {
     private hasPermissions = false;
     private static defaultMicrophone = {} as MediaDeviceInfo;
 
-    initialize = async () => {
+    initialize = async (): Promise<void> => {
         this.ensureAudioPermissions();
         const devices = await navigator.mediaDevices.enumerateDevices();
-        let audioDevices = devices.filter((device) => device.kind === 'audioinput')
+        const audioDevices = devices.filter((device) => device.kind === 'audioinput')
         let mic = audioDevices.find((device) => device.deviceId === 'default' && device.kind === 'audioinput');
         if (!mic) {
             mic = audioDevices[0];
@@ -13,7 +13,7 @@ export default class DeviceService {
         DeviceService.defaultMicrophone = mic;
     }
 
-    ensureAudioPermissions = async () => {
+    ensureAudioPermissions = async (): Promise<void | undefined> => {
         if (this.hasPermissions) {
             return;
         }
@@ -23,11 +23,11 @@ export default class DeviceService {
         this.hasPermissions = true;
     }
 
-    getDefaultMicrophone = () => {
+    getDefaultMicrophone = (): MediaDeviceInfo => {
         return DeviceService.defaultMicrophone;
     }
 
-    setDefaultMicrophone = (microphone: MediaDeviceInfo) => {
+    setDefaultMicrophone = (microphone: MediaDeviceInfo): void => {
         DeviceService.defaultMicrophone = microphone;
     }
 }

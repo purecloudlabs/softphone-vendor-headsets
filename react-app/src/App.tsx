@@ -7,14 +7,16 @@ import HeadsetService from './library/services/headset';
 import AudioVisualizer from './components/audio-visualizer';
 import MockCall from './mocks/call';
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const App = () => {
+/* eslint-enable */
   const { t } = useTranslation();
   const [currentCall, setCurrentCall] = useState<any>(null);
   const [muted, setMuted] = useState<boolean>(false);
   const [held, setHeld] = useState<boolean>(false);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  let eventLogs = [] as any;
+  const eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();

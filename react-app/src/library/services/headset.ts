@@ -50,7 +50,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
       .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
-  static getInstance(config: ImplementationConfig) {
+  static getInstance(config: ImplementationConfig): HeadsetService {
     if (!HeadsetService.instance) {
       HeadsetService.instance = new HeadsetService(config);
     }
@@ -85,7 +85,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     });
   }
 
-  getHeadSetEventsSubject = () => {
+  getHeadSetEventsSubject = (): Subject<HeadsetEvent> => {
     return this._headsetEvents$;
   };
 
@@ -98,7 +98,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this))
   }
 
-  activeMicChange(newMicLabel) {
+  activeMicChange(newMicLabel: string): void {
     const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
@@ -134,13 +134,13 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
   }
 
   // possible options: conversationId, contactName
-  incomingCall(callInfo: CallInfo, hasOtherActiveCalls?): Promise<any> {
+  incomingCall(callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       this.logger.info('Headset: No vendor headset connected [incomingCall]');
       return Promise.resolve();
     }
-    return service.incomingCall({ callInfo, hasOtherActiveCalls });
+    return service.incomingCall(callInfo, hasOtherActiveCalls);
   }
 
   // possible options: conversationId, contactName
@@ -163,7 +163,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     return service.answerCall(conversationId);
   }
 
-  setMute(value): Promise<any> {
+  setMute(value: boolean): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       this.logger.info('Headset: No venddor headset connected [setMute]');
@@ -172,7 +172,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     return service.setMute(value);
   }
 
-  setHold(conversationId: string, value): Promise<any> {
+  setHold(conversationId: string, value: boolean): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       this.logger.info('Headset: No vendor headset connected [setHold]');
@@ -181,7 +181,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     return service.setHold(conversationId, value);
   }
 
-  endCall(conversationId, hasOtherActiveCalls?): Promise<any> {
+  endCall(conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       this.logger.info('Headset: No vendor headset connected [endCall]');
@@ -200,7 +200,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     return this.selectedImplementation.endAllCalls();
   }
 
-  handleDeviceAnsweredCall(event: VendorEvent<EventInfo>) {
+  handleDeviceAnsweredCall(event: VendorEvent<EventInfo>): void | undefined {
     console.log('event answered Call -> ', event);
     if (event.vendor !== this.selectedImplementation) {
       return;
@@ -210,7 +210,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     this._headsetEvents$.next({ event: 'deviceAnsweredCall', payload: { ...event.body }});
   }
 
-  handleDeviceRejectedCall(event: VendorConversationIdEvent) {
+  handleDeviceRejectedCall(event: VendorConversationIdEvent): void | undefined {
     if (event.vendor !== this.selectedImplementation) {
       return;
     }
@@ -219,18 +219,18 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     this._headsetEvents$.next({ event: 'deviceRejectedCall', payload: { conversationId: event.body.conversationId }});
   }
 
-  handleDeviceEndedCall(event: VendorEvent<EventInfo>) {
+  handleDeviceEndedCall(event: VendorEvent<EventInfo>): void {
     this.logger.info('Headset: device ended the call');
     this._headsetEvents$.next({ event: 'deviceEndedCall', payload: { ...event.body } });
     this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...event.body } });
   }
 
-  handleDeviceMuteStatusChanged(event: VendorEvent<MutedEventInfo>) {
+  handleDeviceMuteStatusChanged(event: VendorEvent<MutedEventInfo>): void {
     this.logger.info('Headset: device mute status changed: ', event?.body?.isMuted);
     this._headsetEvents$.next({ event: 'deviceMuteStatusChanged', payload: { ...event.body }});
   }
 
-  handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>) {
+  handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>): void {
     this.logger.info('Headset: device hold status changed', event?.body?.holdRequested);
     this._headsetEvents$.next({ event: 'deviceHoldStatusChanged', payload: { ...event.body }}); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
   }
@@ -238,7 +238,8 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
   /* This function has no functional purpose in a real life example
    * It is here to help log all events in the call process at least for Plantronics
    */
-  handleDeviceLogs(eventInfo) {
+  // handleDeviceLogs(eventInfo: { vendor: VendorImplementation, body: { name: string, code: string, event: any }}): void {
+  handleDeviceLogs(eventInfo: VendorEvent<any>): void {
     this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...eventInfo.body }});
   }
 

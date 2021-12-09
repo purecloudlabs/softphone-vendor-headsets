@@ -4,6 +4,7 @@ import { SennheiserEventTypes } from './sennheiser-event-types';
 import DeviceInfo from '../../../types/device-info';
 import { SennheiserPayload } from './sennheiser-payload';
 import * as utils from '../../../utils';
+import { CallInfo } from '../../..';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 
@@ -23,7 +24,7 @@ export default class SennheiserService extends VendorImplementation {
   websocket = null;
   deviceInfo: DeviceInfo = null;
 
-  static getInstance(config: ImplementationConfig) {
+  static getInstance(config: ImplementationConfig): SennheiserService {
     if (!SennheiserService.instance) {
       SennheiserService.instance = new SennheiserService(config);
     }
@@ -88,7 +89,7 @@ export default class SennheiserService extends VendorImplementation {
     this.logger.info('websocket open the sennheiser software');
   };
 
-  webSocketOnClose(err: any): void {
+  webSocketOnClose(err: { code: number, reason: string, wasClean: boolean }): void {
     this.websocketConnected = false;
     if (!err.wasClean) {
       this.logger.error(err);
@@ -137,7 +138,7 @@ export default class SennheiserService extends VendorImplementation {
     return callId;
   }
 
-  setMute(value): Promise<void> {
+  setMute(value: boolean): Promise<void> {
     this._sendMessage({
       Event: value ? SennheiserEvents.MuteFromApp : SennheiserEvents.UnmuteFromApp,
       EventType: SennheiserEventTypes.Request,
@@ -145,7 +146,7 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  setHold(conversationId: string, value): Promise<void> {
+  setHold(conversationId: string, value: boolean): Promise<void> {
     this._sendMessage({
       Event: value ? SennheiserEvents.Hold : SennheiserEvents.Resume,
       EventType: SennheiserEventTypes.Request,
@@ -155,7 +156,7 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  incomingCall({ callInfo }): Promise<void> {
+  incomingCall(callInfo: CallInfo): Promise<void> {
     const { conversationId } = callInfo;
     const callId = this._createCallMapping(conversationId);
 
@@ -177,7 +178,7 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  outgoingCall({ callInfo }): Promise<void> {
+  outgoingCall(callInfo: CallInfo): Promise<void> {
     const { conversationId } = callInfo;
     const callId = this._createCallMapping(conversationId);
 
@@ -212,7 +213,7 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  _handleMessage(message): void {
+  _handleMessage(message: { data: string }): void {
     let payload: SennheiserPayload;
     try {
       payload = JSON.parse(message.data);

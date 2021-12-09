@@ -9,7 +9,6 @@ import { v4 } from 'uuid';
 const incomingMessageName = 'jabra-headset-extension-from-content-script';
 const outgoingMessageName = 'jabra-headset-extension-from-page-script';
 const clientId = v4();
-
 export default class JabraChromeService extends VendorImplementation {
   private static instance: JabraChromeService;
   static connectTimeout = 5000;
@@ -33,7 +32,7 @@ export default class JabraChromeService extends VendorImplementation {
     return label.toLowerCase().includes('jabra');
   }
 
-  static getInstance(config: ImplementationConfig) {
+  static getInstance(config: ImplementationConfig): JabraChromeService {
     if (!JabraChromeService.instance) {
       JabraChromeService.instance = new JabraChromeService(config);
     }
@@ -62,7 +61,7 @@ export default class JabraChromeService extends VendorImplementation {
     this.setMute(false);
   }
 
-  _sendCmd(cmd: JabraChromeCommands) {
+  _sendCmd(cmd: JabraChromeCommands): void {
     this.logger.debug('sending jabra event', { cmd });
     window.postMessage(
       {
@@ -123,7 +122,7 @@ export default class JabraChromeService extends VendorImplementation {
     }
   }
 
-  _processEvent(eventTranslation) {
+  _processEvent(eventTranslation: string): void {
     switch (eventTranslation) {
       case 'Mute':
         this.setMute(true);
@@ -144,7 +143,7 @@ export default class JabraChromeService extends VendorImplementation {
         this.deviceRejectedCall(null);
         break;
       case 'Flash':
-        this.deviceHoldStatusChanged(null, true);
+        this.deviceHoldStatusChanged(true);
         break;
       case 'Attached':
         this._deviceAttached();
@@ -214,7 +213,7 @@ export default class JabraChromeService extends VendorImplementation {
     this._sendCmd(JabraChromeCommands.GetDevices);
   }
 
-  _deviceDetached() {
+  _deviceDetached(): void {
     this.devices = null;
     this.activeDeviceId = null;
 
@@ -241,7 +240,7 @@ export default class JabraChromeService extends VendorImplementation {
     });
   }
 
-  async _handleDeviceConnect() {
+  async _handleDeviceConnect(): Promise<void> {
     if (this._connectDeferred) {
       this._sendCmd(JabraChromeCommands.GetActiveDevice);
       this._sendCmd(JabraChromeCommands.GetDevices);
@@ -260,7 +259,7 @@ export default class JabraChromeService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  _handleDeviceConnectionFailure(err) {
+  _handleDeviceConnectionFailure(err): void {
     if (this._connectDeferred) {
       this._connectDeferred.reject(err);
       this._connectDeferred = null;
@@ -271,7 +270,7 @@ export default class JabraChromeService extends VendorImplementation {
     }
   }
 
-  _handleGetDevices(deviceList) {
+  _handleGetDevices(deviceList): void {
     this.logger.debug('device list', deviceList);
     const items = deviceList.split(',');
     const deviceMap = new Map<string, DeviceInfo>();
@@ -285,7 +284,7 @@ export default class JabraChromeService extends VendorImplementation {
     this.devices = deviceMap;
   }
 
-  _handleGetActiveDevice(activeDeviceId: string) {
+  _handleGetActiveDevice(activeDeviceId: string): void {
     this.logger.debug('active device info', activeDeviceId);
     this.activeDeviceId = activeDeviceId;
   }

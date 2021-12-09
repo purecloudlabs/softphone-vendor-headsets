@@ -213,13 +213,12 @@ describe('SennheiserService', () => {
     });
     it('should call _sendMessage with a payload using SennheiserEvents.MuteFromApp when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
-      const value = 'testValue';
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.MuteFromApp,
         EventType: SennheiserEventTypes.Request,
       };
 
-      await sennheiserService.setMute(value);
+      await sennheiserService.setMute(true);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
@@ -248,7 +247,6 @@ describe('SennheiserService', () => {
     });
     it('should call _sendMessage with a payload using SennheiserEvents.Hold when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
-      const value = 'testValue';
       const conversationId = '23f897b';
       sennheiserService.callMappings[conversationId] = 12345;
       const expectedPayload: SennheiserPayload = {
@@ -257,7 +255,7 @@ describe('SennheiserService', () => {
         CallID: sennheiserService.callMappings[conversationId],
       };
 
-      await sennheiserService.setHold(conversationId, value);
+      await sennheiserService.setHold(conversationId, true);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
@@ -295,7 +293,7 @@ describe('SennheiserService', () => {
       }
 
       // Run Test
-      await sennheiserService.incomingCall({ callInfo });
+      await sennheiserService.incomingCall(callInfo);
 
       // Get generated call mapping to create expected payload
       const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
@@ -355,7 +353,7 @@ describe('SennheiserService', () => {
       }
 
       // Run Test
-      await sennheiserService.outgoingCall({ callInfo });
+      await sennheiserService.outgoingCall(callInfo);
 
       // Get generated call mapping to create expected payload
       const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
@@ -808,12 +806,12 @@ describe('SennheiserService', () => {
     });
 
     it('should set websocketConnected to false', () => {
-      sennheiserService.webSocketOnClose({ wasClean: true });
+      sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
       expect(sennheiserService.websocketConnected).toBe(false);
     });
     it('should log an error message when err.wasClean is false', () => {
       jest.spyOn(mockLogger, 'error');
-      const err = { wasClean: false };
+      const err = { code: 123, reason: 'something broke', wasClean: true };
 
       sennheiserService.webSocketOnClose(err);
 
@@ -821,19 +819,19 @@ describe('SennheiserService', () => {
     });
     it('should set isConnecting to false', () => {
       sennheiserService.isConnecting = true;
-      sennheiserService.webSocketOnClose({ wasClean: true });
+      sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
       expect(sennheiserService.isConnecting).toBe(false);
     });
     it('should set isConnected to false', () => {
       sennheiserService.isConnected = true;
-      sennheiserService.webSocketOnClose({ wasClean: true });
+      sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
       expect(sennheiserService.isConnected).toBe(false);
     });
     it('should log an error if isConnected is false', () => {
       sennheiserService.isConnected = false;
       jest.spyOn(mockLogger, 'error');
 
-      sennheiserService.webSocketOnClose({ wasClean: true });
+      sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
 
       expect(mockLogger.error).toHaveBeenCalled();
     });
@@ -842,7 +840,7 @@ describe('SennheiserService', () => {
       sennheiserService.errorCode = null;
       jest.spyOn(utils, 'isFirefox').mockReturnValue(true);
 
-      sennheiserService.webSocketOnClose({ wasClean: true });
+      sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
 
       expect(sennheiserService.errorCode).toEqual('browser');
     });
@@ -851,7 +849,7 @@ describe('SennheiserService', () => {
       sennheiserService.disableRetry = false;
       jest.spyOn(utils, 'isFirefox').mockReturnValue(true);
 
-      sennheiserService.webSocketOnClose({ wasClean: true });
+      sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
 
       expect(sennheiserService.disableRetry).toEqual(true);
     });

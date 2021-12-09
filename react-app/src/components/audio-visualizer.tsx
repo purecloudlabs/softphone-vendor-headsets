@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const AudioVisualizer = ({audioStream}: {audioStream: MediaStream}) => {
+/* eslint-enable */
     const backgroundColor = '#F5FCFF';
     const lineColor = '#4F7787';
 
     let canvasEl: HTMLCanvasElement;
     let canvasContext: any;
     let currentAnimationFrame: any;
-    let hasStarted: boolean = false;
+    let hasStarted = false;
     let audioContext: any  = null;
 
 

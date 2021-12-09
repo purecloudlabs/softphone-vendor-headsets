@@ -1,3 +1,5 @@
+import { JabraNativeCommands } from "../library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands";
+
 const EVENTS = {
     JABRA_EVENT: 'jabraEvent',
 };
@@ -21,12 +23,12 @@ export default class ApplicationService {
         return !!(window as any)._HostedContextFunctions;
     }
 
-    callback(obj: any) {
+    callback(obj: { msg: string, event: string, value: boolean, hidInput: string }): void {
         const msg = obj.msg;
         if (msg === 'JabraEvent') {
-            let eventName = obj.event;
-            let value = obj.value;
-            let hidInput = obj.hidInput;
+            const eventName = obj.event;
+            const value = obj.value;
+            const hidInput = obj.hidInput;
             console.log(
                 `Jabra event received. ID: ${hidInput}, Name: ${eventName}, Value: ${value}`
             );
@@ -34,16 +36,18 @@ export default class ApplicationService {
         }
     }
 
-    requestDesktopPromise(cmd) {
-        return (resolve, reject) => {
+    requestDesktopPromise(cmd: { cmd: string }) {
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+        return (resolve, reject): void => {
+        /* eslint-enable */
             try {
-                let sCmd = JSON.stringify(cmd);
+                const sCmd = JSON.stringify(cmd);
                 (window as any).cefQuery({
                     request: sCmd,
                     persistent: false,
                     onSuccess: response => {
                         try {
-                            let obj = JSON.parse(response);
+                            const obj = JSON.parse(response);
                             resolve(obj);
                         } catch (e) {
                             resolve({});
@@ -60,7 +64,7 @@ export default class ApplicationService {
         };
     }
 
-    sendJabraEventToDesktop(deviceID, event, value) {
+    sendJabraEventToDesktop(deviceID: string, event: JabraNativeCommands, value: boolean): void {
         ((window as any)._HostedContextFunctions as any).sendEventToDesktop(
             EVENTS.JABRA_EVENT,
             {
@@ -72,12 +76,12 @@ export default class ApplicationService {
     }
 
     /* TODO: Investigate purpose */
-    requestJabraDevices() {
+    requestJabraDevices(): any {
         return this.requestDesktopPromise({ cmd: 'requestJabraDevices' });
     }
 
     /* TODO: Investigate purpose */
-    supportsJabra() {
+    supportsJabra(): boolean {
         return true;
     }
 }

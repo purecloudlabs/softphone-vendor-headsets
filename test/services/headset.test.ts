@@ -200,7 +200,7 @@ describe('HeadsetService', () => {
 
       headsetService.incomingCall(callInfo, hasOtherActiveCalls);
 
-      expect(plantronics.incomingCall).toHaveBeenCalledWith({ callInfo, hasOtherActiveCalls });
+      expect(plantronics.incomingCall).toHaveBeenCalledWith(callInfo, hasOtherActiveCalls);
     });
     it('shouldnot call incomingCall on the selected implmenetation when the implementation is not connected', () => {
       const callInfo: CallInfo = { conversationId: '4321', contactName: 'Bryan Danielson' };
@@ -277,18 +277,16 @@ describe('HeadsetService', () => {
       jest.resetAllMocks();
     });
     it('should call setMute on the selected implementation when the implementation is connected', () => {
-      const value = 'on';
       plantronics.isConnected = true;
 
-      headsetService.setMute(value);
+      headsetService.setMute(true);
 
-      expect(plantronics.setMute).toHaveBeenCalledWith(value);
+      expect(plantronics.setMute).toHaveBeenCalledWith(true);
     });
     it('shouldnot call setMute on the selected implmenetation when the implementation is not connected', () => {
-      const value = 'on';
       plantronics.isConnected = false;
 
-      headsetService.setMute(value);
+      headsetService.setMute(true);
 
       expect(plantronics.setMute).not.toHaveBeenCalled();
     });
@@ -305,19 +303,17 @@ describe('HeadsetService', () => {
     });
     it('should call setHold on the selected implementation when the implementation is connected', () => {
       const conversationId = '1234';
-      const value = 'on';
       plantronics.isConnected = true;
 
-      headsetService.setHold(conversationId, value);
+      headsetService.setHold(conversationId, true);
 
-      expect(plantronics.setHold).toHaveBeenCalledWith(conversationId, value);
+      expect(plantronics.setHold).toHaveBeenCalledWith(conversationId, true);
     });
     it('should not call setHold on the selected implmenetation when the implementation is not connected', () => {
       const conversationId = '1234';
-      const value = 'on';
       plantronics.isConnected = false;
 
-      headsetService.setHold(conversationId, value);
+      headsetService.setHold(conversationId, true);
 
       expect(plantronics.setHold).not.toHaveBeenCalled();
     });
@@ -490,7 +486,7 @@ describe('HeadsetService', () => {
         expect(event.payload).toStrictEqual(testEvent.body);
         done();
       });
-      const testEvent = {vendor: 'plantronics', body: { name: 'CallRinging', code: 7, event: {} }};
+      const testEvent = {vendor: plantronics, body: { name: 'CallRinging', code: 7, event: {} }};
       headsetService.handleDeviceLogs(testEvent);
     })
   });

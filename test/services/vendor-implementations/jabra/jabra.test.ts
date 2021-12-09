@@ -328,38 +328,38 @@ describe('JabraService', () => {
             jabraService.callLock = false;
         })
         it('sends ring event based on flags after properly taking callLock', async () => {
-            const mockOpts = {callInfo: {
+            const callInfo = {
                 conversationId: '123',
                 contactName: 'Lee Moriarty'
-            }};
+            }
             callControl.takeCallLock.mockResolvedValue(true);
-            await jabraService.incomingCall(mockOpts);
+            await jabraService.incomingCall(callInfo);
             expect(jabraService.callLock).toBe(true);
             expect(callControl.ring).toHaveBeenCalledWith(true);
         })
         it('sends ring event based on flags after already having callLock', async () => {
-            const mockOpts = {callInfo: {
+            const callInfo = {
                 conversationId: '456',
                 contactName: 'Adam Cole'
-            }};
+            };
             callControl.takeCallLock.mockImplementation(() => {
                 throw exceptionWithType('Trying to take the call lock, but it is already held!', ErrorType.SDK_USAGE_ERROR);
             });
             const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-            await jabraService.incomingCall(mockOpts);
+            await jabraService.incomingCall(callInfo);
             expect(infoLoggerSpy).toHaveBeenCalledWith('Trying to take the call lock, but it is already held!');
             expect(callControl.ring).toHaveBeenCalledWith(true);
         })
         it('handles unexpected error, unrelated to callLock', async () => {
-            const mockOpts = {callInfo: {
+            const callInfo = {
                 conversationId: '789',
                 contactName: 'Gene Ween'
-            }};
+            };
             callControl.takeCallLock.mockImplementation(() => {
                 throw exceptionWithType('An actual error', ErrorType.UNEXPECTED_ERROR);
             });
             const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-            await jabraService.incomingCall(mockOpts);
+            await jabraService.incomingCall(callInfo);
             expect(errorLoggerSpy).toHaveBeenCalledWith(ErrorType.UNEXPECTED_ERROR, 'An actual error');
             expect(callControl.ring).not.toHaveBeenCalled();
         })
@@ -434,11 +434,10 @@ describe('JabraService', () => {
             });
             const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
             const resetStateSpy = jest.spyOn(jabraService, 'resetState');
-            const jabraEndCalls = jabraService.endCall('123', false);
+            jabraService.endCall('123', false);
             expect(infoLoggerSpy).toHaveBeenCalledWith('Trying to release the call lock, but it is not held!')
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();
-            expect(jabraEndCalls).resolves.toReturn();
         })
         it('properly handles error unrelated callLock', () => {
             jabraService.callLock = true;
@@ -482,7 +481,6 @@ describe('JabraService', () => {
             expect(infoLoggerSpy).toHaveBeenCalledWith('Trying to release the call lock, but it is not held!')
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();
-            expect(jabraEndCalls).resolves.toReturn();
         })
         it('properly handles error unrelated callLock', () => {
             jabraService.callLock = true;

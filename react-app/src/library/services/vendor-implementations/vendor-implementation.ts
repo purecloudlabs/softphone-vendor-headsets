@@ -3,6 +3,7 @@ import StrictEventEmitter from 'strict-event-emitter-types';
 import { EventEmitter } from 'events';
 import { HeadsetEvents } from '../../types/headset-events';
 import { IApi } from '@gnaudio/jabra-js';
+import { CallInfo } from '../..';
 
 type HeadsetEventName = keyof HeadsetEvents;
 
@@ -12,7 +13,7 @@ export interface ImplementationConfig {
   externalSdk?: Promise<IApi>;
 }
 
-export abstract class VendorImplementation {
+export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, HeadsetEvents> }) {
   // TODO: rename this to something more descriptive
   vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub
@@ -22,9 +23,10 @@ export abstract class VendorImplementation {
   disableRetry = false;
   logger: any; // TODO: pass this in on creation?
   config: ImplementationConfig;
-  externalSdk: any;
+  externalSdk: Promise<IApi>;
 
   constructor(config: ImplementationConfig) {
+    super();
     const eventEmitter = new EventEmitter();
     Object.keys((eventEmitter as any).__proto__).forEach((name) => {
       this[name] = eventEmitter[name];
@@ -42,6 +44,7 @@ export abstract class VendorImplementation {
 
   abstract get deviceInfo (): DeviceInfo;
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   deviceLabelMatchesVendor(label: string): boolean {
     throw new Error(`${this.vendorName} - deviceLabelMatchesVendor() not implemented`);
   }
@@ -54,13 +57,12 @@ export abstract class VendorImplementation {
     return Promise.reject(new Error(`${this.vendorName} - disconnect() not implemented`));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  incomingCall(opts: any): Promise<any> {
+  incomingCall(callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     // TODO: propagate this changed parameter (used to be callInfo, but there are several differents signatures in the implementing classes)
     return Promise.reject(new Error(`${this.vendorName} - incomingCall() not implemented`));
   }
 
-  outgoingCall(callInfo: any): Promise<any> {
+  outgoingCall(callInfo: CallInfo): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - outgoingCall() not implemented`));
   }
 
@@ -76,39 +78,40 @@ export abstract class VendorImplementation {
     return Promise.reject(new Error(`${this.vendorName} - endAllCalls() not implemented`));
   }
 
-  setMute(value: any): Promise<any> {
+  setMute(value: boolean): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - setMute() not implemented`));
   }
 
-  setHold(conversationId: string, value: any): Promise<any> {
+  setHold(conversationId: string, value: boolean): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - setHold() not implemented`));
   }
+  /* eslint-enable */
 
   private emitEvent(eventName: HeadsetEventName, eventBody: any) {
     this.emit(eventName, { vendor: this, body: {...eventBody } })
   }
 
-  deviceAnsweredCall(eventInfo?: any): void {
+  deviceAnsweredCall(eventInfo?: { name: string, code?: string | number, event?: any }): void {
     this.emitEvent('deviceAnsweredCall', eventInfo);
   }
 
-  deviceRejectedCall(conversationId: string) {
+  deviceRejectedCall(conversationId: string): void {
     this.emitEvent('deviceRejectedCall', conversationId);
   }
 
-  deviceEndedCall(eventInfo?: any): void {
+  deviceEndedCall(eventInfo?: { name: string, code?: string | number, event?: any }): void {
     this.emitEvent('deviceEndedCall', eventInfo);
   }
 
-  deviceMuteChanged(isMuted: boolean, eventInfo?: any): void {
+  deviceMuteChanged(isMuted: boolean, eventInfo?: { name: string, code?: string | number, event?: any }): void {
     this.emitEvent('deviceMuteChanged', { isMuted, ...eventInfo });
   }
 
-  deviceHoldStatusChanged(holdRequested: boolean, eventInfo?: any, toggle?: any): void {
+  deviceHoldStatusChanged(holdRequested: boolean, eventInfo?: { name: string, code?: string | number, event?: any }, toggle?: boolean): void {
     this.emitEvent('deviceHoldStatusChanged', { holdRequested, ...eventInfo, toggle });
   }
 
-  deviceEventLogs(eventInfo: any): void {
+  deviceEventLogs(eventInfo: { name: string, code?: string | number, event?: any }): void {
     this.emitEvent('deviceEventLogs', eventInfo);
   }
   // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {
@@ -117,4 +120,3 @@ export abstract class VendorImplementation {
   // }
 }
 
-export interface VendorImplementation extends StrictEventEmitter<EventEmitter, HeadsetEvents> { };

@@ -4,13 +4,13 @@ import { JabraNativeCommands } from './vendor-implementations/jabra/jabra-native
 const requestDesktopPromise = (cmd) => {
   return (resolve, reject) => {
     try {
-      let sCmd = JSON.stringify(cmd);
+      const sCmd = JSON.stringify(cmd);
       (window as any).cefQuery({
         request: sCmd,
         persistent: false,
         onSuccess: response => {
           try {
-            let obj = JSON.parse(response);
+            const obj = JSON.parse(response);
             resolve(obj);
           } catch (e) {
             resolve({});
@@ -28,13 +28,13 @@ const requestDesktopPromise = (cmd) => {
 }
 
 const hostedContext = {
-  isHosted: () => {
+  isHosted: (): boolean => {
     return !!(window as any)._HostedContextFunctions;
   },
-  supportsJabra: () => {
+  supportsJabra: (): boolean => {
     return true;
   },
-  sendJabraEventToDesktop: (deviceId: string, event: JabraNativeCommands, value: any) => {
+  sendJabraEventToDesktop: (deviceId: string, event: JabraNativeCommands, value: boolean): void => {
     (window as any)?._HostedContextFunctions?.sendEventToDesktop(
       'jabraEvent',
       {
@@ -50,12 +50,14 @@ const hostedContext = {
   requestJabraDevices: async (): Promise<any> => {
     return await requestDesktopPromise({ cmd: 'requestJabraDevices' });
   },
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   off: (eventName: string, handler: (...params: any[]) => void): null => {
     return null;
   },
   on: (eventName: string, handler: (...params: any[]) => void): null => {
     return null;
   },
+  /* eslint-enable */
 };
 
 export default class ApplicationService {
@@ -75,12 +77,12 @@ export default class ApplicationService {
     }
   }
 
-  callback(obj: any) {
+  callback(obj: { msg: string, event: string, value: boolean, hidInput: string }): void {
     const msg = obj.msg;
     if (msg === 'JabraEvent') {
-      let eventName = obj.event;
-      let value = obj.value;
-      let hidInput = obj.hidInput;
+      const eventName = obj.event;
+      const value = obj.value;
+      const hidInput = obj.hidInput;
       console.log(
         `Jabra event received. ID: ${hidInput}, Name: ${eventName}, Value: ${value}`
       );

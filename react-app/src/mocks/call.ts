@@ -46,12 +46,12 @@ export default class MockCall {
         this.contactName = getRandomContact();
     }
 
-    answer () {
+    answer (): void {
         this.ringing = false;
         this.connected = true;
-    };
+    }
 
-    end () {
+    end (): void {
         this.ringing = false;
         this.connected = false;
     }
