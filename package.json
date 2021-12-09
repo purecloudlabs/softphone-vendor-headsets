@@ -16,6 +16,7 @@
     "type": ""
   },
   "scripts": {
+    "install:all": "npm ci && cd react-app && yarn --pure-lockfile",
     "build": "npm run build:src && npm run build:es && npm run build:module",
     "build:src": "tsc -p . && node copy-version.js",
     "build:es": "tsc -p . --outDir ./dist/es --target es2015 --module es2015",
