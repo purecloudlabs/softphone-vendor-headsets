@@ -21,7 +21,7 @@
     "build:react": "cd react-app; yarn build",
     "build:src": "tsc -p . && node copy-version.js",
     "build:es": "tsc -p . --outDir ./dist/es --target es2015 --module es2015",
-    "build:module": "webpack && webpack --env.production",
+    "build:module": "webpack -- mode production",
     "start-test-server": "npm run stop-test-server; bash ./scripts/start-test-server.sh",
     "stop-test-server": "bash ./scripts/stop-test-server.sh",
     "pretest": "npm run start-test-server",
