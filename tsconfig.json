@@ -1,6 +1,6 @@
 {
   "include": [
-    "./react-app/**/*.tsx",
+    "./react-app/**/*.ts",
     "test"
   ],
   "exclude": [
