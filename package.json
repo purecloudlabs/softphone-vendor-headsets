@@ -15,6 +15,9 @@
     "url": "https://github.com/purecloudlabs/softphone-vendor-headsets",
     "type": ""
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "scripts": {
     "install:all": "npm ci && cd react-app && yarn --pure-lockfile",
     "build": "npm run build:react && npm run build:src && npm run build:es && npm run build:module",
