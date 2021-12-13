@@ -7,9 +7,9 @@ import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabr
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import { JabraRequest } from '../types/jabra-request';
 import ApplicationService from './application';
-import { HeadsetEvent } from '../types/headset-event';
+import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
-import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/headset-events';
+import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
 import { webHidPairing, init, IApi, RequestedBrowserTransport } from '@gnaudio/jabra-js';
 import { EventEmitter } from 'events';
 import StrictEventEmitter from 'strict-event-emitter-types';
@@ -24,16 +24,16 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
   sennheiser: VendorImplementation;
   application: ApplicationService;
   selectedImplementation: VendorImplementation;
-  headsetEvents$: Observable<HeadsetEvent>;
+  headsetEvents$: Observable<ConsumedHeadsetEvents>;
   jabraSdk: Promise<IApi>;
 
-  private _headsetEvents$: Subject<HeadsetEvent>;
+  private _headsetEvents$: Subject<ConsumedHeadsetEvents>;
   private _implementations: VendorImplementation[] = [];
   private logger: any;
 
   private constructor(config: ImplementationConfig) {
     super();
-    this._headsetEvents$ = new Subject<HeadsetEvent>();
+    this._headsetEvents$ = new Subject<ConsumedHeadsetEvents>();
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.application = ApplicationService.getInstance();
@@ -85,7 +85,7 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     });
   }
 
-  getHeadSetEventsSubject = (): Subject<HeadsetEvent> => {
+  getHeadSetEventsSubject = (): Subject<ConsumedHeadsetEvents> => {
     return this._headsetEvents$;
   };
 

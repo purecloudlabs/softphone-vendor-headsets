@@ -6,7 +6,7 @@ import JabraChromeService from '../../react-app/src/library/services/vendor-impl
 import JabraNativeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
 import { CallInfo } from '../../react-app/src/library/types/call-info';
 import ApplicationService from '../../react-app/src/library/services/application';
-import { EventInfo, VendorEvent } from '../../react-app/src/library/types/headset-events';
+import { EventInfo, VendorEvent } from '../../react-app/src/library/types/emitted-headset-events';
 import JabraService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra';
 import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';

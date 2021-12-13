@@ -1,5 +1,5 @@
 import { VendorImplementation } from "../../react-app/src/library/services/vendor-implementations/vendor-implementation";
-import { HeadsetEvents } from "../../react-app/src/library/types/headset-events";
+import { EmittedHeadsetEvents } from "../../react-app/src/library/types/emitted-headset-events";
 
 export const mockWebSocket = {
   readyState: 0,
@@ -16,7 +16,7 @@ export const mockLogger = {
   debug: () => {},
 };
 
-export function eventValidation (headsetService: VendorImplementation, eventName: keyof HeadsetEvents, assertHandler?: Function): Promise<void> {
+export function eventValidation (headsetService: VendorImplementation, eventName: keyof EmittedHeadsetEvents, assertHandler?: Function): Promise<void> {
   return new Promise((resolve, reject) => {
     let timeout: any;
 

@@ -1,11 +1,11 @@
 import DeviceInfo from '../../types/device-info';
 import StrictEventEmitter from 'strict-event-emitter-types';
 import { EventEmitter } from 'events';
-import { HeadsetEvents } from '../../types/headset-events';
+import { EmittedHeadsetEvents } from '../../types/emitted-headset-events';
 import { IApi } from '@gnaudio/jabra-js';
 import { CallInfo } from '../..';
 
-type HeadsetEventName = keyof HeadsetEvents;
+type HeadsetEventName = keyof EmittedHeadsetEvents;
 
 export interface ImplementationConfig {
   logger: any;
@@ -13,7 +13,7 @@ export interface ImplementationConfig {
   externalSdk?: Promise<IApi>;
 }
 
-export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, HeadsetEvents> }) {
+export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
   // TODO: rename this to something more descriptive
   vendorName = 'Not Specified';
   isConnecting = false; // trying to connect with the headset controlling software, ex: plantronics hub

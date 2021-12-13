@@ -24,6 +24,6 @@ type RejectCallEventInfo = {
     conversationId: string;
 }
 
-export type HeadsetEvent<T = keyof Events> = T extends keyof Events
+export type ConsumedHeadsetEvents<T = keyof Events> = T extends keyof Events
     ? { event: T, payload: Events[T] }
     : never;

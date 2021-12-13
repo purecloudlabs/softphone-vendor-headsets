@@ -2,9 +2,9 @@ import { VendorImplementation, ImplementationConfig } from '../vendor-implementa
 import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
 import DeviceInfo from '../../../types/device-info';
+import { CallInfo } from '../../..';
 import { SennheiserPayload } from './sennheiser-payload';
 import * as utils from '../../../utils';
-import { CallInfo } from '../../..';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 

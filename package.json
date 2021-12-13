@@ -5,8 +5,8 @@
   "license": "MIT",
   "cjs": "dist/cjs/index.js",
   "module": "dist/es/index.js",
-  "main": "dist/softphone-vendor-headsets.js",
-  "browser": "dist/softphone-vendor-headsets.js",
+  "main": "dist/cjs/index.js",
+  "web": "dist/softphone-vendor-headsets.js",
   "typings": "dist/es/index.d.ts",
   "files": [
     "dist"

@@ -1,6 +1,6 @@
 import { VendorImplementation } from "../services/vendor-implementations/vendor-implementation";
 
-export interface HeadsetEvents {
+export interface EmittedHeadsetEvents {
   deviceAnsweredCall: VendorEvent<EventInfo>;
   deviceRejectedCall: VendorConversationIdEvent;
   deviceEndedCall: VendorEvent<any>;
