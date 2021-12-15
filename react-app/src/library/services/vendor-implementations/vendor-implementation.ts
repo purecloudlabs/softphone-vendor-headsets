@@ -44,6 +44,11 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
 
   abstract get deviceInfo (): DeviceInfo;
 
+  requestWebHidPermissions (callback: any) {
+    this.logger.debug('Emitting premission request event');
+    this.emitEvent('webHidPermissionRequested' as any, { callback });
+  }
+
   /* eslint-disable @typescript-eslint/no-unused-vars */
   deviceLabelMatchesVendor(label: string): boolean {
     throw new Error(`${this.vendorName} - deviceLabelMatchesVendor() not implemented`);

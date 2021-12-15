@@ -31,7 +31,7 @@
       "uuid"
     ],
     "esModuleInterop": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowJs": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,

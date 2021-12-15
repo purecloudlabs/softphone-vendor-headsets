@@ -9,9 +9,13 @@ import {
     IMultiCallControl,
     SignalType,
     ICallControl,
-    ErrorType
+    ErrorType,
+    IDevice,
+    webHidPairing
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
+import { BehaviorSubject } from "rxjs";
+import { filter, first } from 'rxjs/operators';
 
 // const incomingMessageName = 'jabra-headset-extension-from-content-script';
 // const outgoingMessageName = 'jabra-headset-extension-from-content-script';
@@ -254,17 +258,40 @@ export default class JabraService extends VendorImplementation {
         this.isConnecting = true;
         this.jabraSdk = await this.config.externalSdk;
         this.callControlFactory = this.createCallControlFactory(this.jabraSdk);
-        this.jabraSdk.deviceList.subscribe(async (devices) => {
-            if (devices.length > 0) {
-                const connectedDevice = devices.find((device) => deviceLabel.includes(device?.name?.toLowerCase()));
-                this.callControl = await this.callControlFactory.createCallControl(connectedDevice);
-                this._processEvents(this.callControl);
-                this.isConnecting = false;
-                this.isConnected = true;
-            } else {
-                this.isConnecting = false;
+
+        const findDevice = (device: IDevice) => deviceLabel.includes(device?.name?.toLowerCase());
+
+
+        const device = await new Promise<IDevice>((resolve, reject) => {
+            let device = ((this.jabraSdk.deviceList as unknown) as BehaviorSubject<IDevice[]>).value.find(findDevice);
+
+            if (device) {
+                return resolve(device);
             }
-        })
+
+            const waiter = setTimeout(reject, 30000);
+            this.requestWebHidPermissions(webHidPairing);
+            this.jabraSdk.deviceList
+                .pipe(
+                    first(devices => !!devices.length)
+                )
+                .subscribe(async (devices) => {
+                    device = devices.find(findDevice);
+                    clearTimeout(waiter);
+                    resolve(device);
+                });
+        }).catch(() => console.error('timed out waiting for jabra device'));
+    
+        if (!device) {
+            this.isConnecting = false;
+            console.error('whoops no device');
+            return;
+        }
+
+        this.callControl = await this.callControlFactory.createCallControl(device);
+        this._processEvents(this.callControl);
+        this.isConnecting = false;
+        this.isConnected = true;
     }
 
     createCallControlFactory (sdk: IApi): CallControlFactory {

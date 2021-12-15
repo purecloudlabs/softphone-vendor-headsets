@@ -16,6 +16,7 @@ const App = () => {
   const [held, setHeld] = useState<boolean>(false);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [webhidCallback, setWebhidCallback] = useState<any>(null);
   const eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const headset = HeadsetService?.getInstance({} as any);
@@ -34,9 +35,12 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (currentCall) {
+    // if (currentCall) {
       headset.headsetEvents$.subscribe(value => {
         switch(value.event) {
+          case 'webHidPermissionRequested' as any:
+            setWebhidCallback((value.payload as any).body.callback);
+            break;
           case 'implementationChanged':
             logImplementationChange(value?.payload?.vendorName);
             break;
@@ -60,7 +64,7 @@ const App = () => {
             handleHeadsetEvent(value.payload);
         }
       });
-    }
+    // }
   }, [currentCall]);
 
   const receiveMessage = (event) => {
@@ -192,6 +196,9 @@ const App = () => {
               }
           </select>
         </div>
+        {webhidCallback &&
+          <button onClick={() => webhidCallback}>SHOW ME THE MONEY</button>
+        }
       </div>
       <div className="entry-row">
           <div className="entry-label">

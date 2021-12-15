@@ -95,7 +95,11 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     implementation.on('deviceEndedCall', this.handleDeviceEndedCall.bind(this));
     implementation.on('deviceMuteChanged', this.handleDeviceMuteStatusChanged.bind(this));
     implementation.on('deviceHoldStatusChanged', this.handleDeviceHoldStatusChanged.bind(this));
-    implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this))
+    implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this));
+    implementation.on('webHidPermissionRequested' as any, (payload: any) => {
+      console.log('*** DEBUG headset webhid event');
+      this._headsetEvents$.next({ event: 'webHidPermissionRequested' as any, payload })
+    });
   }
 
   activeMicChange(newMicLabel: string): void {
@@ -116,13 +120,13 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
       this.selectedImplementation.disconnect();
     }
 
-    if (implementation?.vendorName === 'Jabra') {
-      (await this.jabraSdk).deviceList.forEach((devices) => {
-        if (!devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
-          this.emit('jabraPermissionRequested', { webHidPairing: webHidPairing });
-        }
-      });
-    }
+    // if (implementation?.vendorName === 'Jabra') {
+    //   (await this.jabraSdk).deviceList.forEach((devices) => {
+    //     if (!devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
+    //       this.emit('jabraPermissionRequested', { webHidPairing: webHidPairing });
+    //     }
+    //   });
+    // }
 
     this.selectedImplementation = implementation;
 
