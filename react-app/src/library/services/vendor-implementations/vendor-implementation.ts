@@ -2,7 +2,6 @@ import DeviceInfo from '../../types/device-info';
 import StrictEventEmitter from 'strict-event-emitter-types';
 import { EventEmitter } from 'events';
 import { EmittedHeadsetEvents } from '../../types/emitted-headset-events';
-import { IApi } from '@gnaudio/jabra-js';
 import { CallInfo } from '../..';
 
 type HeadsetEventName = keyof EmittedHeadsetEvents;
@@ -10,7 +9,6 @@ type HeadsetEventName = keyof EmittedHeadsetEvents;
 export interface ImplementationConfig {
   logger: any;
   vendorName?: string;
-  // externalSdk?: Promise<IApi>;
 }
 
 export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
@@ -23,7 +21,6 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   disableRetry = false;
   logger: any; // TODO: pass this in on creation?
   config: ImplementationConfig;
-  // externalSdk: Promise<IApi>;
 
   constructor(config: ImplementationConfig) {
     super();
@@ -90,8 +87,9 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   private emitEvent(eventName: HeadsetEventName, eventBody: any) {
     this.emit(eventName, { vendor: this, body: {...eventBody } })
   }
-
-  requestWebHidPermissions?(callback: any) {
+  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+  requestWebHidPermissions?(callback: any): void {
+  /* eslint-enable */
     this.logger.debug('Emitting premission request event');
     this.emitEvent('webHidPermissionRequested', { callback });
   }

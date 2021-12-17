@@ -15,7 +15,7 @@ webappPipeline {
         sh('''
             export CDN_URL="$(npx cdn --ecosystem pc --name \$APP_NAME --build \$BUILD_ID --version \$VERSION)"
             echo "CDN_URL: \$CDN_URL"
-            npm run install:all && npm run compile:module && npm run build && npm run lint
+            npm run install:all && npm run compile:module && npm run build && npm run lint && npm run test:coverage
         ''')
     }
 

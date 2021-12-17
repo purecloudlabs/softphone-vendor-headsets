@@ -15,7 +15,7 @@ import {
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
 import { Subscription, BehaviorSubject } from "rxjs";
-import { first, take } from 'rxjs/operators';
+// import { first, take } from 'rxjs/operators';
 
 export default class JabraService extends VendorImplementation {
     private static instance: JabraService;
@@ -254,7 +254,7 @@ export default class JabraService extends VendorImplementation {
             this.requestWebHidPermissions(webHidPairing);
             jabraSdk.deviceList
                 .pipe(
-                    first(devices => !!devices.length)
+                    // first(devices => !!devices.length)
                 )
                 .subscribe(async (devices) => {
                     device = devices.find(findDevice);
