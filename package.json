@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "author": "Genesys",
   "license": "MIT",
-  "cjs": "dist/cjs/index.js",
-  "module": "dist/es/index.js",
-  "main": "dist/cjs/index.js",
+  "cjs": "dist/cjs/src/library/index.js",
+  "module": "dist/es/src/library/index.js",
+  "main": "dist/cjs/src/library/index.js",
   "web": "dist/softphone-vendor-headsets.js",
-  "typings": "dist/es/index.d.ts",
+  "typings": "dist/es/src/library/index.d.ts",
   "files": [
     "dist"
   ],
