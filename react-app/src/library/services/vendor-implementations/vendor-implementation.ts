@@ -10,7 +10,7 @@ type HeadsetEventName = keyof EmittedHeadsetEvents;
 export interface ImplementationConfig {
   logger: any;
   vendorName?: string;
-  externalSdk?: Promise<IApi>;
+  // externalSdk?: Promise<IApi>;
 }
 
 export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
@@ -23,7 +23,7 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   disableRetry = false;
   logger: any; // TODO: pass this in on creation?
   config: ImplementationConfig;
-  externalSdk: Promise<IApi>;
+  // externalSdk: Promise<IApi>;
 
   constructor(config: ImplementationConfig) {
     super();
@@ -35,7 +35,7 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.config = config;
     this.vendorName = config.vendorName;
     this.logger = config.logger;
-    this.externalSdk = config.externalSdk;
+    // this.externalSdk = config.externalSdk;
   }
 
   get isDeviceAttached(): boolean {
@@ -89,6 +89,11 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
 
   private emitEvent(eventName: HeadsetEventName, eventBody: any) {
     this.emit(eventName, { vendor: this, body: {...eventBody } })
+  }
+
+  requestWebHidPermissions?(callback: any) {
+    this.logger.debug('Emitting premission request event');
+    this.emitEvent('webHidPermissionRequested', { callback });
   }
 
   deviceAnsweredCall(eventInfo?: { name: string, code?: string | number, event?: any }): void {

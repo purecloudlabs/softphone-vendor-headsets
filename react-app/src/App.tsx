@@ -18,6 +18,7 @@ const App = () => {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
+  const [webHidRequestButton, setWebHidRequestButton] = useState<any>('')
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const appService = new ApplicationService();
@@ -34,7 +35,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (currentCall) {
+    // if (currentCall) {
       headset.headsetEvents$.subscribe(value => {
         switch(value.event) {
           case 'implementationChanged':
@@ -56,11 +57,14 @@ const App = () => {
             handleHeadsetEvent(value.payload);
             endCurrentCall(true);
             break;
+          case 'webHidPermissionRequested' as any:
+            setWebHidRequestButton(<button onClick={ () => (value.payload as any).body.callback() }>Request WebHID Permissions</button>)
+            break;
           default:
             handleHeadsetEvent(value.payload);
         }
       });
-    }
+    // }
   }, [currentCall]);
 
   const receiveMessage = (event) => {
@@ -260,6 +264,7 @@ const App = () => {
           <a target="_blank" href="https://help.mypurecloud.com/articles/configure-a-sennheiser-headset/">Sennheiser Setup</a>
         </p>
       </div>
+      {webHidRequestButton}
     </>
   );
 }

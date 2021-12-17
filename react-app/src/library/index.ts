@@ -6,4 +6,5 @@ export * from './types/consumed-headset-events';
 export * from './types/device-info';
 export * from './types/emitted-headset-events';
 export * from './types/jabra-request';
-export default { HeadsetService, VendorImplementation };
+export { VendorImplementation };
+export default HeadsetService;

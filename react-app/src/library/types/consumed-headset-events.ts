@@ -8,6 +8,7 @@ type Events = {
     deviceEndedCall: EventInfo
     deviceRejectedCall: RejectCallEventInfo
     loggableEvent: EventInfo;
+    'webHidPermissionRequested': { callback: any }
 }
 
 type EventInfo = {

@@ -6,10 +6,7 @@ webappPipeline {
     nodeVersion = '14.17.5'
     useArtifactoryRepo = false
     projectName = 'vendor-headsets'
-    manifest = customManifest('dist') {
-        sh('node ./create-manifest.js')
-        readJSON(file: 'dist/manifest.json')
-    }
+    manifest = directoryManifest('dist')
     buildType = { (env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('release/')) ? 'MAINLINE' : 'FEATURE' }
     publishPackage = { 'prod' }
     testJob = null

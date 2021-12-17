@@ -1,4 +1,5 @@
 import { VendorImplementation } from "../services/vendor-implementations/vendor-implementation";
+import { WebHidPermissionRequest } from "..";
 
 export interface EmittedHeadsetEvents {
   deviceAnsweredCall: VendorEvent<EventInfo>;
@@ -7,6 +8,7 @@ export interface EmittedHeadsetEvents {
   deviceMuteChanged: VendorEvent<MutedEventInfo>;
   deviceHoldStatusChanged: VendorEvent<HoldEventInfo>;
   deviceEventLogs: VendorEvent<any>;
+  webHidPermissionRequested: WebHidPermissionRequest
 }
 
 export type VendorEvent<Type> = {

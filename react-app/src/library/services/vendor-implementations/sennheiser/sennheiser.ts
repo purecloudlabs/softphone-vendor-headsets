@@ -319,7 +319,4 @@ export default class SennheiserService extends VendorImplementation {
         break;
     }
   }
-
-  // TODO: Implement these
-  // _timeoutConnectTask
 }

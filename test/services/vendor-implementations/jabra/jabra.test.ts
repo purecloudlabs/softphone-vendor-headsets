@@ -98,7 +98,7 @@ describe('JabraService', () => {
     (window as any).BroadcastChannel = BroadcastChannel;
     beforeEach(async () => {
         jabraSdk = initializeSdk(subject);
-        jabraService = JabraService.getInstance({ logger: console, externalSdk: jabraSdk });
+        jabraService = JabraService.getInstance({ logger: console });
         resetJabraService(jabraService);
     })
 
@@ -110,7 +110,7 @@ describe('JabraService', () => {
 
     describe('instantiation', () => {
         it('should be a singleton', () => {
-            const jabraService2 = JabraService.getInstance({ logger: console, externalSdk: jabraSdk });
+            const jabraService2 = JabraService.getInstance({ logger: console });
 
             expect(jabraService).not.toBeFalsy();
             expect(jabraService2).not.toBeFalsy();
@@ -153,7 +153,6 @@ describe('JabraService', () => {
             const testLabel = 'test label 123';
             const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
             await jabraService.connect(testLabel);
-            expect(jabraService.jabraSdk).toBe(await jabraService.config.externalSdk);
             expect(callControlFactorySpy).toHaveBeenCalled();
             expect(processEventsSpy).toHaveBeenCalledWith(callControl);
             expect(jabraService.isConnecting).toBe(false);

@@ -5,16 +5,12 @@ import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
-import { JabraRequest } from '../types/jabra-request';
 import ApplicationService from './application';
 import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
-import { webHidPairing, init, IApi, RequestedBrowserTransport } from '@gnaudio/jabra-js';
-import { EventEmitter } from 'events';
-import StrictEventEmitter from 'strict-event-emitter-types';
-
-export default class HeadsetService extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, JabraRequest> }) {
+// import { webHidPairing, init, IApi, RequestedBrowserTransport } from '@gnaudio/jabra-js';
+export default class HeadsetService {
   private static instance: HeadsetService;
 
   plantronics: VendorImplementation;
@@ -25,25 +21,25 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
   application: ApplicationService;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
-  jabraSdk: Promise<IApi>;
+  // jabraSdk: Promise<IApi>;
 
   private _headsetEvents$: Subject<ConsumedHeadsetEvents>;
   private _implementations: VendorImplementation[] = [];
   private logger: any;
 
   private constructor(config: ImplementationConfig) {
-    super();
+    // super();
     this._headsetEvents$ = new Subject<ConsumedHeadsetEvents>();
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.application = ApplicationService.getInstance();
     this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
     this.logger = config?.logger || console;
-    this.jabraSdk = this.initializeJabraSdk();
+    // this.jabraSdk = this.initializeJabraSdk();
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
     this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
-    this.jabra = JabraService.getInstance({ logger: this.logger, externalSdk: this.jabraSdk });
+    this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
     [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser, this.jabra]
@@ -77,14 +73,6 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     return this._implementations;
   }
 
-  async initializeJabraSdk(): Promise<IApi> {
-    return await init({
-      appId: 'softphone-vendor-headsets',
-      appName: 'Softphone Headset Library',
-      transport: RequestedBrowserTransport.WEB_HID
-    });
-  }
-
   getHeadSetEventsSubject = (): Subject<ConsumedHeadsetEvents> => {
     return this._headsetEvents$;
   };
@@ -95,7 +83,11 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
     implementation.on('deviceEndedCall', this.handleDeviceEndedCall.bind(this));
     implementation.on('deviceMuteChanged', this.handleDeviceMuteStatusChanged.bind(this));
     implementation.on('deviceHoldStatusChanged', this.handleDeviceHoldStatusChanged.bind(this));
-    implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this))
+    implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this));
+    implementation.on('webHidPermissionRequested' as any, (payload: any) => {
+      console.log('**** Debug Headset WebHID Event ****');
+      this._headsetEvents$.next({ event: 'webHidPermissionRequested' as any, payload })
+    });
   }
 
   activeMicChange(newMicLabel: string): void {
@@ -114,14 +106,6 @@ export default class HeadsetService extends (EventEmitter as { new(): StrictEven
 
     if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
-    }
-
-    if (implementation?.vendorName === 'Jabra') {
-      (await this.jabraSdk).deviceList.forEach((devices) => {
-        if (!devices.find((device) => deviceLabel.includes(device.name.toLowerCase()))) {
-          this.emit('jabraPermissionRequested', { webHidPairing: webHidPairing });
-        }
-      });
     }
 
     this.selectedImplementation = implementation;

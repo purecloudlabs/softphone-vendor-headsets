@@ -1,7 +1,3 @@
-export interface JabraRequest {
-    jabraPermissionRequested: WebHidPermission;
-}
-
-export interface WebHidPermission {
-    webHidPairing: any
+export interface WebHidPermissionRequest {
+    callback: any
 }

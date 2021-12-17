@@ -1,7 +1,7 @@
 # Softphone Vendor Headsets
 
 ### Overview
-Library that acts as the proxy between headset vendor SDKs and consuming apps (in our case the Genesys SDK).  This library offers solutions for the consuming app to react to headset events such as muting the device, answering a call and others all done from the device itself.
+This library's goal is to abstract all the different headset implementations behind a single interface.
 
 This project has a [React](https://github.com/facebook/react/) test app bootstrapped with [create-react-app](https://reactjs.org/docs/create-a-new-react-app.html).
 
@@ -23,13 +23,13 @@ yarn softphone-headset-vendors
 #### Structure and flow
 - The consuming app will first above anything else hit the HeadsetService (`headsets.ts`).
 - From there, the service will determine what vendor is currently selected out of the supported vendors above.  This will also be a hub to call the proper functions that correspond with app to headset events (More on that later)
-- Once the above step is verified, an instance of that vendor's required approach will be spun up.  This will then be what the vendor's SDK directly hits and where events are either sent first from the headset itself, or where events will be set to the headset
-- If an event is received from the headset itself, the vendor instance will emit an event that `headset.ts` is listening for.  This event will then be passed to the consuming app to properly reflect the state on screen to match that of the headset
+- Once the desired vendor has been determined, an instance of that vendor's adapter/service will be created. This adapter will interact with the service or sdk the vendor requires to communicate information to and from the headset.
+- If an event is received from the headset itself, the vendor adapters will emit an event that `headset.ts` is listening for.  This event will then be passed to the consuming app to properly reflect the state on screen to match that of the headset
 
-**Example 1 - User clicks mute on the consuming app**:
+**Example 1 - User clicks mute in the consuming app**:
 - From the consuming app, the user clicks on an on-screen mute button
-- This event is then sent to headsets.ts
-- Which is passed to the corresponding function of the vendor's specific implementation (for example, plantronics.ts -> setMute(true))
+- The consuming app calls headsetService.mute(...)
+- Which is passed to the corresponding function of the vendor adapter that aligns with the selected device (for example, plantronics.ts -> setMute(true))
 - This function will then send a message to the headset itself
 - The user will then see the light on their device that represents the "muted" state light up.
 

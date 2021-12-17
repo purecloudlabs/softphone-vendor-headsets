@@ -36,12 +36,6 @@ export default class PlantronicsService extends VendorImplementation {
     this.deviceStatusTimerId = null;
   }
 
-  // TODO: replace this if needed
-  // willDestroy () {
-  //   this._super(...arguments);
-  //   clearTimeout(this.get('deviceStatusTimer'));
-  // },
-
   clearTimeouts (): void {
     clearTimeout(this.callEventsTimerId);
     clearTimeout(this.deviceStatusTimerId);
@@ -79,7 +73,7 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     if(this.isConnected && this.isActive && !this.disableEventPolling) {
-      console.log('**** POLLING FOR CALL EVENTS ****');
+      this.logger.debug('**** POLLING FOR CALL EVENTS ****');
       this.getCallEvents();
     }
     this.callEventsTimerId = setTimeout(() => {
@@ -94,7 +88,7 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     if (this.isConnected && !this.isConnecting && !this.disableEventPolling) {
-      console.log('**** POLLING FOR DEVICE STATUS ****');
+      this.logger.debug('**** POLLING FOR DEVICE STATUS ****');
       this.getDeviceStatus();
     }
 
@@ -387,34 +381,4 @@ export default class PlantronicsService extends VendorImplementation {
 
     return response;
   }
-
-  // TODO: Implement these
-  // pollCallEventsTask: task(function * () {} X
-  // _pollForCallEvents: observer('isConnected', 'isActive', 'disableEventPolling', function () {} X
-  // pollForDeviceStatusTask: task(function * () {} X
-  // _pollForDeviceStatus: observer('isConnected', 'isConnecting', 'disableEventPolling', function () {} X
-  // _makeRequestTask: task(function * (endpoint, isRetry) {} X
-  // _makeRequest (endpoint, isRetry) {} X
-  // _checkIsActiveTask: task(function * () {} X
-  // async _getActiveCalls () {} X
-  // async getCallEvents () {} X
-  // async getDeviceStatus () {} X
-  // connect () {} X
-  // disconnect () {} X
-  // incomingCall ({conversationId, contactName}) {} X
-  // outgoingCall ({conversationId, contactName}) {} X
-  // answerCall (conversationId) {} X
-  // async endCall (conversationId) {} X
-  // async endAllCalls () {} X
-  // async setMute (value) {} X
-  // async setHold (conversationId, value) {} X
-  // _processEvent(event: PlantronicsCallEvents): void {
-  // this.on('AcceptCall', this, this.deviceAnsweredCall);
-  // this.on('TerminateCall', this, this.deviceEndedCall);
-  // this.on('CallEnded', () => this.get('_checkIsActiveTask').perform());
-  // this.on('Mute', () => this.deviceMuteChanged(true));
-  // this.on('Unmute', () => this.deviceMuteChanged(false));
-  // this.on('HoldCall', () => this.deviceHoldStatusChanged(true));
-  // this.on('ResumeCall', () => this.deviceHoldStatusChanged(false));
-  // }
 }
