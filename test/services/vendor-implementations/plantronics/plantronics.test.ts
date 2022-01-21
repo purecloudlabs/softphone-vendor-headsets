@@ -7,6 +7,7 @@ import HeadsetService from '../../../../react-app/src/library/services/headset';
 import { PlantronicsCallEvents } from "../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics-call-events";
 import 'regenerator-runtime';
 import { BroadcastChannel } from "broadcast-channel";
+import browserama from 'browserama';
 
 jest.mock('broadcast-channel');
 
@@ -660,6 +661,9 @@ describe('PlantronicsService', () => {
     });
   })
   describe('_makeRequest function', () => {
+    beforeEach(() => {
+      Object.defineProperty(browserama, 'isFirefox', { get: () => true });
+    })
     it('handles error from endpoint with 404 status and isRetry', async () => {
       plantronicsService.isConnected = true;
       plantronicsService.isActive = true;
@@ -683,6 +687,28 @@ describe('PlantronicsService', () => {
         expect(plantronicsService.isConnected).toBe(false);
         expect(disconnectSpy).toHaveBeenCalled();
         expect(plantronicsService.logger.info).toHaveBeenCalledWith(err);
+      }
+    })
+    it('handles error from endpoint with 404 status and !isRetry', async () => {
+      plantronicsService.isConnected = true;
+      plantronicsService.isActive = true;
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
+      const isActiveResponseWithStatus = {
+        ...responses.SessionManager.IsActive.default,
+        status: 404,
+        'Type_Name': 'Error'
+      };
+
+      await sendScenario({
+        '/SessionManager/IsActive*': {
+          responses: [isActiveResponseWithStatus]
+        }
+      });
+
+      try {
+        await plantronicsService._makeRequestTask(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`);
+      } catch (err) {
+        expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, true);
       }
     })
   })

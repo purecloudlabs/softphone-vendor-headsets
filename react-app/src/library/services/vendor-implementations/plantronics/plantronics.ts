@@ -43,7 +43,7 @@ export default class PlantronicsService extends VendorImplementation {
 
   deviceLabelMatchesVendor(label: string): boolean {
     // includes vendor name or vendorId (chrome only)
-    return label.toLowerCase().includes('plantronics') || label.toLowerCase().includes('plt') || label.toLowerCase().includes('(047f:');
+    return label.toLowerCase().includes('plantronics') || label.toLowerCase().includes('plt') || label.toLowerCase().includes('poly') || label.toLowerCase().includes('(047f:');
   }
 
   static getInstance(config: ImplementationConfig): PlantronicsService {
@@ -116,21 +116,21 @@ export default class PlantronicsService extends VendorImplementation {
         if (response.ok === false || response.Type_Name === 'Error') {
           if (response.status === 404) {
             if (isRetry) {
-              plantronicsInstance.isConnected = false;
-              plantronicsInstance.disconnect();
+              this.isConnected = false;
+              this.disconnect();
               const error = new Error(
                 'Headset: Failed connection to middleware. Headset features unavailable.'
               );
               (error as any).handled = true;
-              plantronicsInstance.logger.info(error);
+              this.logger.info(error);
               return Promise.reject(error);
             }
-            return plantronicsInstance._makeRequestTask(endpoint, true);
+            return this._makeRequestTask(endpoint, true);
           }
 
           if (browserama.isFirefox) {
-            plantronicsInstance.errorCode = 'browser';
-            plantronicsInstance.disableRetry = true;
+            this.errorCode = 'browser';
+            this.disableRetry = true;
           }
 
           return Promise.reject(response);
@@ -138,7 +138,7 @@ export default class PlantronicsService extends VendorImplementation {
           if (!plantronicsInstance) {
             return Promise.reject(new Error('Application destroyed.'));
           }
-          plantronicsInstance.isConnected = true;
+          this.isConnected = true;
           return response;
         }
       })

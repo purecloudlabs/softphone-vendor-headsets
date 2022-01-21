@@ -134,6 +134,18 @@ const responses = {
                 Type_Name: 'Bool',
                 isError: false,
                 _triggersEvents: [PlantronicsCallEvents.Unmute]
+            },
+            errorState: {
+                handled: true,
+                Description: '',
+                Err: {
+                    Description: 'An error occurred',
+                    Error_Code: 0,
+                    Type: 5
+                },
+                Type: 1,
+                Type_Name: 'Error',
+                isError: true,
             }
         },
 

@@ -15,7 +15,7 @@ import {
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
 import { Subscription, BehaviorSubject } from "rxjs";
-// import { first, take } from 'rxjs/operators';
+import { first, take, skip } from 'rxjs/operators';
 
 export default class JabraService extends VendorImplementation {
     private static instance: JabraService;
@@ -246,6 +246,8 @@ export default class JabraService extends VendorImplementation {
         }
         const device = await new Promise<IDevice>((resolve, reject) => {
             let device = (jabraSdk.deviceList as BehaviorSubject<IDevice[]>).getValue().find(findDevice);
+            // jabraSdk.deviceList.forEach(device => console.log(device));
+            jabraSdk.deviceList.pipe(skip(1)).forEach(device => console.log(device));
             if (device) {
                 return resolve(device);
             }
@@ -254,7 +256,7 @@ export default class JabraService extends VendorImplementation {
             this.requestWebHidPermissions(webHidPairing);
             jabraSdk.deviceList
                 .pipe(
-                    // first(devices => !!devices.length)
+                    first((devices: IDevice[]) => !!devices.length)
                 )
                 .subscribe(async (devices) => {
                     device = devices.find(findDevice);
@@ -288,8 +290,8 @@ export default class JabraService extends VendorImplementation {
     }
 
     async disconnect(): Promise<void> {
-        this.headsetEventSubscription.unsubscribe();
-        this.deviceListSubscription.unsubscribe();
+        this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
+        this.deviceListSubscription && this.deviceListSubscription.unsubscribe();
         this.isConnecting = false;
         this.isConnected = false;
     }

@@ -35,7 +35,8 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    // if (currentCall) {
+    //TODO: work out a way to use the webHid event with current call check in place
+    if (currentCall) {
       headset.headsetEvents$.subscribe(value => {
         switch(value.event) {
           case 'implementationChanged':
@@ -64,7 +65,7 @@ const App = () => {
             handleHeadsetEvent(value.payload);
         }
       });
-    // }
+    }
   }, [currentCall]);
 
   const receiveMessage = (event) => {
