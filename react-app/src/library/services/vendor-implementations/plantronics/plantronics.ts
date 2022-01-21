@@ -304,6 +304,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   incomingCall(callInfo: CallInfo): Promise<any> {
+    this.logger.info('Inside incomingCall of selected implementation (Plantronics/Poly)');
     const { conversationId, contactName } = callInfo;
     if (!conversationId) {
       throw new Error('Must provide conversationId');
@@ -317,6 +318,8 @@ export default class PlantronicsService extends VendorImplementation {
       const halfEncodedContactString = `"Name":"${contactName}"`;
       params += `&contact={${encodeURI(halfEncodedContactString)}}`;
     }
+
+    this.logger.info('params of endpoint', params);
 
     this.isActive = true;
     return this._makeRequestTask(`/CallServices/IncomingCall${encodeURI(params)}`);

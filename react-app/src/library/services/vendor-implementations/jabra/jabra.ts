@@ -15,7 +15,7 @@ import {
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
 import { Subscription, BehaviorSubject } from "rxjs";
-import { first, take, skip } from 'rxjs/operators';
+import { first, skip } from 'rxjs/operators';
 
 export default class JabraService extends VendorImplementation {
     private static instance: JabraService;

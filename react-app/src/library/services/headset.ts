@@ -119,6 +119,7 @@ export default class HeadsetService {
 
   // possible options: conversationId, contactName
   incomingCall(callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
+    this.logger.info('Inside incomingCall of headset library');
     const service = this.selectedImplementation;
     if (!service || !service.isConnected) {
       this.logger.info('Headset: No vendor headset connected [incomingCall]');
