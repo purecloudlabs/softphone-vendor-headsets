@@ -29,11 +29,15 @@ export default class HeadsetService {
 
   private constructor(config: ImplementationConfig) {
     // super();
+<<<<<<< HEAD
     //TODO: Just a temporary typing for testing purposes
     this._headsetEvents$ = new BehaviorSubject<ConsumedHeadsetEvents | any>({
       event: '',
       payload: {}
     });
+=======
+    this._headsetEvents$ = new BehaviorSubject<ConsumedHeadsetEvents | null>(null);
+>>>>>>> d50f16642f21b66b2bdd5c206b3e9695e45f38bf
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.application = ApplicationService.getInstance();
