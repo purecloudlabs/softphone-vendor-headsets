@@ -152,35 +152,25 @@ describe('HeadsetService', () => {
       expect(sennheiser.disconnect).toHaveBeenCalled();
       expect(plantronics.connect).toHaveBeenCalled();
     });
-    it('should trigger implementationChanged event for new implementation', (done) => {
+    it('should trigger implementationChanged event for new implementation', () => {
       headsetService.headsetEvents$.subscribe((event) => {
-        expect(event.event).toBe('implementationChanged');
-        expect(event.payload).toStrictEqual(plantronics);
-        expect(event.payload instanceof VendorImplementation).toBe(true);
-        done();
       })
       headsetService.selectedImplementation = sennheiser;
       headsetService.changeImplementation(plantronics, 'test label');
+      const currentHeadsetEvent = headsetService.getHeadSetEventsSubject().value;
+      expect(currentHeadsetEvent.event).toBe('implementationChanged');
+      expect(currentHeadsetEvent.payload).toStrictEqual(plantronics);
+      expect(currentHeadsetEvent.payload instanceof VendorImplementation).toBe(true);
     })
     it(
-      'should trigger implementationChanged event when clearing the implementation', (done) => {
-        headsetService.headsetEvents$.subscribe((event) => {
-          expect(event.event).toBe('implementationChanged');
-          expect(event.payload).toBeNull();
-          done();
-        })
+      'should trigger implementationChanged event when clearing the implementation', () => {
         headsetService.selectedImplementation = plantronics;
         headsetService.changeImplementation(null, '');
+        const currentHeadsetEvent = headsetService.getHeadSetEventsSubject().value;
+        expect(currentHeadsetEvent.event).toBe('implementationChanged');
+        expect(currentHeadsetEvent.payload).toBeNull();
       }
     );
-    // it('should handle a Jabra device that has not yet been connected to WebHID', async () => {
-    //   const emitEventCallback = jest.fn();
-    //   // headsetService.on('jabraPermissionRequested', emitEventCallback);
-    //   await headsetService.changeImplementation(jabra, 'absolutely not');
-    //   expect(emitEventCallback).toHaveBeenCalledWith({
-    //     webHidPairing: webHidPairing
-    //   })
-    // })
   });
 
   describe('incomingCall', () => {
@@ -385,15 +375,13 @@ describe('HeadsetService', () => {
       }
     );
     it(
-      'should send a headset event of type DEVICE_ANSWERED_CALL', (done) => {
-        headsetService.headsetEvents$.subscribe((event) => {
-          expect(event.event).toBe('deviceAnsweredCall');
-          expect(event.payload).toStrictEqual(testEvent.body);
-          done();
-        });
+      'should send a headset event of type DEVICE_ANSWERED_CALL', () => {
         headsetService.selectedImplementation = plantronics
         const testEvent = {vendor: plantronics, body: {name: 'AcceptCall', code: '1', event: {}}}
         headsetService.handleDeviceAnsweredCall(testEvent as VendorEvent<EventInfo>);
+        const currentHeadsetEvent = headsetService.getHeadSetEventsSubject().value;
+        expect(currentHeadsetEvent.event).toBe('deviceAnsweredCall');
+        expect(currentHeadsetEvent.payload).toStrictEqual(testEvent.body);
       }
     );
   });

@@ -1,4 +1,4 @@
-import { Observable, Subject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
@@ -23,13 +23,13 @@ export default class HeadsetService {
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
   // jabraSdk: Promise<IApi>;
 
-  private _headsetEvents$: Subject<ConsumedHeadsetEvents>;
+  private _headsetEvents$: BehaviorSubject<ConsumedHeadsetEvents>;
   private _implementations: VendorImplementation[] = [];
   private logger: any;
 
   private constructor(config: ImplementationConfig) {
     // super();
-    this._headsetEvents$ = new Subject<ConsumedHeadsetEvents>();
+    this._headsetEvents$ = new BehaviorSubject<ConsumedHeadsetEvents | null>(null);
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.application = ApplicationService.getInstance();
@@ -73,7 +73,7 @@ export default class HeadsetService {
     return this._implementations;
   }
 
-  getHeadSetEventsSubject = (): Subject<ConsumedHeadsetEvents> => {
+  getHeadSetEventsSubject = (): BehaviorSubject<ConsumedHeadsetEvents> => {
     return this._headsetEvents$;
   };
 
