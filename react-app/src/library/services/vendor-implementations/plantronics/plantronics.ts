@@ -72,7 +72,8 @@ export default class PlantronicsService extends VendorImplementation {
       this.callEventsTimerId = null;
     }
 
-    if(this.isConnected && this.isActive && !this.disableEventPolling) {
+    // if(this.isConnected && this.isActive && !this.disableEventPolling) {
+    if(this.isConnected && !this.disableEventPolling) {
       this.logger.debug('**** POLLING FOR CALL EVENTS ****');
       this.getCallEvents();
     }
