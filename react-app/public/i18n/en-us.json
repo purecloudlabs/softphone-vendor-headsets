@@ -28,12 +28,16 @@
             "muted": "Mute State",
             "noCall": "No Call",
             "ringing": "Ringing"
-        },
+        }
+    },
+    "implementation": {
         "connectionStatus": {
+            "retry": "Retry",
+            "label": "Headset Software",
             "error": "Error occurred while establishing connection",
-            "connecting": "Implementation Connecting",
-            "connected": "Implementation Connected & Running",
-            "notRunning": "Implementation is not Running"
+            "checking": "Checking",
+            "running": "Running",
+            "notRunning": "Not Running"
         }
     }
 }

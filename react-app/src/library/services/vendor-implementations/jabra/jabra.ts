@@ -244,37 +244,38 @@ export default class JabraService extends VendorImplementation {
         const findDevice = (device: IDevice) => {
             return deviceLabel.includes(device?.name?.toLowerCase());
         }
-        const device = await new Promise<IDevice>((resolve, reject) => {
-            let device = (jabraSdk.deviceList as BehaviorSubject<IDevice[]>).getValue().find(findDevice);
-            // jabraSdk.deviceList.forEach(device => console.log(device));
-            jabraSdk.deviceList.pipe(skip(1)).forEach(device => console.log(device));
-            if (device) {
-                return resolve(device);
+        const fetchDevicesTimeout = setTimeout(async () => {
+            const device = await new Promise<IDevice>((resolve, reject) => {
+                let device = (jabraSdk.deviceList as BehaviorSubject<IDevice[]>).getValue().find(findDevice);
+                if (device) {
+                    return resolve(device);
+                }
+
+                const waiter = setTimeout(reject, 30000);
+                this.requestWebHidPermissions(webHidPairing);
+                jabraSdk.deviceList
+                    .pipe(
+                        first((devices: IDevice[]) => !!devices.length)
+                    )
+                    .subscribe(async (devices) => {
+                        device = devices.find(findDevice);
+                        clearTimeout(waiter);
+                        resolve(device);
+                    });
+                }).catch(() => this.logger.error('Timed out waiting for Jabra device'));
+
+            if (!device) {
+                this.isConnecting = false;
+                this.logger.error('The selected device was not granted WebHID permissions');
+                return;
             }
 
-            const waiter = setTimeout(reject, 30000);
-            this.requestWebHidPermissions(webHidPairing);
-            jabraSdk.deviceList
-                .pipe(
-                    first((devices: IDevice[]) => !!devices.length)
-                )
-                .subscribe(async (devices) => {
-                    device = devices.find(findDevice);
-                    clearTimeout(waiter);
-                    resolve(device);
-                });
-            }).catch(() => this.logger.error('Timed out waiting for Jabra device'));
-
-        if (!device) {
+            this.callControl = await this.callControlFactory.createCallControl(device);
+            this._processEvents(this.callControl);
             this.isConnecting = false;
-            this.logger.error('The selected device was not granted WebHID permissions');
-            return;
-        }
-
-        this.callControl = await this.callControlFactory.createCallControl(device);
-        this._processEvents(this.callControl);
-        this.isConnecting = false;
-        this.isConnected = true;
+            this.isConnected = true;
+            clearTimeout(fetchDevicesTimeout);
+        }, 1500);
     }
 
     async initializeJabraSdk(): Promise<IApi> {
