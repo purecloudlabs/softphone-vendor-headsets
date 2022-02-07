@@ -84,3 +84,21 @@ textarea {
 button {
   margin-right: 5px;
 }
+
+.pc {
+  display: inline-block;
+  font-family: "Ionicons";
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+.pc-reload {
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+}

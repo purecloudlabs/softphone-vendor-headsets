@@ -238,15 +238,30 @@ export default class HeadsetService {
         'An error has occurred while trying to establish a connection',
         this.selectedImplementation?.errorCode
       );
-      return `dummy.connectionStatus.error`
+      return `implementation.connectionStatus.error`
     } else if (this.selectedImplementation?.isConnecting) {
-      return `dummy.connectionStatus.connecting`;
+      return `implementation.connectionStatus.checking`;
     } else if (this.selectedImplementation?.isConnected) {
-      return `dummy.connectionStatus.connected`;
+      return `implementation.connectionStatus.running`;
     } else {
-      return `dummy.connectionStatus.notRunning`;
+      return `implementation.connectionStatus.notRunning`;
     }
   }
+
+  showRetry(): boolean {
+    if (this.selectedImplementation.disableRetry) {
+      return false;
+    }
+
+    return this.selectedImplementation
+      && !this.selectedImplementation.isConnected
+      && !this.selectedImplementation.isConnecting;
+  }
+
+  retryConnection(): void {
+    this.selectedImplementation.connect();
+  }
+
 
   // triggerDefaultHeadsetChanged (deviceInfo, isRetry) {
   //   // Logger.info('Headset: headset device changed', deviceInfo); // TODO: Logger

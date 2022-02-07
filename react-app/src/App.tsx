@@ -35,9 +35,8 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    //TODO: work out a way to use the webHid event with current call check in place
-    if (currentCall) {
-      headset.headsetEvents$.subscribe(value => {
+    headset.headsetEvents$.subscribe(value => {
+      if (currentCall) {
         switch(value.event) {
           case 'implementationChanged':
             logImplementationChange(value?.payload?.vendorName);
@@ -58,14 +57,15 @@ const App = () => {
             handleHeadsetEvent(value.payload);
             endCurrentCall(true);
             break;
-          case 'webHidPermissionRequested' as any:
-            setWebHidRequestButton(<button onClick={ () => (value.payload as any).body.callback() }>Request WebHID Permissions</button>)
-            break;
           default:
             handleHeadsetEvent(value.payload);
         }
-      });
-    }
+      }
+
+      if (value.event === 'webHidPermissionRequested') {
+        setWebHidRequestButton(<button onClick={ () => (value.payload as any).body.callback() }>Request WebHID Permissions</button>)
+      }
+    });
   }, [currentCall]);
 
   const receiveMessage = (event) => {
@@ -204,6 +204,9 @@ const App = () => {
           </div>
           <div className="entry-values">
             {t(headset.connectionStatus)}
+            {headset.showRetry && (
+              <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection()}>Retry</button>
+            )}
           </div>
       </div>
 
