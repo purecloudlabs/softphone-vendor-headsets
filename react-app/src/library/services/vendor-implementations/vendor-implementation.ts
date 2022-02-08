@@ -117,6 +117,10 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   deviceEventLogs(eventInfo: { name: string, code?: string | number, event?: any }): void {
     this.emitEvent('deviceEventLogs', eventInfo);
   }
+
+  deviceConnectionStatusChanged(): void {
+    this.emitEvent('deviceConnectionStatusChanged', {});
+  }
   // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {
   //   // this.headsetService.triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId});
   //   // HeadsetService.getInstance().triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId})

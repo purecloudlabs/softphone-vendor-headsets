@@ -9,6 +9,7 @@ export interface EmittedHeadsetEvents {
   deviceHoldStatusChanged: VendorEvent<HoldEventInfo>;
   deviceEventLogs: VendorEvent<any>;
   webHidPermissionRequested: WebHidPermissionRequest
+  deviceConnectionStatusChanged: VendorEvent<any>;
 }
 
 export type VendorEvent<Type> = {

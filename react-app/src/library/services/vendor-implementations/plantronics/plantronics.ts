@@ -118,6 +118,7 @@ export default class PlantronicsService extends VendorImplementation {
           if (response.status === 404) {
             if (isRetry) {
               this.isConnected = false;
+              this.deviceConnectionStatusChanged();
               this.disconnect();
               const error = new Error(
                 'Headset: Failed connection to middleware. Headset features unavailable.'
@@ -140,6 +141,7 @@ export default class PlantronicsService extends VendorImplementation {
             return Promise.reject(new Error('Application destroyed.'));
           }
           this.isConnected = true;
+          this.deviceConnectionStatusChanged();
           return response;
         }
       })
@@ -236,6 +238,7 @@ export default class PlantronicsService extends VendorImplementation {
 
   connect(): Promise<any> {
     this.isConnecting = true;
+    this.deviceConnectionStatusChanged();
     this.pollForDeviceStatus();
     this.pollForCallEvents();
     return this._makeRequestTask(`/SessionManager/Register?name=${this.pluginName}`)
@@ -285,6 +288,7 @@ export default class PlantronicsService extends VendorImplementation {
       })
       .finally(() => {
         this.isConnecting = false;
+        this.deviceConnectionStatusChanged();
       });
   }
 
@@ -301,6 +305,7 @@ export default class PlantronicsService extends VendorImplementation {
       this._deviceInfo = null;
       this.isConnected = false;
       this.isActive = false;
+      this.deviceConnectionStatusChanged();
     });
   }
 
