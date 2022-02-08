@@ -238,13 +238,13 @@ export default class HeadsetService {
         'An error has occurred while trying to establish a connection',
         this.selectedImplementation?.errorCode
       );
-      return `implementation.connectionStatus.error`
+      return `Error`
     } else if (this.selectedImplementation?.isConnecting) {
-      return `implementation.connectionStatus.checking`;
+      return `Checking`;
     } else if (this.selectedImplementation?.isConnected) {
-      return `implementation.connectionStatus.running`;
+      return `Running`;
     } else {
-      return `implementation.connectionStatus.notRunning`;
+      return `Not Running`;
     }
   }
 
