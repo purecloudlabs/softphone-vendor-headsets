@@ -6,9 +6,10 @@ type Events = {
     deviceMuteStatusChanged: EventInfo;
     deviceAnsweredCall: EventInfo;
     deviceEndedCall: EventInfo
-    deviceRejectedCall: RejectCallEventInfo
+    deviceRejectedCall: RejectCallEventInfo;
     loggableEvent: EventInfo;
-    'webHidPermissionRequested': { callback: any }
+    'webHidPermissionRequested': { callback: any };
+    deviceConnectionStatusChanged: { currentVendor: VendorImplementation, isConnected: boolean, isConnecting: boolean};
 }
 
 type EventInfo = {

@@ -19,6 +19,7 @@ const App = () => {
   const eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('')
+  const [connectionStatus, setConnectionStatus] = useState<string>('notRunning');
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const appService = new ApplicationService();
@@ -56,6 +57,9 @@ const App = () => {
           case 'deviceEndedCall':
             handleHeadsetEvent(value.payload);
             endCurrentCall(true);
+            break;
+          case 'deviceConnectionStatusChanged':
+            updateDeviceConnection(value.payload);
             break;
           default:
             handleHeadsetEvent(value.payload);
@@ -167,6 +171,16 @@ const App = () => {
     !fromHeadset && headset.setHold(currentCall.id, holdToggle);
   }
 
+  const updateDeviceConnection = (headsetState) => {
+    let key = 'notRunning';
+    if (headsetState.isConnecting) {
+      key = 'checking';
+    } else if (headsetState.isConnected) {
+      key = 'running';
+    }
+    setConnectionStatus(key);
+  }
+
   return (
     <>
       <div className="entry-row">
@@ -203,8 +217,8 @@ const App = () => {
             <i className="ion-ios-information-outline"></i>
           </div>
           <div className="entry-values">
-            {t(headset.connectionStatus)}
-            {headset.showRetry && (
+            {t(`implementation.connectionStatus.${connectionStatus}`)}
+            {connectionStatus === 'notRunning' && (
               <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection()}>Retry</button>
             )}
           </div>

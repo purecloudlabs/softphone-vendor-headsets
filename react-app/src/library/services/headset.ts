@@ -88,6 +88,7 @@ export default class HeadsetService {
     implementation.on('deviceMuteChanged', this.handleDeviceMuteStatusChanged.bind(this));
     implementation.on('deviceHoldStatusChanged', this.handleDeviceHoldStatusChanged.bind(this));
     implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this));
+    implementation.on('deviceConnectionStatusChanged', this.handleDeviceConnectionStatusChanged.bind(this));
     implementation.on('webHidPermissionRequested' as any, (payload: any) => {
       console.log('**** Debug Headset WebHID Event ****');
       this._headsetEvents$.next({ event: 'webHidPermissionRequested' as any, payload })
@@ -222,6 +223,10 @@ export default class HeadsetService {
   handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>): void {
     this.logger.info('Headset: device hold status changed', event?.body?.holdRequested);
     this._headsetEvents$.next({ event: 'deviceHoldStatusChanged', payload: { ...event.body }}); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
+  }
+
+  handleDeviceConnectionStatusChanged(event: VendorEvent<any>): void {
+    this._headsetEvents$.next({ event: 'deviceConnectionStatusChanged', payload: { ...event.body }});
   }
 
   /* This function has no functional purpose in a real life example

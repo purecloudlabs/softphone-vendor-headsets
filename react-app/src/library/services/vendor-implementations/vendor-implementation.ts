@@ -119,7 +119,7 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   }
 
   deviceConnectionStatusChanged(headsetState: {isConnected: boolean, isConnecting: boolean}): void {
-    this.emitEvent('deviceConnectionStatusChanged', headsetState);
+    this.emitEvent('deviceConnectionStatusChanged', { currentVendor: this, ...headsetState });
   }
   // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {
   //   // this.headsetService.triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId});
