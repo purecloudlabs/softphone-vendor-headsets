@@ -67,7 +67,8 @@ export default class HeadsetService {
     if (this.application.hostedContext.supportsJabra()) {
       implementations.push(
         // this.application.hostedContext.isHosted() ? this.jabraNative : this.jabraChrome
-        this.application.hostedContext.isHosted() ? this.jabraNative : this.jabra
+        // this.application.hostedContext.isHosted() ? this.jabraNative : this.jabra
+        this.jabra
       );
     }
     implementations.push(this.plantronics);

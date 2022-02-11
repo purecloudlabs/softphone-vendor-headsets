@@ -72,6 +72,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   connect(): Promise<void> {
+    !this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: this.isConnected, isConnecting: true });
     this.isConnecting = true;
     this.isConnected = false;
 
@@ -104,6 +105,7 @@ export default class SennheiserService extends VendorImplementation {
       }
     }
 
+    this.isConnected || this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: false, isConnecting: false });
     this.isConnecting = false;
     this.isConnected = false;
   }
@@ -246,6 +248,7 @@ export default class SennheiserService extends VendorImplementation {
         });
         break;
       case SennheiserEvents.SPLogin:
+        !this.isConnected || this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: true, isConnecting: false})
         this.isConnecting = false;
         this.isConnected = true;
         this._sendMessage({
