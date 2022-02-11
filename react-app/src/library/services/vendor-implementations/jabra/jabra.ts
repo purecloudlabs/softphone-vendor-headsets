@@ -238,6 +238,7 @@ export default class JabraService extends VendorImplementation {
     }
 
     async connect(deviceLabel: string): Promise<void> {
+        !this.isConnecting && this.deviceConnectionStatusChanged({isConnected: this.isConnected, isConnecting: true});
         this.isConnecting = true;
         const jabraSdk = await this.jabraSdk;
         this.callControlFactory = this.createCallControlFactory(jabraSdk);
@@ -265,6 +266,7 @@ export default class JabraService extends VendorImplementation {
                 }).catch(() => this.logger.error('Timed out waiting for Jabra device'));
 
             if (!device) {
+                this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: this.isConnected, isConnecting: false });
                 this.isConnecting = false;
                 this.logger.error('The selected device was not granted WebHID permissions');
                 return;
@@ -272,6 +274,7 @@ export default class JabraService extends VendorImplementation {
 
             this.callControl = await this.callControlFactory.createCallControl(device);
             this._processEvents(this.callControl);
+            this.isConnecting && !this.isConnected && this.deviceConnectionStatusChanged({isConnected: true, isConnecting: false});
             this.isConnecting = false;
             this.isConnected = true;
             clearTimeout(fetchDevicesTimeout);
@@ -293,6 +296,7 @@ export default class JabraService extends VendorImplementation {
     async disconnect(): Promise<void> {
         this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
         this.deviceListSubscription && this.deviceListSubscription.unsubscribe();
+        this.isConnected || this.isConnecting && this.deviceConnectionStatusChanged({isConnected: false, isConnecting: false});
         this.isConnecting = false;
         this.isConnected = false;
     }
