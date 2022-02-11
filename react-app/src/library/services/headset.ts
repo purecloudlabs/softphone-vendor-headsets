@@ -3,8 +3,8 @@ import { VendorImplementation, ImplementationConfig } from './vendor-implementat
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
-import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
+// import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
+// import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import ApplicationService from './application';
 import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
@@ -14,8 +14,8 @@ export default class HeadsetService {
   private static instance: HeadsetService;
 
   plantronics: VendorImplementation;
-  jabraChrome: VendorImplementation;
-  jabraNative: VendorImplementation;
+  // jabraChrome: VendorImplementation;
+  // jabraNative: VendorImplementation;
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
   application: ApplicationService;
@@ -41,12 +41,13 @@ export default class HeadsetService {
     this.logger = config?.logger || console;
     // this.jabraSdk = this.initializeJabraSdk();
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
-    this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
-    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
+    // this.jabraChrome = JabraChromeService.getInstance({ logger: this.logger });
+    // this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser, this.jabra]
+    // [this.plantronics, this.jabraChrome, this.jabraNative, this.sennheiser, this.jabra]
+    [this.plantronics, this.sennheiser, this.jabra]
       .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
