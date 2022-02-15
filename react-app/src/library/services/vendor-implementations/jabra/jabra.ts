@@ -198,7 +198,7 @@ export default class JabraService extends VendorImplementation {
         }
 
         try {
-            if (!this.callLock) {
+            if (this.callLock) {
                 this.callControl.offHook(false);
             } else {
                 this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions')
