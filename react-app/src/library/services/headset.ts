@@ -239,58 +239,7 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...eventInfo.body }});
   }
 
-  get connectionStatus(): string {
-    if (this.selectedImplementation?.errorCode) {
-      this.logger.error(
-        'An error has occurred while trying to establish a connection',
-        this.selectedImplementation?.errorCode
-      );
-      return `Error`
-    } else if (this.selectedImplementation?.isConnecting) {
-      return `Checking`;
-    } else if (this.selectedImplementation?.isConnected) {
-      return `Running`;
-    } else {
-      return `Not Running`;
-    }
-  }
-
-  showRetry(): boolean {
-    if (this.selectedImplementation.disableRetry) {
-      return false;
-    }
-
-    return this.selectedImplementation
-      && !this.selectedImplementation.isConnected
-      && !this.selectedImplementation.isConnecting;
-  }
-
   retryConnection(): void {
     this.selectedImplementation.connect();
   }
-
-
-  // triggerDefaultHeadsetChanged (deviceInfo, isRetry) {
-  //   // Logger.info('Headset: headset device changed', deviceInfo); // TODO: Logger
-  //   const microphones = this.get('webrtc.microphoneList').filter((device) => deviceInfo.deviceIds.includes(device.deviceId));
-  //   const outputDevices = this.get('webrtc.outputDeviceList').filter((device) => deviceInfo.deviceIds.includes(device.deviceId));
-
-  //   if (!microphones.length) {
-  //     if (isRetry) {
-  //       // return Logger.error(new Error('Failed to find headset device'));// TODO: Logger
-  //     }
-
-  //     // this.logger.warn('Failed to find vendor headset device, will try again after browser devicechange event');// TODO: Logger
-
-  //     this.get('webrtc').one('deviceListsUpdated', () => {
-  //       this.triggerDefaultHeadsetChanged(deviceInfo, true);
-  //     });
-  //     return;
-  //   }
-
-  //   this.get('webrtc').one('defaultDeviceChange', () => {
-  //     this.trigger('headsetChanged', deviceInfo);
-  //   });
-  //   this.get('webrtc').updateDefaultDevices({microphone: microphones[0], outputDevice: outputDevices[0]});
-  // }
 }

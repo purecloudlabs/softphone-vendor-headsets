@@ -479,26 +479,6 @@ describe('HeadsetService', () => {
     })
   });
 
-  describe('get connectionStatus', () => {
-    beforeEach(() => {
-      headsetService = HeadsetService.getInstance(config);
-    })
-    it('should return the correct translation string depending on proper flags', () => {
-      headsetService.selectedImplementation = plantronics;
-
-      expect(headsetService.connectionStatus).toBe(`dummy.connectionStatus.notRunning`);
-
-      headsetService.selectedImplementation.isConnected = true;
-      expect(headsetService.connectionStatus).toBe(`dummy.connectionStatus.connected`);
-
-      headsetService.selectedImplementation.isConnecting = true;
-      expect(headsetService.connectionStatus).toBe(`dummy.connectionStatus.connecting`);
-
-      headsetService.selectedImplementation.errorCode = 'Error';
-      expect(headsetService.connectionStatus).toBe(`dummy.connectionStatus.error`);
-    });
-  });
-
   describe('external mic change', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
