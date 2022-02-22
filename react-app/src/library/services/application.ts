@@ -1,8 +1,8 @@
 import { JabraNativeCommands } from './vendor-implementations/jabra/jabra-native/jabra-native-commands';
-
+import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 // TODO: This is just a shell for now to make things build
 const requestDesktopPromise = (cmd) => {
-  return (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       const sCmd = JSON.stringify(cmd);
       (window as any).cefQuery({
@@ -24,7 +24,7 @@ const requestDesktopPromise = (cmd) => {
       console.error('Error requesting desktop promise', e);
       reject();
     }
-  }
+  })
 }
 
 const hostedContext = {
@@ -80,9 +80,11 @@ export default class ApplicationService {
   callback(obj: { msg: string, event: string, value: boolean, hidInput: string }): void {
     const msg = obj.msg;
     if (msg === 'JabraEvent') {
+      const jabra = JabraNativeService.getInstance({ logger: console });
       const eventName = obj.event;
       const value = obj.value;
       const hidInput = obj.hidInput;
+      jabra.handleJabraEvent({ eventName, value, hidInput });
       console.log(
         `Jabra event received. ID: ${hidInput}, Name: ${eventName}, Value: ${value}`
       );

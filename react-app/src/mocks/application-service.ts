@@ -1,3 +1,4 @@
+import JabraNativeService from "../library/services/vendor-implementations/jabra/jabra-native/jabra-native";
 import { JabraNativeCommands } from "../library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands";
 
 const EVENTS = {
@@ -26,13 +27,14 @@ export default class ApplicationService {
     callback(obj: { msg: string, event: string, value: boolean, hidInput: string }): void {
         const msg = obj.msg;
         if (msg === 'JabraEvent') {
+            const jabra = JabraNativeService.getInstance({ logger: console });
             const eventName = obj.event;
             const value = obj.value;
             const hidInput = obj.hidInput;
             console.log(
                 `Jabra event received. ID: ${hidInput}, Name: ${eventName}, Value: ${value}`
             );
-            // JabraEvent({eventName, value, hidInput});
+            jabra.handleJabraEvent({ eventName, value, hidInput });
         }
     }
 

@@ -43,7 +43,7 @@ const initializeSdk = async (subject) => {
     const sdk = await init({
         appId: 'softphone-vendor-headsets-test',
         appName: 'Softphone Headset Library Test',
-        transport: RequestedBrowserTransport.WEB_HID
+        transport: RequestedBrowserTransport.CHROME_EXTENSION_WITH_WEB_HID_FALLBACK
     });
     const deviceList = [
         {
@@ -140,7 +140,11 @@ describe('JabraService', () => {
     })
 
     describe('initial connection', () => {
-        it('should set the proper values while trying to connect', async () => {
+        beforeEach(() => {
+            jest.clearAllTimers();
+            jest.useFakeTimers();
+        })
+        fit('should set the proper values while trying to connect', async () => {
             const deviceSignalsSubject = new Subject<ICallControlSignal>();
             const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
             const callControlFactorySpy = jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue(
@@ -150,9 +154,11 @@ describe('JabraService', () => {
                     }
                 } as any
             )
+            jabraService.jabraSdk = jabraSdk;
             const testLabel = 'test label 123';
             const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
             await jabraService.connect(testLabel);
+            jest.advanceTimersByTime(1750);
             expect(callControlFactorySpy).toHaveBeenCalled();
             expect(processEventsSpy).toHaveBeenCalledWith(callControl);
             expect(jabraService.isConnecting).toBe(false);

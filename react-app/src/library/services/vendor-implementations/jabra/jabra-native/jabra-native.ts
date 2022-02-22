@@ -74,8 +74,8 @@ export default class JabraNativeService extends VendorImplementation {
     this.updateDevices();
   }
 
-  handleJabraEvent({ eventName, value }: JabraNativeEvent): void {
-    this.logger.debug('handling jabra event', { eventName, value });
+  handleJabraEvent({ eventName, value, hidInput }: JabraNativeEvent): void {
+    this.logger.debug('handling jabra event', { eventName, value, hidInput });
     this._processEvent(eventName, value);
   }
 
@@ -91,7 +91,7 @@ export default class JabraNativeService extends VendorImplementation {
 
       return;
     }
-
+    this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
     this._getHeadsetIntoVanillaState();
     this.deviceEndedCall();
   }
@@ -102,9 +102,10 @@ export default class JabraNativeService extends VendorImplementation {
     this.deviceMuteChanged(isMuted);
   }
 
-  _handleHoldEvent(): void {
+  _handleHoldEvent(isHeld: boolean): void {
     // jabra requires you to echo the event back in acknowledgement
-    this.deviceHoldStatusChanged(true);
+    this._sendCmd(JabraNativeCommands.Hold, isHeld);
+    this.deviceHoldStatusChanged(isHeld);
   }
 
   _getHeadsetIntoVanillaState(): void {
@@ -218,7 +219,7 @@ export default class JabraNativeService extends VendorImplementation {
         break;
 
       case JabraNativeEventNames.Hold:
-        this._handleHoldEvent();
+        this._handleHoldEvent(value);
         break;
     }
   }

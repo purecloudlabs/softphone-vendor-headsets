@@ -1,7 +1,7 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import ApplicationService from './mocks/application-service';
+import ApplicationService from '../src/library/services/application';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
 import AudioVisualizer from './components/audio-visualizer';
@@ -22,8 +22,8 @@ const App = () => {
   const [connectionStatus, setConnectionStatus] = useState<string>('notRunning');
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
-  const appService = new ApplicationService();
-  const isNativeApp = appService.isHosted;
+  const appService = ApplicationService.getInstance();
+  const isNativeApp = appService.hostedContext.isHosted;
 
   useEffect(() => {
     webrtc.initialize();
