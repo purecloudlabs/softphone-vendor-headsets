@@ -141,8 +141,8 @@ describe('JabraService', () => {
 
     describe('initial connection', () => {
         beforeEach(() => {
-            jest.clearAllTimers();
-            jest.useFakeTimers();
+            // jest.clearAllTimers();
+            // jest.useFakeTimers();
         })
         fit('should set the proper values while trying to connect', async () => {
             const deviceSignalsSubject = new Subject<ICallControlSignal>();
@@ -158,7 +158,7 @@ describe('JabraService', () => {
             const testLabel = 'test label 123';
             const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
             await jabraService.connect(testLabel);
-            jest.advanceTimersByTime(1750);
+            jest.runAllTimers();
             expect(callControlFactorySpy).toHaveBeenCalled();
             expect(processEventsSpy).toHaveBeenCalledWith(callControl);
             expect(jabraService.isConnecting).toBe(false);
