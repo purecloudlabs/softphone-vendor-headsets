@@ -1,4 +1,5 @@
-import { Observable, BehaviorSubject } from 'rxjs';
+// import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
@@ -19,21 +20,19 @@ export default class HeadsetService {
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
 
-  private _headsetEvents$: BehaviorSubject<ConsumedHeadsetEvents>;
+  private _headsetEvents$: Subject<ConsumedHeadsetEvents>;
   private _implementations: VendorImplementation[] = [];
   private logger: any;
 
   private constructor(config: ImplementationConfig) {
     // super();
     //TODO: Just a temporary typing for testing purposes
-    this._headsetEvents$ = new BehaviorSubject<ConsumedHeadsetEvents | any>({
-      event: '',
-      payload: {}
-    });
+    // this._headsetEvents$ = new BehaviorSubject<ConsumedHeadsetEvents>(null);
+    this._headsetEvents$ = new Subject<ConsumedHeadsetEvents>();
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.application = ApplicationService.getInstance();
-    this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
+    this.selectedImplementation = this.buildImplementationsArray()[0]; // Using the first just because it's the first
     this.logger = config?.logger || console;
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
@@ -52,7 +51,7 @@ export default class HeadsetService {
     return HeadsetService.instance;
   }
 
-  get implementations(): VendorImplementation[] {
+  buildImplementationsArray(): VendorImplementation[] {
     if (this._implementations.find((implementation) => implementation)) {
       return this._implementations;
     }
@@ -72,7 +71,7 @@ export default class HeadsetService {
     return this._implementations;
   }
 
-  getHeadSetEventsSubject = (): BehaviorSubject<ConsumedHeadsetEvents> => {
+  getHeadSetEventsSubject = (): Subject<ConsumedHeadsetEvents> => {
     return this._headsetEvents$;
   };
 
@@ -85,18 +84,28 @@ export default class HeadsetService {
     implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this));
     implementation.on('deviceConnectionStatusChanged', this.handleDeviceConnectionStatusChanged.bind(this));
     implementation.on('webHidPermissionRequested' as any, (payload: any) => {
-      console.log('**** Debug Headset WebHID Event ****');
+      this.logger.debug('Requesting Webhid Permissions');
       this._headsetEvents$.next({ event: 'webHidPermissionRequested' as any, payload })
     });
   }
 
   activeMicChange(newMicLabel: string): void {
-    const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
+    const implementation = this.buildImplementationsArray().find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
     } else if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
     }
+  }
+
+  private performActionIfConnected(actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
+    const impl = this.selectedImplementation;
+    if(!impl || !impl.isConnected) {
+      this.logger.info(`Headset: No vendor headset connected [${actionName}]`);
+      return Promise.resolve();
+    }
+
+    return perform(impl);
   }
 
   async changeImplementation(implementation: VendorImplementation | null, deviceLabel: string): Promise<void> {
@@ -117,75 +126,35 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'implementationChanged', payload: implementation});
   }
 
-  // possible options: conversationId, contactName
   incomingCall(callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
-    this.logger.info('Inside incomingCall of headset library');
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [incomingCall]');
-      return Promise.resolve();
-    }
-    return service.incomingCall(callInfo, hasOtherActiveCalls);
+    return this.performActionIfConnected('incomingCall', (implementation) => implementation.incomingCall(callInfo, hasOtherActiveCalls));
   }
 
-  // possible options: conversationId, contactName
   outgoingCall(callInfo: CallInfo): Promise<any> {
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [outgoingCall]');
-      return Promise.resolve();
-    }
-
-    return service.outgoingCall(callInfo);
+    return this.performActionIfConnected('outgoingCall', (implementation) => implementation.outgoingCall(callInfo));
   }
 
   answerCall(conversationId: string): Promise<any> {
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [answerCall]');
-      return Promise.resolve();
-    }
-    return service.answerCall(conversationId);
+    return this.performActionIfConnected('answerCall', (implementation) => implementation.answerCall(conversationId));
   }
 
   setMute(value: boolean): Promise<any> {
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No venddor headset connected [setMute]');
-      return Promise.resolve();
-    }
-    return service.setMute(value);
+    return this.performActionIfConnected('setMute', (implementation) => implementation.setMute(value));
   }
 
   setHold(conversationId: string, value: boolean): Promise<any> {
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [setHold]');
-      return Promise.resolve();
-    }
-    return service.setHold(conversationId, value);
+    return this.performActionIfConnected('setHold', (implementation) => implementation.setHold(conversationId, value));
   }
 
   endCall(conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [endCall]');
-      return Promise.resolve();
-    }
-    return service.endCall(conversationId, hasOtherActiveCalls);
+    return this.performActionIfConnected('endCall', (implementation) => implementation.endCall(conversationId, hasOtherActiveCalls));
   }
 
   endAllCalls(): Promise<any> {
-    const service = this.selectedImplementation;
-    if (!service || !service.isConnected) {
-      this.logger.info('Headset: No vendor headset connected [endAllCalls]');
-      return Promise.resolve();
-    }
-
-    return this.selectedImplementation.endAllCalls();
+    return this.performActionIfConnected('endAllCalls', (implementation) => implementation.endAllCalls());
   }
 
-  handleDeviceAnsweredCall(event: VendorEvent<EventInfo>): void | undefined {
+  private handleDeviceAnsweredCall(event: VendorEvent<EventInfo>): void {
     console.log('event answered Call -> ', event);
     if (event.vendor !== this.selectedImplementation) {
       return;
@@ -195,7 +164,7 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'deviceAnsweredCall', payload: { ...event.body }});
   }
 
-  handleDeviceRejectedCall(event: VendorConversationIdEvent): void | undefined {
+  private handleDeviceRejectedCall(event: VendorConversationIdEvent): void {
     if (event.vendor !== this.selectedImplementation) {
       return;
     }
@@ -204,23 +173,23 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'deviceRejectedCall', payload: { conversationId: event.body.conversationId }});
   }
 
-  handleDeviceEndedCall(event: VendorEvent<EventInfo>): void {
+  private handleDeviceEndedCall(event: VendorEvent<EventInfo>): void {
     this.logger.info('Headset: device ended the call');
     this._headsetEvents$.next({ event: 'deviceEndedCall', payload: { ...event.body } });
-    this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...event.body } });
+    // this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...event.body } });
   }
 
-  handleDeviceMuteStatusChanged(event: VendorEvent<MutedEventInfo>): void {
-    this.logger.info('Headset: device mute status changed: ', event?.body?.isMuted);
+  private handleDeviceMuteStatusChanged(event: VendorEvent<MutedEventInfo>): void {
+    this.logger.info('Headset: device mute status changed: ', event.body.isMuted);
     this._headsetEvents$.next({ event: 'deviceMuteStatusChanged', payload: { ...event.body }});
   }
 
-  handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>): void {
-    this.logger.info('Headset: device hold status changed', event?.body?.holdRequested);
-    this._headsetEvents$.next({ event: 'deviceHoldStatusChanged', payload: { ...event.body }}); // TODO: { holdRequested, toggle } is a change; needs to be refleceted or communicated in the API reference
+  private handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>): void {
+    this.logger.info('Headset: device hold status changed', event.body.holdRequested);
+    this._headsetEvents$.next({ event: 'deviceHoldStatusChanged', payload: { ...event.body }});
   }
 
-  handleDeviceConnectionStatusChanged(event: VendorEvent<any>): void {
+  private handleDeviceConnectionStatusChanged(event: VendorEvent<any>): void {
     this._headsetEvents$.next({ event: 'deviceConnectionStatusChanged', payload: { ...event.body }});
   }
 
@@ -228,7 +197,7 @@ export default class HeadsetService {
    * It is here to help log all events in the call process at least for Plantronics
    */
   // handleDeviceLogs(eventInfo: { vendor: VendorImplementation, body: { name: string, code: string, event: any }}): void {
-  handleDeviceLogs(eventInfo: VendorEvent<any>): void {
+  private handleDeviceLogs(eventInfo: VendorEvent<any>): void {
     this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...eventInfo.body }});
   }
 

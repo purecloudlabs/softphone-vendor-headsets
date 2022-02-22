@@ -1,6 +1,5 @@
 import { JabraNativeCommands } from './vendor-implementations/jabra/jabra-native/jabra-native-commands';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
-// TODO: This is just a shell for now to make things build
 const requestDesktopPromise = (cmd) => {
   return new Promise((resolve, reject) => {
     try {
@@ -44,9 +43,6 @@ const hostedContext = {
       }
     )
   },
-  // sendJabraEventToDesktop: (deviceId: string, cmd: JabraNativeCommands, value: any) => {
-  //   return null;
-  // },
   requestJabraDevices: async (): Promise<any> => {
     return await requestDesktopPromise({ cmd: 'requestJabraDevices' });
   },

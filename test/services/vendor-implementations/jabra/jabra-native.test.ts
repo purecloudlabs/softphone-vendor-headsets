@@ -160,7 +160,7 @@ describe('JabraNativeService', () => {
     it('should log a debug message and call _processEvent', () => {
       jest.spyOn(mockLogger, 'debug');
       jest.spyOn(jabraNativeService, '_processEvent');
-      const eventData: JabraNativeEvent = { eventName: 'a', value: JabraNativeEventNames.Hold };
+      const eventData: JabraNativeEvent = { eventName: JabraNativeEventNames.Hold as string, value: true };
 
       jabraNativeService.handleJabraEvent(eventData);
 
@@ -230,7 +230,7 @@ describe('JabraNativeService', () => {
   describe('_handleHoldEvent', () => {
     it('should call deviceHoldStatusChanged() with null and true', () => {
       jest.spyOn(jabraNativeService, 'deviceHoldStatusChanged');
-      jabraNativeService._handleHoldEvent();
+      jabraNativeService._handleHoldEvent(true);
       expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith(true);
     });
   });
