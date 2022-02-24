@@ -161,16 +161,16 @@ export default class JabraService extends VendorImplementation {
         if (callInfo) {
             try {
                 this.callLock = await this.callControl.takeCallLock();
+                if (this.callLock) {
+                    this.callControl.ring(true);
+                    return Promise.resolve();
+                }
             } catch ({message, type}) {
                 if (this.checkForCallLockError(message, type)) {
                     this.logger.info(message);
                     this.callControl.ring(true);
                 } else {
                     this.logger.error(type, message);
-                }
-            } finally {
-                if (this.callLock) {
-                    this.callControl.ring(true);
                 }
             }
         }
