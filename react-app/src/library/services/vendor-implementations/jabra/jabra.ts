@@ -16,6 +16,7 @@ import {
 import { CallInfo } from "../../..";
 import { Subscription, firstValueFrom } from "rxjs";
 import { first } from 'rxjs/operators';
+import { isCefHosted } from "../../../utils";
 
 export default class JabraService extends VendorImplementation {
     private static instance: JabraService;
@@ -23,7 +24,6 @@ export default class JabraService extends VendorImplementation {
     private deviceListSubscription: Subscription;
     static connectTimeout = 5000;
 
-    isConnecting = false;
     isActive = false;
     devices: Map<string, DeviceInfo>;
     activeDeviceId: string = null;
@@ -45,6 +45,10 @@ export default class JabraService extends VendorImplementation {
         this.vendorName = 'Jabra';
         this.devices = new Map<string, DeviceInfo>();
         this.jabraSdk = this.initializeJabraSdk();
+    }
+
+    isSupported(): boolean {
+        return (window.navigator as any).hid && !isCefHosted();
     }
 
     deviceLabelMatchesVendor(label: string): boolean {
@@ -246,8 +250,9 @@ export default class JabraService extends VendorImplementation {
     }
 
     async connect(deviceLabel: string): Promise<void> {
-        !this.isConnecting && this.deviceConnectionStatusChanged({isConnected: this.isConnected, isConnecting: true});
-        this.isConnecting = true;
+        if (!this.isConnecting) {
+            this.changeConnectionStatus({isConnected: this.isConnected, isConnecting: true});
+        }
         const jabraSdk = await this.jabraSdk;
         this.callControlFactory = this.createCallControlFactory(jabraSdk);
         const findDevice = (device: IDevice) => {
@@ -274,8 +279,7 @@ export default class JabraService extends VendorImplementation {
                             });
                     });
                 } catch (e) {
-                    this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: this.isConnected, isConnecting: false });
-                    this.isConnecting = false;
+                    this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
                     this.logger.error('The selected device was not granted WebHID permissions');
                     return;
                 }
@@ -283,9 +287,9 @@ export default class JabraService extends VendorImplementation {
 
             this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
             this._processEvents(this.callControl);
-            this.isConnecting && !this.isConnected && this.deviceConnectionStatusChanged({ isConnected: true, isConnecting: false });
-            this.isConnecting = false;
-            this.isConnected = true;
+            if (this.isConnecting && !this.isConnected) {
+                this.changeConnectionStatus({ isConnected: true, isConnecting: false });
+            }
             clearTimeout(fetchDevicesTimeout);
         }, 1750);
     }
@@ -309,8 +313,6 @@ export default class JabraService extends VendorImplementation {
     async disconnect(): Promise<void> {
         this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
         this.deviceListSubscription && this.deviceListSubscription.unsubscribe();
-        this.isConnected || this.isConnecting && this.deviceConnectionStatusChanged({isConnected: false, isConnecting: false});
-        this.isConnecting = false;
-        this.isConnected = false;
+        this.isConnected || this.isConnecting && this.changeConnectionStatus({isConnected: false, isConnecting: false});
     }
 }

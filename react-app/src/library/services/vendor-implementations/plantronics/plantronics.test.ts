@@ -1,13 +1,12 @@
 import "whatwg-fetch";
-import PlantronicsService from '../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics';
-import DeviceInfo from '../../../../react-app/src/library/types/device-info';
-import { eventValidation, mockLogger } from '../../test-utils';
-import responses from './plantronics-responses';
-import HeadsetService from '../../../../react-app/src/library/services/headset';
-import { PlantronicsCallEvents } from "../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics-call-events";
+import responses from './plantronics-test-responses';
 import 'regenerator-runtime';
 import { BroadcastChannel } from "broadcast-channel";
 import browserama from 'browserama';
+import { mockLogger, eventValidation } from "../../test-utils";
+import DeviceInfo from "../../../types/device-info";
+import PlantronicsService from "./plantronics";
+import { PlantronicsCallEvents } from "./plantronics-call-events";
 
 jest.mock('broadcast-channel');
 

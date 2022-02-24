@@ -72,9 +72,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   connect(): Promise<void> {
-    !this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: this.isConnected, isConnecting: true });
-    this.isConnecting = true;
-    this.isConnected = false;
+    !this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: true });
 
     const socket = new WebSocket(websocketUri);
     socket.onopen = this.webSocketOnOpen.bind(this);
@@ -105,9 +103,9 @@ export default class SennheiserService extends VendorImplementation {
       }
     }
 
-    this.isConnected || this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: false, isConnecting: false });
-    this.isConnecting = false;
-    this.isConnected = false;
+    if (this.isConnected || this.isConnecting) {
+      this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+    }
   }
 
   disconnect(): Promise<void> {
@@ -248,9 +246,10 @@ export default class SennheiserService extends VendorImplementation {
         });
         break;
       case SennheiserEvents.SPLogin:
-        !this.isConnected || this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: true, isConnecting: false})
-        this.isConnecting = false;
-        this.isConnected = true;
+        if (!this.isConnected || this.isConnecting) {
+          this.changeConnectionStatus({ isConnected: true, isConnecting: false})
+        }
+        
         this._sendMessage({
           Event: SennheiserEvents.SystemInformation,
           EventType: SennheiserEventTypes.Request,

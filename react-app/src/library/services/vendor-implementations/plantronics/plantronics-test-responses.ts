@@ -1,4 +1,4 @@
-import { PlantronicsCallEvents } from "../../../../react-app/src/library/services/vendor-implementations/plantronics/plantronics-call-events";
+import { PlantronicsCallEvents } from "./plantronics-call-events";
 
 const responses = {
     CallServices: {

@@ -1,5 +1,5 @@
-import JabraService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra'
-import DeviceInfo from '../../../../react-app/src/library/types/device-info';
+import JabraService from './jabra'
+import DeviceInfo from '../../../types/device-info';
 import { mockLogger } from '../../test-utils';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import {
@@ -98,7 +98,7 @@ describe('JabraService', () => {
     (window as any).BroadcastChannel = BroadcastChannel;
     beforeEach(async () => {
         jabraSdk = initializeSdk(subject);
-        jabraService = JabraService.getInstance({ logger: console });
+        jabraService = JabraService.getInstance({ logger: console, createNew: true });
         resetJabraService(jabraService);
     })
 
@@ -142,9 +142,9 @@ describe('JabraService', () => {
     describe('initial connection', () => {
         beforeEach(() => {
             // jest.clearAllTimers();
-            // jest.useFakeTimers();
+            jest.useFakeTimers();
         })
-        fit('should set the proper values while trying to connect', async () => {
+        it('should set the proper values while trying to connect', async () => {
             const deviceSignalsSubject = new Subject<ICallControlSignal>();
             const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
             const callControlFactorySpy = jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue(
@@ -159,6 +159,8 @@ describe('JabraService', () => {
             const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
             await jabraService.connect(testLabel);
             jest.runAllTimers();
+            await Promise.resolve();
+            await Promise.resolve();
             expect(callControlFactorySpy).toHaveBeenCalled();
             expect(processEventsSpy).toHaveBeenCalledWith(callControl);
             expect(jabraService.isConnecting).toBe(false);

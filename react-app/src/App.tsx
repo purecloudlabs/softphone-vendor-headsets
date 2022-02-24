@@ -1,11 +1,11 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import ApplicationService from '../src/library/services/application';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
 import AudioVisualizer from './components/audio-visualizer';
 import MockCall from './mocks/call';
+import { isCefHosted } from './library/utils';
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const App = () => {
@@ -22,8 +22,7 @@ const App = () => {
   const [connectionStatus, setConnectionStatus] = useState<string>('notRunning');
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
-  const appService = ApplicationService.getInstance();
-  const isNativeApp = appService.hostedContext.isHosted;
+  const isNativeApp = isCefHosted();
 
   useEffect(() => {
     webrtc.initialize();
@@ -36,41 +35,51 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    headset.headsetEvents$.subscribe(value => {
-      if (currentCall) {
-        switch(value.event) {
-          case 'implementationChanged':
-            logImplementationChange(value?.payload?.vendorName);
-            break;
-          case 'deviceHoldStatusChanged':
-            handleHeadsetEvent(value.payload);
-            toggleSoftwareHold(value.payload.holdRequested, true);
-            break;
-          case 'deviceMuteStatusChanged':
-            handleHeadsetEvent(value.payload);
-            toggleSoftwareMute(value.payload.isMuted, true);
-            break;
-          case 'deviceAnsweredCall':
-            handleHeadsetEvent(value.payload);
-            answerIncomingCall(true);
-            break;
-          case 'deviceEndedCall':
-            handleHeadsetEvent(value.payload);
-            endCurrentCall(true);
-            break;
-          case 'deviceConnectionStatusChanged':
-            updateDeviceConnection(value.payload);
-            break;
-          default:
-            handleHeadsetEvent(value.payload);
-        }
+    console.info('subscribing to headset events');
+    const sub = headset.headsetEvents$.subscribe(value => {
+      // TODO: headsetEvents$ probably shouldn't come from a behavior subject
+      if (!value) {
+        return;
+      }
+
+      console.debug('new headset event', value);
+
+      switch(value.event) {
+        case 'implementationChanged':
+          logImplementationChange(value?.payload?.vendorName);
+          break;
+        case 'deviceHoldStatusChanged':
+          handleHeadsetEvent(value.payload);
+          toggleSoftwareHold(value.payload.holdRequested, true);
+          break;
+        case 'deviceMuteStatusChanged':
+          handleHeadsetEvent(value.payload);
+          toggleSoftwareMute(value.payload.isMuted, true);
+          break;
+        case 'deviceAnsweredCall':
+          handleHeadsetEvent(value.payload);
+          answerIncomingCall(true);
+          break;
+        case 'deviceEndedCall':
+          handleHeadsetEvent(value.payload);
+          endCurrentCall(true);
+          break;
+        case 'deviceConnectionStatusChanged':
+          updateDeviceConnection(value.payload);
+          break;
+        default:
+          handleHeadsetEvent(value.payload);
       }
 
       if (value.event === 'webHidPermissionRequested') {
         setWebHidRequestButton(<button onClick={ () => (value.payload as any).body.callback() }>Request WebHID Permissions</button>)
       }
     });
-  }, [currentCall]);
+
+    return () => {
+      sub.unsubscribe();
+    }
+  }, [ currentCall ]);
 
   const receiveMessage = (event) => {
     if (event.data.direction === 'jabra-headset-extension-from-content-script') {
@@ -147,7 +156,7 @@ const App = () => {
   }
 
   const answerIncomingCall = (fromHeadset?) => {
-    console.log('**** ANSWERING SIMULATED CALL ****');
+    console.log('**** ANSWERING SIMULATED CALL ****', {currentCall});
     currentCall.answer();
     !fromHeadset && headset.answerCall(currentCall.id);
     startHeadsetAudio();

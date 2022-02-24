@@ -1,10 +1,9 @@
-import JabraNativeService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import DeviceInfo from '../../../../react-app/src/library/types/device-info';
-import { mockLogger } from '../../test-utils';
-import { JabraNativeEvent } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-event';
-import { JabraNativeEventNames } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-events';
-import { JabraNativeCommands } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native-commands';
-import ApplicationService from '../../../../react-app/src/library/services/application';
+import JabraNativeService from './jabra-native';
+import DeviceInfo from '../../../../types/device-info';
+import { mockLogger } from '../../../test-utils';
+import { JabraNativeCommands } from './jabra-native-commands';
+import { HeadsetEvent, JabraDeviceEvent, JabraHeadsetEvent, JabraNativeEventNames } from './jabra-native-types';
+import * as utils from '../../../../utils';
 
 const ASYNC_TIMEOUT = 1000;
 const testDevice1 = { deviceID: '123', deviceName: 'testDevice1' };
@@ -30,16 +29,18 @@ function populateDevices(service: JabraNativeService): void {
 
 describe('JabraNativeService', () => {
   let jabraNativeService: JabraNativeService = null;
-  let applicationService: ApplicationService = null;
 
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
 
-    jabraNativeService = JabraNativeService.getInstance({ logger: console });
-    resetJabraNativeService(jabraNativeService);
+    (window as any)._HostedContextFunctions = {
+      register: jest.fn().mockReturnValue({ supportsJabra: true }),
+      sendEventToDesktop: jest.fn()
+    };
 
-    applicationService = ApplicationService.getInstance();
+    jabraNativeService = JabraNativeService.getInstance({ logger: console, createNew: true });
+    resetJabraNativeService(jabraNativeService);
   });
 
   describe('instantiation', () => {
@@ -144,9 +145,9 @@ describe('JabraNativeService', () => {
     it('should log a debug message and call updateDevices', () => {
       jest.spyOn(mockLogger, 'debug');
       jest.spyOn(jabraNativeService, 'updateDevices');
-      const deviceData = { deviceName: 'a', deviceId: '1', attached: true };
+      const deviceData: JabraDeviceEvent = { deviceName: 'a', deviceId: 1, attached: true, msg: 'JabraDeviceAttached' };
 
-      jabraNativeService.handleJabraDeviceAttached(deviceData);
+      jabraNativeService['handleJabraDeviceAttached'](deviceData);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
         'handling jabra attach/detach event',
@@ -159,79 +160,83 @@ describe('JabraNativeService', () => {
   describe('handleJabraEvent', () => {
     it('should log a debug message and call _processEvent', () => {
       jest.spyOn(mockLogger, 'debug');
-      jest.spyOn(jabraNativeService, '_processEvent');
-      const eventData: JabraNativeEvent = { eventName: 'a', value: JabraNativeEventNames.Hold };
+      const eventData: JabraHeadsetEvent = { event: JabraNativeEventNames.Hold, hidInput: "1", msg: HeadsetEvent, value: true };
 
-      jabraNativeService.handleJabraEvent(eventData);
+      jabraNativeService['handleJabraEvent'](eventData);
 
-      expect(mockLogger.debug).toHaveBeenCalledWith('handling jabra event', eventData);
-      expect(jabraNativeService._processEvent).toHaveBeenCalledTimes(1);
+      expect(mockLogger.debug).toHaveBeenCalledWith('Jabra event received', eventData);
     });
   });
 
   describe('_handleOffhookEvent', () => {
     describe('isOffhook = false', () => {
       it('should call _getHeadsetIntoVanillaState() and deviceEndedCall()', () => {
-        jest.spyOn(jabraNativeService, '_getHeadsetIntoVanillaState');
+        const spy = jest.fn();
+        jabraNativeService['_getHeadsetIntoVanillaState'] = spy;
+
         jest.spyOn(jabraNativeService, 'deviceEndedCall');
 
-        jabraNativeService._handleOffhookEvent(false);
+        jabraNativeService['_handleOffhookEvent'](false);
 
-        expect(jabraNativeService._getHeadsetIntoVanillaState).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledTimes(1);
         expect(jabraNativeService.deviceEndedCall).toHaveBeenCalledTimes(1);
       });
     });
     describe('isOffhook = true', () => {
+      let resetSpy: jest.Mock;
+      let sendCmdSpy: jest.Mock;
+      let setRingingSpy: jest.Mock;
+
       beforeEach(() => {
-        jest.spyOn(jabraNativeService, '_getHeadsetIntoVanillaState');
+        resetSpy = jabraNativeService['_getHeadsetIntoVanillaState'] = jest.fn();
+        sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
+        setRingingSpy = jabraNativeService['_setRinging'] = jest.fn();
         jest.spyOn(jabraNativeService, 'deviceEndedCall');
-        jest.spyOn(jabraNativeService, '_sendCmd');
-        jest.spyOn(jabraNativeService, '_setRinging');
         jest.spyOn(jabraNativeService, 'deviceAnsweredCall');
       });
       afterEach(() => {
-        expect(jabraNativeService._getHeadsetIntoVanillaState).not.toHaveBeenCalled();
+        expect(resetSpy).not.toHaveBeenCalled();
         expect(jabraNativeService.deviceEndedCall).not.toHaveBeenCalled();
       });
       it('should do nothing if this.headsetState.ringing is false', () => {
         jabraNativeService.headsetState.ringing = false;
 
-        jabraNativeService._handleOffhookEvent(true);
+        jabraNativeService['_handleOffhookEvent'](true);
 
         expect(jabraNativeService.deviceAnsweredCall).not.toHaveBeenCalled();
-        expect(jabraNativeService._sendCmd).not.toHaveBeenCalled();
-        expect(jabraNativeService._setRinging).not.toHaveBeenCalled();
+        expect(sendCmdSpy).not.toHaveBeenCalled();
+        expect(setRingingSpy).not.toHaveBeenCalled();
       });
       it('should call deviceAnsweredCall(), _sendCmd(), and _setRinging() if this.headsetState.ringing is true', () => {
         jabraNativeService.headsetState.ringing = true;
 
-        jabraNativeService._handleOffhookEvent(true);
+        jabraNativeService['_handleOffhookEvent'](true);
 
         expect(jabraNativeService.deviceAnsweredCall).toHaveBeenCalled();
-        expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
-        expect(jabraNativeService._setRinging).toHaveBeenCalledWith(false);
+        expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
+        expect(setRingingSpy).toHaveBeenCalledWith(false);
       });
     });
   });
 
   describe('_handleMuteEvent', () => {
     it('should call _sendCmd() and deviceMuteChanged() with the appropriate values', () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       jest.spyOn(jabraNativeService, 'deviceMuteChanged');
       const isMuted = Boolean(true); // Using the Boolean object so as to test for reference equality
 
-      jabraNativeService._handleMuteEvent(isMuted);
+      jabraNativeService['_handleMuteEvent'](isMuted);
 
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Mute, isMuted);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Mute, isMuted);
       expect(jabraNativeService.deviceMuteChanged).toHaveBeenCalledWith(isMuted);
     });
   });
 
   describe('_handleHoldEvent', () => {
-    it('should call deviceHoldStatusChanged() with null and true', () => {
+    it('should call deviceHoldStatusChanged() with null and false', () => {
       jest.spyOn(jabraNativeService, 'deviceHoldStatusChanged');
-      jabraNativeService._handleHoldEvent();
-      expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith(true);
+      jabraNativeService['_handleHoldEvent'](null as any);
+      expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith(false);
     });
   });
 
@@ -239,13 +244,13 @@ describe('JabraNativeService', () => {
     it('should call setHold with null and false', () => {
       jest.spyOn(jabraNativeService, 'setHold').mockImplementationOnce(() => null);
       jest.spyOn(jabraNativeService, 'setMute').mockImplementationOnce(() => null);
-      jabraNativeService._getHeadsetIntoVanillaState();
+      jabraNativeService['_getHeadsetIntoVanillaState']();
       expect(jabraNativeService.setHold).toHaveBeenCalledWith(null, false);
     });
     it('should call setMute with false', () => {
       jest.spyOn(jabraNativeService, 'setHold').mockImplementationOnce(() => null);
       jest.spyOn(jabraNativeService, 'setMute').mockImplementationOnce(() => null);
-      jabraNativeService._getHeadsetIntoVanillaState();
+      jabraNativeService['_getHeadsetIntoVanillaState']();
       expect(jabraNativeService.setMute).toHaveBeenCalledWith(false);
     });
   });
@@ -260,127 +265,131 @@ describe('JabraNativeService', () => {
         value: true,
       };
 
-      jabraNativeService._sendCmd(JabraNativeCommands.Mute, true);
+      jabraNativeService['_sendCmd'](JabraNativeCommands.Mute, true);
 
       expect(mockLogger.debug).toHaveBeenCalledWith('Sending command to headset', expectedLogData);
     });
-    it('should call sendJabraEventToDesktop on the application service', () => {
+    it('should call sendJabraEventToDesktop', () => {
       jabraNativeService.activeDeviceId = testDevice1.deviceID;
-      jest.spyOn(applicationService.hostedContext, 'sendJabraEventToDesktop');
+      const spy = (window as any)._HostedContextFunctions.sendEventToDesktop;
       const cmd = JabraNativeCommands.Mute;
 
-      jabraNativeService._sendCmd(cmd, true);
+      jabraNativeService['_sendCmd'](cmd, true);
 
-      expect(applicationService.hostedContext.sendJabraEventToDesktop).toHaveBeenCalledTimes(1);
-      expect(applicationService.hostedContext.sendJabraEventToDesktop).toHaveBeenCalledWith(
-        jabraNativeService.activeDeviceId,
-        cmd,
-        true
-      );
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(
+        'jabraEvent', {
+          deviceID: jabraNativeService.activeDeviceId,
+          event: cmd,
+          value: true
+        });
     });
   });
 
   describe('setRinging', () => {
     it(`should call _sendCmd() with the received value and the '${JabraNativeCommands.Ring}' command`, () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
-      const value = Boolean(true);
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
+      const value = true;
 
-      jabraNativeService._setRinging(value);
+      jabraNativeService['_setRinging'](value);
 
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Ring, value);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Ring, value);
     });
     it('should set heasetState.ringing to the passed in value', () => {
       const value = true;
-      jabraNativeService._setRinging(value);
+      jabraNativeService['_setRinging'](value);
       expect(jabraNativeService.headsetState.ringing).toBe(value);
     });
   });
 
   describe('setMute', () => {
     it(`should call _sendCmd() with the '${JabraNativeCommands.Mute}' command and the passed in value`, async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       const value = false;
 
       await jabraNativeService.setMute(value);
 
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Mute, value);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Mute, value);
     });
   });
 
   describe('setHold', () => {
     it(`should call _sendCmd() with the '${JabraNativeCommands.Hold}' command and the passed in value`, async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       const value = false;
 
       await jabraNativeService.setHold(null, value);
 
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Hold, value);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Hold, value);
     });
   });
 
   describe('incomingCall', () => {
     it('should call _setRinging() with true', async () => {
-      jest.spyOn(jabraNativeService, '_setRinging');
+      const spy = jabraNativeService['_setRinging'] = jest.fn();
       await jabraNativeService.incomingCall();
-      expect(jabraNativeService._setRinging).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith(true);
     });
   });
 
   describe('answerCall', () => {
-    it('should set igrnoreNextOffhookEvent to true', async () => {
+    it('should set ignoreNextOffhookEvent to true', async () => {
       jabraNativeService.ignoreNextOffhookEvent = false;
+      jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.answerCall();
       expect(jabraNativeService.ignoreNextOffhookEvent).toBe(true);
     });
     it(`should call _sendCmd() with the '${JabraNativeCommands.Offhook}' command and true`, async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.answerCall();
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
     });
   });
 
   describe('outgoingCall', () => {
     it(`should call _sendCmd with the '${JabraNativeCommands.Offhook}' command and true`, async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.outgoingCall();
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
     });
   });
 
   describe('endCall', () => {
     it('should call _setRinging() with false', async () => {
-      jest.spyOn(jabraNativeService, '_setRinging');
+      jabraNativeService['_setRinging'] = jest.fn();
+      jabraNativeService['_sendCmd'] = jest.fn();
 
       await jabraNativeService.endCall(null, false);
 
-      expect(jabraNativeService._setRinging).toHaveBeenCalledTimes(1);
-      expect(jabraNativeService._setRinging).toHaveBeenCalledWith(false);
+      expect(jabraNativeService['_setRinging']).toHaveBeenCalledTimes(1);
+      expect(jabraNativeService['_setRinging']).toHaveBeenCalledWith(false);
     });
     it('should do nothing if hasOtherActiveCalls is true', async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.endCall(null, true);
-      expect(jabraNativeService._sendCmd).not.toHaveBeenCalledWith(
+      expect(sendCmdSpy).not.toHaveBeenCalledWith(
         JabraNativeCommands.Offhook,
         false
       );
     });
     it(`should call _sendCmd with the '${JabraNativeCommands.Offhook}' command and false when hasOtherActiveCalls is false`, async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.endCall(null, false);
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Offhook, false);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, false);
     });
   });
 
   describe('endAllCalls', () => {
     it('should call _setRinging() with false', async () => {
-      jest.spyOn(jabraNativeService, '_setRinging');
+      jabraNativeService['_setRinging'] = jest.fn();
+      jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.endAllCalls();
-      expect(jabraNativeService._setRinging).toHaveBeenCalledWith(false);
+      expect(jabraNativeService['_setRinging']).toHaveBeenCalledWith(false);
     });
     it(`should call _sendCmd with the '${JabraNativeCommands.Offhook} command and false`, async () => {
-      jest.spyOn(jabraNativeService, '_sendCmd');
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       await jabraNativeService.endAllCalls();
-      expect(jabraNativeService._sendCmd).toHaveBeenCalledWith(JabraNativeCommands.Offhook, false);
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, false);
     });
   });
 
@@ -390,7 +399,7 @@ describe('JabraNativeService', () => {
         'should log an error and call disconnect() when it cannot connect to jabra',
         async () => {
           jest
-            .spyOn(applicationService.hostedContext, 'requestJabraDevices')
+            .spyOn(utils, 'requestCefPromise')
             .mockRejectedValue('expected test error');
           jest.spyOn(mockLogger, 'error');
           jest.spyOn(jabraNativeService, 'disconnect');
@@ -416,10 +425,11 @@ describe('JabraNativeService', () => {
 
       it('should set isConnecting to false and isConnected to true', async () => {
         jest
-          .spyOn(applicationService.hostedContext, 'requestJabraDevices')
+          .spyOn(utils, 'requestCefPromise')
           .mockResolvedValue(devices);
         jabraNativeService.isConnecting = true;
         jabraNativeService.isConnected = false;
+        jabraNativeService['_sendCmd'] = jest.fn();
 
         await jabraNativeService.updateDevices();
 
@@ -429,7 +439,7 @@ describe('JabraNativeService', () => {
       it('should reset the devices property and set activeDeviceId to null when the received data is null', async () => {
         populateDevices(jabraNativeService);
         jabraNativeService.activeDeviceId = testDevice1.deviceID;
-        jest.spyOn(applicationService.hostedContext, 'requestJabraDevices').mockResolvedValue(null);
+        jest.spyOn(utils, 'requestCefPromise').mockResolvedValue(null);
 
         await jabraNativeService.updateDevices();
 
@@ -439,17 +449,17 @@ describe('JabraNativeService', () => {
       it('should reset the devices property and set activeDeviceId to null when the received data is an empty array', async () => {
         populateDevices(jabraNativeService);
         jabraNativeService.activeDeviceId = testDevice1.deviceID;
-        jest.spyOn(applicationService.hostedContext, 'requestJabraDevices').mockResolvedValue([]);
+        jest.spyOn(utils, 'requestCefPromise').mockResolvedValue([]);
 
         await jabraNativeService.updateDevices();
 
         expect(jabraNativeService.devices.size).toBe(0);
         expect(jabraNativeService.activeDeviceId).toBeNull();
       });
-      it('should log a message with the data received from applicationService.hostedContext.requestJabraDevices()', async () => {
+      it('should log a message with the data received from utils.requestJabraDevices()', async () => {
         jest.spyOn(mockLogger, 'info');
         jest
-          .spyOn(applicationService.hostedContext, 'requestJabraDevices')
+          .spyOn(utils, 'requestCefPromise')
           .mockResolvedValue(devices);
 
         await jabraNativeService.updateDevices();
@@ -458,7 +468,7 @@ describe('JabraNativeService', () => {
       });
       it('should put the devices from the respose into the devices property and set the activeDeviceId to the first', async () => {
         jest
-          .spyOn(applicationService.hostedContext, 'requestJabraDevices')
+          .spyOn(utils, 'requestCefPromise')
           .mockResolvedValue(devices);
         jabraNativeService.activeDeviceId = 'foo';
         jabraNativeService.devices = new Map();
@@ -470,14 +480,14 @@ describe('JabraNativeService', () => {
       });
       it('should call _setRinging(false) and setMute(false)', async () => {
         jest
-          .spyOn(applicationService.hostedContext, 'requestJabraDevices')
+          .spyOn(utils, 'requestCefPromise')
           .mockResolvedValue(devices);
-        jest.spyOn(jabraNativeService, '_setRinging');
+        jabraNativeService['_setRinging'] = jest.fn();
         jest.spyOn(jabraNativeService, 'setMute');
 
         await jabraNativeService.updateDevices();
 
-        expect(jabraNativeService._setRinging).toHaveBeenCalledWith(false);
+        expect(jabraNativeService['_setRinging']).toHaveBeenCalledWith(false);
         expect(jabraNativeService.setMute).toHaveBeenCalledWith(false);
       });
     });
@@ -487,40 +497,40 @@ describe('JabraNativeService', () => {
     describe(`${JabraNativeEventNames.OffHook}`, () => {
       it('should debounce a call to _handleOffhookEvent', () => {
         jest.useFakeTimers();
-        jest.spyOn(jabraNativeService, '_handleOffhookEvent');
+        jabraNativeService['_handleOffhookEvent'] = jest.fn();
 
-        jabraNativeService._processEvent(JabraNativeEventNames.OffHook, true);
+        jabraNativeService['_processEvent'](JabraNativeEventNames.OffHook, true);
         jest.runOnlyPendingTimers();
 
-        expect(jabraNativeService._handleOffhookEvent).toHaveBeenCalled();
+        expect(jabraNativeService['_handleOffhookEvent']).toHaveBeenCalled();
         jest.useRealTimers();
       });
     });
     describe(`${JabraNativeEventNames.RejectCall}`, () => {
       it('should should call deviceRejectedCall()', () => {
         jest.spyOn(jabraNativeService, 'deviceRejectedCall');
-        jabraNativeService._processEvent(JabraNativeEventNames.RejectCall, null);
+        jabraNativeService['_processEvent'](JabraNativeEventNames.RejectCall, null);
         expect(jabraNativeService.deviceRejectedCall).toHaveBeenCalledTimes(1);
       });
     });
     describe(`${JabraNativeEventNames.Mute}`, () => {
       it('should call _handleMuteEvent()', () => {
-        jest.spyOn(jabraNativeService, '_handleMuteEvent');
+        jabraNativeService['_handleMuteEvent'] = jest.fn();
         const value = false;
 
-        jabraNativeService._processEvent(JabraNativeEventNames.Mute, value);
+        jabraNativeService['_processEvent'](JabraNativeEventNames.Mute, value);
 
-        expect(jabraNativeService._handleMuteEvent).toHaveBeenCalledTimes(1);
-        expect(jabraNativeService._handleMuteEvent).toHaveBeenCalledWith(value);
+        expect(jabraNativeService['_handleMuteEvent']).toHaveBeenCalledTimes(1);
+        expect(jabraNativeService['_handleMuteEvent']).toHaveBeenCalledWith(value);
       });
     });
     describe(`${JabraNativeEventNames.Hold}`, () => {
       it('should call _handleHoldEvent()', () => {
-        jest.spyOn(jabraNativeService, '_handleHoldEvent');
+        jabraNativeService['_handleHoldEvent'] = jest.fn();
 
-        jabraNativeService._processEvent(JabraNativeEventNames.Hold, null);
+        jabraNativeService['_processEvent'](JabraNativeEventNames.Hold, null);
 
-        expect(jabraNativeService._handleHoldEvent).toHaveBeenCalledTimes(1);
+        expect(jabraNativeService['_handleHoldEvent']).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -535,17 +545,6 @@ describe('JabraNativeService', () => {
       expect(jabraNativeService.isConnected).toBe(false);
       expect(jabraNativeService.isConnecting).toBe(false);
     });
-    it('should call applicationService.hostedContext.off with the jabra event name, and the handler', () => {
-      jest.spyOn(applicationService.hostedContext, 'off').mockImplementationOnce(() => null);
-
-      jabraNativeService.disconnect();
-
-      expect(applicationService.hostedContext.off).toHaveBeenCalledTimes(1);
-      expect(applicationService.hostedContext.off).toHaveBeenCalledWith(
-        'JabraEvent',
-        jabraNativeService.handler
-      );
-    });
   });
 
   describe('connected', () => {
@@ -556,21 +555,6 @@ describe('JabraNativeService', () => {
       await jabraNativeService.connect();
 
       expect(jabraNativeService.isConnecting).toBe(true);
-    });
-    it('should set handlser on the hostedContext', async () => {
-      jest.spyOn(applicationService.hostedContext, 'on').mockImplementationOnce(() => null);
-
-      await jabraNativeService.connect();
-
-      expect(applicationService.hostedContext.on).toHaveBeenCalledTimes(2);
-      expect(applicationService.hostedContext.on).toHaveBeenCalledWith(
-        'JabraEvent',
-        jabraNativeService.handler
-      );
-      expect(applicationService.hostedContext.on).toHaveBeenCalledWith(
-        'JabraDeviceAttached',
-        jabraNativeService.deviceAttachedHandler
-      );
     });
     it('should log an error message when it failes to connect', async () => {
       jest.spyOn(mockLogger, 'error');

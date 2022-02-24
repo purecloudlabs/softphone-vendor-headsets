@@ -1,5 +1,5 @@
-import { VendorImplementation } from "../../react-app/src/library/services/vendor-implementations/vendor-implementation";
-import { EmittedHeadsetEvents } from "../../react-app/src/library/types/emitted-headset-events";
+import { VendorImplementation } from "./vendor-implementations/vendor-implementation";
+import { EmittedHeadsetEvents } from "../types/emitted-headset-events";
 
 export const mockWebSocket = {
   readyState: 0,
