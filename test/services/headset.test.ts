@@ -103,7 +103,6 @@ describe('HeadsetService', () => {
       jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
       jest.spyOn(application.hostedContext, 'isHosted').mockImplementation(() => true);
       headsetService = HeadsetService.getInstance(config);
-      // console.log(headsetService.implementations);
       const filteredImplementations = await headsetService.buildImplementationsArray().filter(
         i => i instanceof JabraNativeService
       );

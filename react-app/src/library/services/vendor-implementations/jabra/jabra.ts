@@ -302,8 +302,8 @@ export default class JabraService extends VendorImplementation {
         return new CallControlFactory(sdk);
     }
 
-    checkForCallLockError(message, type): boolean {
-        return (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock'));
+    checkForCallLockError(message: unknown, type: unknown): boolean {
+        return (type as ErrorType === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock'));
     }
 
     async disconnect(): Promise<void> {

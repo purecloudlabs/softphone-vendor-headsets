@@ -1,4 +1,3 @@
-// import { Observable, BehaviorSubject } from 'rxjs';
 import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
@@ -151,7 +150,6 @@ export default class HeadsetService {
   }
 
   private handleDeviceAnsweredCall(event: VendorEvent<EventInfo>): void {
-    console.log('event answered Call -> ', event);
     if (event.vendor !== this.selectedImplementation) {
       return;
     }
