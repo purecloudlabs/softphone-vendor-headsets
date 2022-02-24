@@ -71,10 +71,6 @@ export default class HeadsetService {
     return this._implementations;
   }
 
-  getHeadSetEventsSubject = (): Subject<ConsumedHeadsetEvents> => {
-    return this._headsetEvents$;
-  };
-
   private subscribeToHeadsetEvents (implementation: VendorImplementation) {
     implementation.on('deviceAnsweredCall', this.handleDeviceAnsweredCall.bind(this));
     implementation.on('deviceRejectedCall', this.handleDeviceRejectedCall.bind(this));
