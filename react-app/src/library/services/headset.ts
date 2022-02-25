@@ -7,7 +7,6 @@ import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabr
 import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
-import { isCefHosted } from '../utils';
 export default class HeadsetService {
   private static instance: HeadsetService;
 
@@ -32,7 +31,6 @@ export default class HeadsetService {
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
     [this.plantronics, this.jabra, this.jabraNative, this.sennheiser].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
-    // this.selectedImplementation = this.implementations[0]; // Using the first just because it's the first
     this.selectedImplementation = null;
   }
 
