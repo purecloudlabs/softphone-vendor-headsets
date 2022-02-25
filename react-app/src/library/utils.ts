@@ -43,3 +43,33 @@ export function debounce(func: () => void, delay: number): any {
     }, delay);
   };
 }
+
+export function isCefHosted (): boolean {
+  return !!(window as any)._HostedContextFunctions;
+}
+
+export function requestCefPromise (cmd: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      const sCmd = JSON.stringify(cmd);
+      (window as any).cefQuery({
+        request: sCmd,
+        persistent: false,
+        onSuccess: response => {
+          try {
+            const obj = JSON.parse(response);
+            resolve(obj);
+          } catch (e) {
+            resolve({});
+          }
+        },
+        onFailure: response => {
+          reject(response);
+        }
+      })
+    } catch (e) {
+      console.error('Error requesting desktop promise', e);
+      reject(e);
+    }
+  });
+}

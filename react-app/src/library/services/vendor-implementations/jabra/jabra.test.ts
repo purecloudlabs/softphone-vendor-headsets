@@ -1,5 +1,5 @@
-import JabraService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra'
-import DeviceInfo from '../../../../react-app/src/library/types/device-info';
+import JabraService from './jabra'
+import DeviceInfo from '../../../types/device-info';
 import { mockLogger } from '../../test-utils';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import {
@@ -101,7 +101,7 @@ describe('JabraService', () => {
     (window as any).BroadcastChannel = BroadcastChannel;
     beforeEach(async () => {
         jabraSdk = initializeSdk(subject);
-        jabraService = JabraService.getInstance({ logger: console });
+        jabraService = JabraService.getInstance({ logger: console, createNew: true });
         resetJabraService(jabraService);
     })
 
@@ -160,7 +160,6 @@ describe('JabraService', () => {
                     }
                 } as any
             );
-            const deviceConnectionStatusChangedSpy = jest.spyOn(jabraService, 'deviceConnectionStatusChanged');
             const testLabel = 'test label 123';
             jabraService.jabraSdk = jabraSdk;
             await jabraService.connect(testLabel);
@@ -170,7 +169,6 @@ describe('JabraService', () => {
             await flushPromises();
             expect(callControlFactorySpy).toHaveBeenCalled();
             expect(processEventsSpy).toHaveBeenCalledWith(callControl);
-            expect(deviceConnectionStatusChangedSpy).toHaveBeenCalledWith({isConnected: true, isConnecting: false});
             expect(jabraService.isConnected).toBe(true);
             expect(jabraService.isConnecting).toBe(false);
         })

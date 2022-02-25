@@ -1,14 +1,9 @@
-import { debounce, timedPromise } from '../../../../utils';
+import { debounce, isCefHosted, requestCefPromise, timedPromise } from '../../../../utils';
 import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
 import DeviceInfo from '../../../../types/device-info';
 import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
-import { JabraNativeEvent } from './jabra-native-event';
 import { JabraNativeCommands } from './jabra-native-commands';
-import ApplicationService from '../../../application';
-import { JabraNativeEventNames } from './jabra-native-events';
-
-const JabraEventName = 'JabraEvent';
-const JabraDeviceAttached = 'JabraDeviceAttached';
+import { JabraHeadsetEvent, JabraDeviceEvent, JabraNativeEventNames, HeadsetEvent, DeviceEvent } from './jabra-native-types';
 
 const connectTimeout = 5000;
 const offHookThrottleTime = 500;
@@ -16,33 +11,34 @@ const offHookThrottleTime = 500;
 export default class JabraNativeService extends VendorImplementation {
   private static instance: JabraNativeService;
 
-  applicationService: ApplicationService;
-
-  isConnecting = false;
-  isConnected = false;
   isActive = false;
   devices: Map<string, DeviceInfo> = null;
   activeDeviceId: string = null;
-  handler = this.handleJabraEvent.bind(this);
-  deviceAttachedHandler = this.handleJabraDeviceAttached.bind(this);
   headsetState: JabraNativeHeadsetState = null;
   ignoreNextOffhookEvent = false;
   _connectionInProgress: any; // { resolve: Function, reject: Function }
+  cefSupportsJabra = true;
 
   private constructor(config: ImplementationConfig) {
     super(config);
     this.vendorName = 'Jabra';
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
-    this.applicationService = ApplicationService.getInstance();
-  }
 
-  deviceLabelMatchesVendor(label: string): boolean {
-    return label.toLowerCase().includes('jabra');
+    // register CEF
+    const assetURL = window.location.origin + window.location.pathname;
+    const initData = {
+      assetURL,
+      callback: this.handleCefEvent.bind(this),
+      supportsTerminationRequest: true,
+      supportsUnifiedPreferences: true
+    };
+    const data = (window as any)._HostedContextFunctions?.register(initData);
+    this.cefSupportsJabra = data?.supportsJabra;
   }
 
   static getInstance(config: ImplementationConfig): JabraNativeService {
-    if (!JabraNativeService.instance) {
+    if (!JabraNativeService.instance || config.createNew) {
       JabraNativeService.instance = new JabraNativeService(config);
     }
 
@@ -69,17 +65,37 @@ export default class JabraNativeService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  handleJabraDeviceAttached({ deviceName, deviceId, attached } : DeviceInfo): void {
-    this.logger.debug('handling jabra attach/detach event', { deviceName, deviceId, attached });
+  private isHeadsetEvent (event: any): event is JabraHeadsetEvent {
+    return event.msg === HeadsetEvent;
+  }
+
+  private isDeviceEvent (event: any): event is JabraDeviceEvent {
+    return event.msg === DeviceEvent;
+  }
+
+  private handleCefEvent(event: any): void {
+    if (!this.isConnected) {
+      return;
+    }
+
+    if (this.isDeviceEvent(event)) {
+      this.handleJabraDeviceAttached(event)
+    } else if (this.isHeadsetEvent(event)) {
+      this.handleJabraEvent(event);
+    }
+  }
+
+  private handleJabraDeviceAttached(event: JabraDeviceEvent): void {
+    this.logger.debug('handling jabra attach/detach event', event);
     this.updateDevices();
   }
 
-  handleJabraEvent({ eventName, value, hidInput }: JabraNativeEvent): void {
-    this.logger.debug('handling jabra event', { eventName, value, hidInput });
-    this._processEvent(eventName, value);
+  private handleJabraEvent(event: JabraHeadsetEvent): void {
+    this.logger.debug(`Jabra event received`, event);
+    this._processEvent(event.event, event.value);
   }
 
-  _handleOffhookEvent(isOffhook: boolean): void {
+  private _handleOffhookEvent(isOffhook: boolean): void {
     // if is incoming
     if (isOffhook) {
       if (this.headsetState.ringing) {
@@ -96,32 +112,48 @@ export default class JabraNativeService extends VendorImplementation {
     this.deviceEndedCall();
   }
 
-  _handleMuteEvent(isMuted: boolean): void {
+  private _handleMuteEvent(isMuted: boolean): void {
     // jabra requires you to echo the event back in acknowledgement
     this._sendCmd(JabraNativeCommands.Mute, isMuted);
     this.deviceMuteChanged(isMuted);
   }
 
-  _handleHoldEvent(isHeld: boolean): void {
+  private _handleHoldEvent(isHeld: boolean): void {
     // jabra requires you to echo the event back in acknowledgement
-    this._sendCmd(JabraNativeCommands.Hold, isHeld);
-    this.deviceHoldStatusChanged(isHeld);
+    this._sendCmd(JabraNativeCommands.Hold, !!isHeld);
+    this.deviceHoldStatusChanged(!!isHeld);
   }
 
-  _getHeadsetIntoVanillaState(): void {
+  private _getHeadsetIntoVanillaState(): void {
     this.setHold(null, false);
     this.setMute(false);
   }
 
-  _sendCmd(cmd: JabraNativeCommands, value: boolean): void {
+  private _sendCmd(cmd: JabraNativeCommands, value: boolean): void {
     const deviceId = this.activeDeviceId;
     this.logger.debug('Sending command to headset', { deviceId, cmd, value });
-    this.applicationService.hostedContext.sendJabraEventToDesktop(deviceId, cmd, value);
+
+    (window as any)._HostedContextFunctions.sendEventToDesktop(
+      'jabraEvent',
+      {
+        deviceID: deviceId,
+        event: cmd,
+        value
+      }
+    );
   }
 
-  _setRinging(value: boolean): void {
+  private _setRinging(value: boolean): void {
     this._sendCmd(JabraNativeCommands.Ring, value);
     this.headsetState.ringing = value;
+  }
+
+  isSupported (): boolean {
+    return isCefHosted() && this.cefSupportsJabra;
+  }
+
+  deviceLabelMatchesVendor(label: string): boolean {
+    return label.toLowerCase().includes('jabra');
   }
 
   setMute(value: boolean): Promise<void> {
@@ -168,43 +200,39 @@ export default class JabraNativeService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  updateDevices(): Promise<void> {
-    const context = this.applicationService.hostedContext;
+  async updateDevices(): Promise<void> {
+    try {
+      const data = (await requestCefPromise({ cmd: 'requestJabraDevices' })) as DeviceInfo[];
 
-    return context
-      .requestJabraDevices()
-      .then((data: DeviceInfo[]) => {
-        if (this._connectionInProgress) {
-          this._connectionInProgress.resolve();
-        }
+      if (this._connectionInProgress) {
+        this._connectionInProgress.resolve();
+      }
 
-        this.isConnecting = false;
-        this.isConnected = true;
+      this.changeConnectionStatus({ isConnected: true, isConnecting: false });
 
-        if (!data || !data.length) {
-          this.devices.clear();
-          this.activeDeviceId = null;
-
-          this.logger.error(new Error('No attached jabra devices'));
-          return;
-        }
-
-        this.logger.info('connected jabra devices', data);
+      if (!data || !data.length) {
         this.devices.clear();
-        data.forEach(device => this.devices.set(device.deviceID, device));
-        this.activeDeviceId = data[0].deviceID;
+        this.activeDeviceId = null;
 
-        // reset headset state
-        this._setRinging(false);
-        this.setMute(false);
-      })
-      .catch(err => {
-        this.logger.error('Failed to connect to jabra', err);
-        this.disconnect();
-      });
+        this.logger.error(new Error('No attached jabra devices'));
+        return;
+      }
+
+      this.logger.info('connected jabra devices', data);
+      this.devices.clear();
+      data.forEach(device => this.devices.set(device.deviceID, device));
+      this.activeDeviceId = data[0].deviceID;
+
+      // reset headset state
+      this._setRinging(false);
+      this.setMute(false);
+    } catch (err) {
+      this.logger.error('Failed to connect to jabra', err);
+      this.disconnect();
+    }
   }
 
-  _processEvent(eventName: any, value: any): void {
+  private _processEvent(eventName: any, value: any): void {
     switch (eventName) {
       case JabraNativeEventNames.OffHook:
         debounce(() => this._handleOffhookEvent(value), offHookThrottleTime)();
@@ -225,11 +253,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   connect(): Promise<void> {
-    this.isConnecting = true;
-
-    const context = this.applicationService.hostedContext;
-    context.on(JabraEventName, this.handler);
-    context.on(JabraDeviceAttached, this.deviceAttachedHandler);
+    this.changeConnectionStatus({ isConnected: false, isConnecting: true });
 
     return timedPromise(this.updateDevices(), connectTimeout).catch(err => {
       this.logger.error('Failed to connect to Jabra', err);
@@ -237,10 +261,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   disconnect(): Promise<void> {
-    this.applicationService.hostedContext.off(JabraEventName, this.handler);
-
-    this.isConnecting = false;
-    this.isConnected = false;
+    this.changeConnectionStatus({ isConnected: false, isConnecting: false });
 
     return Promise.resolve();
   }

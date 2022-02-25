@@ -9,6 +9,7 @@ type HeadsetEventName = keyof EmittedHeadsetEvents;
 export interface ImplementationConfig {
   logger: any;
   vendorName?: string;
+  createNew?: boolean; // this should only be used for testing
 }
 
 export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
@@ -37,6 +38,10 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
 
   get isDeviceAttached(): boolean {
     throw new Error(`${this.vendorName} - isDeviceAttatched getter not implemented`);
+  }
+
+  isSupported (): boolean {
+    return true;
   }
 
   abstract get deviceInfo (): DeviceInfo;
@@ -118,7 +123,9 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.emitEvent('deviceEventLogs', eventInfo);
   }
 
-  deviceConnectionStatusChanged(headsetState: {isConnected: boolean, isConnecting: boolean}): void {
+  changeConnectionStatus(headsetState: {isConnected: boolean, isConnecting: boolean}): void {
+    this.isConnected = headsetState.isConnected;
+    this.isConnecting = headsetState.isConnecting;
     this.emitEvent('deviceConnectionStatusChanged', { currentVendor: this, ...headsetState });
   }
   // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {

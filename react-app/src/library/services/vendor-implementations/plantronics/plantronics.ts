@@ -117,8 +117,7 @@ export default class PlantronicsService extends VendorImplementation {
         if (response.ok === false || response.Type_Name === 'Error') {
           if (response.status === 404) {
             if (isRetry) {
-              this.isConnected && this.deviceConnectionStatusChanged({ isConnected: false, isConnecting: this.isConnecting });
-              this.isConnected = false;
+              this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });
               this.disconnect();
               const error = new Error(
                 'Headset: Failed connection to middleware. Headset features unavailable.'
@@ -140,8 +139,7 @@ export default class PlantronicsService extends VendorImplementation {
           if (!plantronicsInstance) {
             return Promise.reject(new Error('Application destroyed.'));
           }
-          !this.isConnected && this.deviceConnectionStatusChanged({ isConnected: true, isConnecting: this.isConnecting });
-          this.isConnected = true;
+          !this.isConnected && this.changeConnectionStatus({ isConnected: true, isConnecting: this.isConnecting });
           return response;
         }
       })
@@ -237,8 +235,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   connect(): Promise<any> {
-    !this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: this.isConnected, isConnecting: true });
-    this.isConnecting = true;
+    !this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     this.pollForDeviceStatus();
     this.pollForCallEvents();
     return this._makeRequestTask(`/SessionManager/Register?name=${this.pluginName}`)
@@ -287,8 +284,7 @@ export default class PlantronicsService extends VendorImplementation {
         return this.logger.error('Unable to properly connect headset');
       })
       .finally(() => {
-        this.isConnecting && this.deviceConnectionStatusChanged({ isConnected: this.isConnected, isConnecting: false });
-        this.isConnecting = false;
+        this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
       });
   }
 
@@ -303,8 +299,7 @@ export default class PlantronicsService extends VendorImplementation {
     return promise.then(() => {
       this.clearTimeouts();
       this._deviceInfo = null;
-      this.isConnected && this.deviceConnectionStatusChanged({ isConnected: false, isConnecting: this.isConnecting });
-      this.isConnected = false;
+      this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });
       this.isActive = false;
     });
   }
