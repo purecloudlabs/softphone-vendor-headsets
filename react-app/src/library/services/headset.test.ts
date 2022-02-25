@@ -11,6 +11,8 @@ import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
 import { IApi, IDevice, init, RequestedBrowserTransport, webHidPairing } from '@gnaudio/jabra-js';
 import { BehaviorSubject } from 'rxjs';
+import { HeadsetEvents } from '../types/consumed-headset-events';
+import { WebHidPermissionRequest } from '..';
 
 jest.mock('broadcast-channel');
 
@@ -37,6 +39,7 @@ describe('HeadsetService', () => {
 
   beforeEach(() => {
     jabraSdk = initializeSdk(subject);
+    headsetService = HeadsetService.getInstance({ ...config, createNew: true });
     plantronics = PlantronicsService.getInstance({...config, vendorName: 'Plantronics'});
     sennheiser = SennheiserService.getInstance({...config, vendorName: 'Sennheiser'});
     jabraNative = JabraNativeService.getInstance({...config, vendorName: 'JabraNative'});
@@ -68,6 +71,12 @@ describe('HeadsetService', () => {
       expect(headsetService).not.toBeFalsy();
       expect(headsetService2).not.toBeFalsy();
       expect(headsetService).toBe(headsetService2);
+    });
+
+    it('should fallback to console logger', () => {
+      headsetService = HeadsetService.getInstance({ createNew: true, logger: null });
+
+      expect(headsetService['logger']).toBe(console);
     });
   });
 
@@ -435,6 +444,29 @@ describe('HeadsetService', () => {
     );
   });
 
+  describe('handleWebHidPermissionRequested', () => {
+    beforeEach(() => {
+      headsetService = HeadsetService.getInstance(config);
+    });
+
+    it(
+      'should send a headset event of type webHidPermissionRequested', (done) => {
+        headsetService.headsetEvents$.subscribe((event) => {
+          expect(event.event).toBe(HeadsetEvents.webHidPermissionRequested);
+          expect(event.payload).toStrictEqual(testEvent.body);
+          done();
+        });
+        const testEvent: VendorEvent<WebHidPermissionRequest> = {
+          vendor: {} as VendorImplementation,
+          body: {
+            callback: () => {}
+          }
+        };
+        headsetService['handleWebHidPermissionRequested'](testEvent);
+      }
+    );
+  });
+
   describe('triggerDeviceLogs', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
@@ -453,7 +485,7 @@ describe('HeadsetService', () => {
   describe('external mic change', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-    })
+    });
     it('should check a values label to determine which microphone is selected', () => {
       const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
       const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
@@ -478,6 +510,29 @@ describe('HeadsetService', () => {
 
       headsetService.activeMicChange('test test');
       expect(disconnectSpy).toHaveBeenCalled();
-    })
-  })
+    });
+  });
+
+  describe('retryConnection', () => {
+    beforeEach(() => {
+      headsetService = HeadsetService.getInstance(config);
+    });
+
+    it('should reject if not connected', async () => {
+      headsetService.selectedImplementation = null;
+
+      await expect(() => headsetService.retryConnection()).rejects.toThrow('No active headset');
+    });
+
+    it('should call connect', async () => {
+      const impl = {
+        connect: jest.fn().mockResolvedValue(null)
+      };
+    
+      headsetService.selectedImplementation = impl as any;
+      await headsetService.retryConnection();
+
+      expect(impl.connect).toHaveBeenCalled();
+    });
+  });
 });

@@ -800,6 +800,15 @@ describe('SennheiserService', () => {
       sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
       expect(sennheiserService.websocketConnected).toBe(false);
     });
+
+    it('should log error for unclean close', () => {
+      const spy = sennheiserService.logger.error = jest.fn();
+      const err = { code: 123, reason: 'something broke', wasClean: false };
+      sennheiserService.webSocketOnClose(err);
+      expect(sennheiserService.websocketConnected).toBe(false);
+      expect(spy).toHaveBeenCalledWith(err);
+    });
+
     it('should log an error message when err.wasClean is false', () => {
       jest.spyOn(mockLogger, 'error');
       const err = { code: 123, reason: 'something broke', wasClean: true };

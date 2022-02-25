@@ -7,6 +7,8 @@ import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabr
 import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
+import { WebHidPermissionRequest } from '..';
+import { HeadsetEvents } from '../types/consumed-headset-events';
 
 export default class HeadsetService {
   private static instance: HeadsetService;
@@ -25,7 +27,7 @@ export default class HeadsetService {
     this._headsetEvents$ = new Subject<ConsumedHeadsetEvents>();
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
-    this.logger = config?.logger || console;
+    this.logger = config.logger || console;
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
@@ -35,7 +37,7 @@ export default class HeadsetService {
   }
 
   static getInstance(config: ImplementationConfig): HeadsetService {
-    if (!HeadsetService.instance) {
+    if (!HeadsetService.instance || config.createNew) {
       HeadsetService.instance = new HeadsetService(config);
     }
 
@@ -54,17 +56,14 @@ export default class HeadsetService {
   }
 
   private subscribeToHeadsetEvents (implementation: VendorImplementation) {
-    implementation.on('deviceAnsweredCall', this.handleDeviceAnsweredCall.bind(this));
-    implementation.on('deviceRejectedCall', this.handleDeviceRejectedCall.bind(this));
-    implementation.on('deviceEndedCall', this.handleDeviceEndedCall.bind(this));
-    implementation.on('deviceMuteChanged', this.handleDeviceMuteStatusChanged.bind(this));
-    implementation.on('deviceHoldStatusChanged', this.handleDeviceHoldStatusChanged.bind(this));
-    implementation.on('deviceEventLogs', this.handleDeviceLogs.bind(this));
-    implementation.on('deviceConnectionStatusChanged', this.handleDeviceConnectionStatusChanged.bind(this));
-    implementation.on('webHidPermissionRequested' as any, (payload: any) => {
-      this.logger.debug('Requesting Webhid Permissions');
-      this._headsetEvents$.next({ event: 'webHidPermissionRequested' as any, payload })
-    });
+    implementation.on(HeadsetEvents.deviceAnsweredCall, this.handleDeviceAnsweredCall.bind(this));
+    implementation.on(HeadsetEvents.deviceRejectedCall, this.handleDeviceRejectedCall.bind(this));
+    implementation.on(HeadsetEvents.deviceEndedCall, this.handleDeviceEndedCall.bind(this));
+    implementation.on(HeadsetEvents.deviceMuteChanged, this.handleDeviceMuteStatusChanged.bind(this));
+    implementation.on(HeadsetEvents.deviceHoldStatusChanged, this.handleDeviceHoldStatusChanged.bind(this));
+    implementation.on(HeadsetEvents.deviceEventLogs, this.handleDeviceLogs.bind(this));
+    implementation.on(HeadsetEvents.deviceConnectionStatusChanged, this.handleDeviceConnectionStatusChanged.bind(this));
+    implementation.on(HeadsetEvents.webHidPermissionRequested, this.handleWebHidPermissionRequested.bind(this));
   }
 
   activeMicChange(newMicLabel: string): void {
@@ -171,6 +170,11 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'deviceConnectionStatusChanged', payload: { ...event.body }});
   }
 
+  private handleWebHidPermissionRequested(event: VendorEvent<WebHidPermissionRequest>): void {
+    this.logger.debug('Requesting Webhid Permissions');
+    this._headsetEvents$.next({ event: 'webHidPermissionRequested', payload: { ...event.body } })
+  }
+
   /* This function has no functional purpose in a real life example
    * It is here to help log all events in the call process at least for Plantronics
    */
@@ -179,7 +183,11 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...eventInfo.body }});
   }
 
-  retryConnection(): void {
-    this.selectedImplementation.connect();
+  retryConnection(): Promise<void> {
+    if (!this.selectedImplementation) {
+      return Promise.reject(new Error('No active headset implementation'));
+    }
+
+    return this.selectedImplementation.connect();
   }
 }

@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { VendorImplementation } from "./vendor-implementations/vendor-implementation";
 import { EmittedHeadsetEvents } from "../types/emitted-headset-events";
 

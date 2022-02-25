@@ -2,7 +2,7 @@ import JabraNativeService from './jabra-native';
 import DeviceInfo from '../../../../types/device-info';
 import { mockLogger } from '../../../test-utils';
 import { JabraNativeCommands } from './jabra-native-commands';
-import { HeadsetEvent, JabraDeviceEvent, JabraHeadsetEvent, JabraNativeEventNames } from './jabra-native-types';
+import { DeviceEvent, HeadsetEvent, JabraDeviceEvent, JabraHeadsetEvent, JabraNativeEventNames } from './jabra-native-types';
 import * as utils from '../../../../utils';
 
 const ASYNC_TIMEOUT = 1000;
@@ -59,6 +59,92 @@ describe('JabraNativeService', () => {
     it('should set the headsetState properties to false', () => {
       expect(jabraNativeService.headsetState.ringing).toBe(false);
       expect(jabraNativeService.headsetState.offHook).toBe(false);
+    });
+  });
+
+  describe('isSupported', () => {
+    it('should be supported', () => {
+      jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
+      jabraNativeService.cefSupportsJabra = true;
+
+      expect(jabraNativeService.isSupported()).toBeTruthy();
+    });
+
+    it('should not be supported if cef but doesnt support jabra' , () => {
+      jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
+      jabraNativeService.cefSupportsJabra = false;
+
+      expect(jabraNativeService.isSupported()).toBeFalsy();
+    });
+    
+    it('should not be supported if not cef' , () => {
+      jest.spyOn(utils, 'isCefHosted').mockReturnValue(false);
+      jabraNativeService.cefSupportsJabra = false;
+
+      expect(jabraNativeService.isSupported()).toBeFalsy();
+    });
+  });
+
+  describe('handleCefEvent', () => {
+    let deviceEventHandlerSpy: jest.Mock;
+    let jabraEventHandlerSpy: jest.Mock;
+
+    beforeEach(() => {
+      deviceEventHandlerSpy = jabraNativeService['handleJabraDeviceAttached'] = jest.fn();
+      jabraEventHandlerSpy = jabraNativeService['handleJabraEvent'] = jest.fn();
+    });
+
+    it('should call handleJabraDeviceAttached', () => {
+      jabraNativeService.isConnected = true;
+      const event = {
+        msg: DeviceEvent,
+        attached: true,
+        deviceId: 22,
+        deviceName: 'my new jabra headset'
+      }
+      jabraNativeService['handleCefEvent'](event);
+
+      expect(deviceEventHandlerSpy).toHaveBeenCalled();
+      expect(jabraEventHandlerSpy).not.toHaveBeenCalled();
+    });
+
+    it('should call handleJabraEvent', () => {
+      jabraNativeService.isConnected = true;
+      const event = {
+        msg: HeadsetEvent,
+        event: JabraNativeEventNames.Hold,
+        value: true,
+        hidInput: '22'
+      }
+      jabraNativeService['handleCefEvent'](event);
+
+      expect(deviceEventHandlerSpy).not.toHaveBeenCalled();
+      expect(jabraEventHandlerSpy).toHaveBeenCalled();
+    });
+
+    it('should do nothing if unkonwn event', () => {
+      jabraNativeService.isConnected = true;
+      const event = {
+        msg: 'some other event'
+      }
+      jabraNativeService['handleCefEvent'](event);
+
+      expect(deviceEventHandlerSpy).not.toHaveBeenCalled();
+      expect(jabraEventHandlerSpy).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if not connected', () => {
+      jabraNativeService.isConnected = false;
+      const event = {
+        msg: HeadsetEvent,
+        event: JabraNativeEventNames.Hold,
+        value: true,
+        hidInput: '22'
+      }
+      jabraNativeService['handleCefEvent'](event);
+
+      expect(deviceEventHandlerSpy).not.toHaveBeenCalled();
+      expect(jabraEventHandlerSpy).not.toHaveBeenCalled();
     });
   });
 

@@ -8,7 +8,7 @@ export interface EmittedHeadsetEvents {
   deviceMuteChanged: VendorEvent<MutedEventInfo>;
   deviceHoldStatusChanged: VendorEvent<HoldEventInfo>;
   deviceEventLogs: VendorEvent<any>;
-  webHidPermissionRequested: WebHidPermissionRequest
+  webHidPermissionRequested: VendorEvent<WebHidPermissionRequest>;
   deviceConnectionStatusChanged: VendorEvent<any>;
 }
 
