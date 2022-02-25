@@ -165,16 +165,16 @@ export default class JabraService extends VendorImplementation {
         if (callInfo) {
             try {
                 this.callLock = await this.callControl.takeCallLock();
+                if (this.callLock) {
+                    this.callControl.ring(true);
+                    return Promise.resolve();
+                }
             } catch ({message, type}) {
                 if (this.checkForCallLockError(message, type)) {
                     this.logger.info(message);
                     this.callControl.ring(true);
                 } else {
                     this.logger.error(type, message);
-                }
-            } finally {
-                if (this.callLock) {
-                    this.callControl.ring(true);
                 }
             }
         }
@@ -273,7 +273,7 @@ export default class JabraService extends VendorImplementation {
                         jabraSdk.deviceList
                             .pipe(
                                 first((devices: IDevice[]) => !!devices.length)
-                            ).subscribe(async (devices) => {
+                            ).subscribe((devices) => {
                                 clearTimeout(waiter);
                                 resolve(devices.find(findDevice));
                             });
@@ -306,8 +306,8 @@ export default class JabraService extends VendorImplementation {
         return new CallControlFactory(sdk);
     }
 
-    checkForCallLockError(message, type): boolean {
-        return (type === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock'));
+    checkForCallLockError(message: unknown, type: unknown): boolean {
+        return (type as ErrorType === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock'));
     }
 
     async disconnect(): Promise<void> {
