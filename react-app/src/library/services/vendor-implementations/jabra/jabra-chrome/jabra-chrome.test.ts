@@ -1,9 +1,9 @@
-import JabraChromeService from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import DeviceInfo from '../../../../react-app/src/library/types/device-info';
-import { mockLogger } from '../../test-utils';
-import { JabraChromeCommands } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-commands';
+import JabraChromeService from './jabra-chrome';
+import DeviceInfo from '../../../../types/device-info';
+import { mockLogger } from '../../../test-utils';
+import { JabraChromeCommands } from './jabra-chrome-commands';
 import { Subscription } from 'rxjs';
-import { JabraChromeRequestedEvents } from '../../../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome-requested-events';
+import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';
 
 const ASYNC_TIMEOUT = 1000;
 

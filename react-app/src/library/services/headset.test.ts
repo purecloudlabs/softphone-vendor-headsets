@@ -1,13 +1,12 @@
-import HeadsetService from '../../react-app/src/library/services/headset';
-import { VendorImplementation } from '../../react-app/src/library/services/vendor-implementations/vendor-implementation';
-import PlantronicsService from '../../react-app/src/library/services/vendor-implementations/plantronics/plantronics';
-import SennheiserService from '../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser';
-import JabraChromeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-chrome/jabra-chrome';
-import JabraNativeService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra-native/jabra-native';
-import { CallInfo } from '../../react-app/src/library/types/call-info';
-import ApplicationService from '../../react-app/src/library/services/application';
-import { EventInfo, VendorEvent } from '../../react-app/src/library/types/emitted-headset-events';
-import JabraService from '../../react-app/src/library/services/vendor-implementations/jabra/jabra';
+import HeadsetService from './headset';
+import { VendorImplementation } from './vendor-implementations/vendor-implementation';
+import PlantronicsService from './vendor-implementations/plantronics/plantronics';
+import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
+import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
+import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
+import { CallInfo } from '../types/call-info';
+import { EventInfo, VendorEvent } from '../types/emitted-headset-events';
+import JabraService from './vendor-implementations/jabra/jabra';
 import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
 import { IApi, IDevice, init, RequestedBrowserTransport, webHidPairing } from '@gnaudio/jabra-js';
@@ -32,14 +31,12 @@ describe('HeadsetService', () => {
   let jabraChrome: VendorImplementation;
   let jabra: VendorImplementation;
   let headsetService: HeadsetService;
-  let application: ApplicationService;
   let jabraSdk: Promise<IApi>;
   let config: any = { logger: console};
   const subject = new BehaviorSubject<IDevice[]>([]);
 
   beforeEach(() => {
     jabraSdk = initializeSdk(subject);
-    application = ApplicationService.getInstance();
     plantronics = PlantronicsService.getInstance({...config, vendorName: 'Plantronics'});
     sennheiser = SennheiserService.getInstance({...config, vendorName: 'Sennheiser'});
     jabraNative = JabraNativeService.getInstance({...config, vendorName: 'JabraNative'});
@@ -74,53 +71,22 @@ describe('HeadsetService', () => {
     });
   });
 
-  describe('initImplementations', () => {
-    it('should include an implementation for plantronics upon instantiation', () => {
+  describe('implementations', () => {
+    it ('should only include implementations that are supported', () => {
       headsetService = HeadsetService.getInstance(config);
-      const filteredImplementations = headsetService.buildImplementationsArray().filter(
-        i => i instanceof PlantronicsService
-      );
+      [headsetService['plantronics'], headsetService['sennheiser'], headsetService['jabra'], headsetService['jabraNative']]
+        .forEach((impl) => {
+          impl.isSupported = jest.fn().mockReturnValue(true);
+        });
 
-      expect(filteredImplementations.length).toEqual(1);
-      expect(filteredImplementations[0]).toBe(plantronics);
-    });
-    it('should include an implementation for sennheiser upon instantiation', () => {
-      headsetService = HeadsetService.getInstance(config);
-      const filteredImplementations = headsetService.buildImplementationsArray().filter(
-        i => i instanceof SennheiserService
-      );
+      headsetService['_implementations'] = [];
+      
+      expect(headsetService.implementations.length).toBe(4);
 
-      expect(filteredImplementations.length).toEqual(1);
-      expect(filteredImplementations[0]).toBe(sennheiser);
-    });
-    it('should return the same implementations if some already exist', () => {
-      headsetService = HeadsetService.getInstance(config);
-      const expectedArray = [jabra, plantronics, sennheiser];
-      expect(headsetService.buildImplementationsArray()).toStrictEqual(expectedArray);
-      Object.defineProperty(headsetService, '_implementations', { value: [undefined, undefined, undefined] });
-    });
-    it('should include an implementation for jabra-native upon instantiation if the application context is hosted and supports jabra', async () => {
-      jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
-      jest.spyOn(application.hostedContext, 'isHosted').mockImplementation(() => true);
-      headsetService = HeadsetService.getInstance(config);
-      const filteredImplementations = await headsetService.buildImplementationsArray().filter(
-        i => i instanceof JabraNativeService
-      );
+      [headsetService['jabra'], headsetService['jabraNative']].forEach((impl) => (impl.isSupported as jest.Mock).mockReturnValue(false));
+      headsetService['_implementations'] = [];
 
-      expect(filteredImplementations.length).toEqual(1);
-      expect(filteredImplementations[0]).toBe(jabraNative);
-      Object.defineProperty(headsetService, '_implementations', { value: [undefined, undefined, undefined] });
-    });
-    it('should not include any jabra implementations if jabra is not supported', () => {
-      jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => false);
-      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => true);
-      headsetService = HeadsetService.getInstance(config);
-
-      const filteredImplementations = headsetService.buildImplementationsArray().filter(
-        i => i instanceof JabraNativeService || i instanceof JabraChromeService || i instanceof JabraService
-      );
-
-      expect(filteredImplementations.length).toEqual(0);
+      expect(headsetService.implementations.length).toBe(2);
     });
   });
 
@@ -487,13 +453,13 @@ describe('HeadsetService', () => {
   describe('external mic change', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-      Object.defineProperty(headsetService, '_implementations', { value: [undefined, undefined, undefined] });
     })
     it('should check a values label to determine which microphone is selected', () => {
-      jest.spyOn(application.hostedContext, 'supportsJabra').mockImplementationOnce(() => true);
-      jest.spyOn(application.hostedContext, 'isHosted').mockImplementationOnce(() => false);
       const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
       const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
+      headsetService['jabra'].isSupported = jest.fn().mockReturnValue(true);
+      headsetService['plantronics'].isSupported = jest.fn().mockReturnValue(true);
+      headsetService['sennheiser'].isSupported = jest.fn().mockReturnValue(true);
 
       headsetService.activeMicChange('jabra');
       expect(changeImplementationSpy).toHaveBeenCalledWith(jabra, 'jabra');

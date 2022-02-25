@@ -4,10 +4,10 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
-import ApplicationService from './application';
 import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
+
 export default class HeadsetService {
   private static instance: HeadsetService;
 
@@ -15,31 +15,23 @@ export default class HeadsetService {
   jabraNative: VendorImplementation;
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
-  application: ApplicationService;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
 
   private _headsetEvents$: Subject<ConsumedHeadsetEvents>;
-  private _implementations: VendorImplementation[] = [];
   private logger: any;
 
   private constructor(config: ImplementationConfig) {
-    // super();
-    //TODO: Just a temporary typing for testing purposes
-    // this._headsetEvents$ = new BehaviorSubject<ConsumedHeadsetEvents>(null);
     this._headsetEvents$ = new Subject<ConsumedHeadsetEvents>();
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
-    this.application = ApplicationService.getInstance();
-    this.selectedImplementation = this.buildImplementationsArray()[0]; // Using the first just because it's the first
     this.logger = config?.logger || console;
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabraNative, this.sennheiser, this.jabra]
-      .forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance(config: ImplementationConfig): HeadsetService {
@@ -50,24 +42,15 @@ export default class HeadsetService {
     return HeadsetService.instance;
   }
 
-  buildImplementationsArray(): VendorImplementation[] {
-    if (this._implementations.find((implementation) => implementation)) {
-      return this._implementations;
-    }
+  get implementations(): VendorImplementation[] {
+    const implementations = [
+      this.sennheiser,
+      this.plantronics,
+      this.jabra,
+      this.jabraNative
+    ].filter((impl) => impl.isSupported());
 
-    const implementations: VendorImplementation[] = [];
-    if (this.application.hostedContext.supportsJabra()) {
-      implementations.push(
-        // this.application.hostedContext.isHosted() ? this.jabraNative : this.jabraChrome
-        this.application.hostedContext.isHosted() ? this.jabraNative : this.jabra
-        // this.jabra
-      );
-    }
-    implementations.push(this.plantronics);
-    implementations.push(this.sennheiser);
-
-    this._implementations = implementations;
-    return this._implementations;
+    return implementations;
   }
 
   private subscribeToHeadsetEvents (implementation: VendorImplementation) {
@@ -85,22 +68,12 @@ export default class HeadsetService {
   }
 
   activeMicChange(newMicLabel: string): void {
-    const implementation = this.buildImplementationsArray().find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
+    const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
     } else if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
     }
-  }
-
-  private performActionIfConnected(actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
-    const impl = this.selectedImplementation;
-    if(!impl || !impl.isConnected) {
-      this.logger.info(`Headset: No vendor headset connected [${actionName}]`);
-      return Promise.resolve();
-    }
-
-    return perform(impl);
   }
 
   async changeImplementation(implementation: VendorImplementation | null, deviceLabel: string): Promise<void> {
@@ -121,6 +94,17 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: 'implementationChanged', payload: implementation});
   }
 
+  private performActionIfConnected (actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
+    const impl = this.selectedImplementation;
+    if (!impl || !impl.isConnected) {
+      this.logger.info(`Headset: No vendor headset connected [${actionName}]`);
+      return Promise.resolve();
+    }
+
+    return perform(impl);
+  }
+
+  // possible options: conversationId, contactName
   incomingCall(callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     return this.performActionIfConnected('incomingCall', (implementation) => implementation.incomingCall(callInfo, hasOtherActiveCalls));
   }

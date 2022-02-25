@@ -1,26 +1,17 @@
-import SennheiserService from '../../../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser';
-import { SennheiserPayload } from '../../../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser-payload';
-import { SennheiserEvents } from '../../../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser-events';
-import { SennheiserEventTypes } from '../../../../react-app/src/library/services/vendor-implementations/sennheiser/sennheiser-event-types';
-import * as utils from '../../../../react-app/src/library/utils';
-import DeviceInfo from '../../../../react-app/src/library/types/device-info';
+import SennheiserService from './sennheiser';
+import { SennheiserPayload } from './sennheiser-payload';
+import { SennheiserEvents } from './sennheiser-events';
+import { SennheiserEventTypes } from './sennheiser-event-types';
+import * as utils from '../../../utils';
+import DeviceInfo from '../../../types/device-info';
 import { mockWebSocket, mockLogger } from '../../test-utils';
-import { CallInfo } from '../../../../react-app/src/library/types/call-info';
-
-function resetService() {
-  const sennheiserService = SennheiserService.getInstance({ logger: console });
-  sennheiserService.isConnecting = false;
-  sennheiserService.isConnected = false;
-  sennheiserService.isMuted = false;
-  sennheiserService.errorCode = null;
-  sennheiserService.disableRetry = false;
-}
+import { CallInfo } from '../../../types/call-info';
 
 describe('SennheiserService', () => {
   let sennheiserService: SennheiserService;
 
   beforeEach(() => {
-    resetService();
+    sennheiserService = SennheiserService.getInstance({ logger: console, createNew: true });
   });
 
   afterEach(() => {
@@ -415,7 +406,7 @@ describe('SennheiserService', () => {
       jest.spyOn(sennheiserService, '_handleAck');
       jest.spyOn(sennheiserService, '_handleError');
       jest.spyOn(sennheiserService, '_registerSoftphone');
-      jest.spyOn(sennheiserService, '_sendMessage');
+      sennheiserService._sendMessage = jest.fn();
       jest.spyOn(sennheiserService, 'deviceAnsweredCall');
       jest.spyOn(sennheiserService, 'deviceEndedCall');
       jest.spyOn(sennheiserService, 'deviceHoldStatusChanged');
