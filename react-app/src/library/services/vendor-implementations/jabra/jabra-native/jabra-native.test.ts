@@ -1,6 +1,6 @@
 import JabraNativeService from './jabra-native';
 import DeviceInfo from '../../../../types/device-info';
-import { mockLogger } from '../../../test-utils';
+import { mockLogger } from '../../../../test-utils.test';
 import { JabraNativeCommands } from './jabra-native-commands';
 import { DeviceEvent, HeadsetEvent, JabraDeviceEvent, JabraHeadsetEvent, JabraNativeEventNames } from './jabra-native-types';
 import * as utils from '../../../../utils';

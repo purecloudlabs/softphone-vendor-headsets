@@ -4,7 +4,7 @@ import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
 import * as utils from '../../../utils';
 import DeviceInfo from '../../../types/device-info';
-import { mockWebSocket, mockLogger } from '../../test-utils';
+import { mockWebSocket, mockLogger } from '../../../test-utils.test';
 import { CallInfo } from '../../../types/call-info';
 
 describe('SennheiserService', () => {

@@ -1,6 +1,5 @@
 import JabraService from './jabra'
 import DeviceInfo from '../../../types/device-info';
-import { mockLogger } from '../../test-utils';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import {
     CallControlFactory,
@@ -17,6 +16,7 @@ import {
 } from '@gnaudio/jabra-js';
 import { BroadcastChannel } from 'broadcast-channel';
 import 'regenerator-runtime';
+import { mockLogger } from '../../../test-utils.test';
 
 jest.mock('broadcast-channel');
 const flushPromises = () => Promise.resolve();
