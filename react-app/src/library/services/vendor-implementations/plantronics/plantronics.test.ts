@@ -1,3 +1,4 @@
+// import fetchJsonp from 'fetch-jsonp';
 import "whatwg-fetch";
 import responses from './plantronics-test-responses';
 import 'regenerator-runtime';
@@ -8,7 +9,15 @@ import DeviceInfo from "../../../types/device-info";
 import PlantronicsService from "./plantronics";
 import { PlantronicsCallEvents } from "./plantronics-call-events";
 
+const fetchJsonp = require('fetch-jsonp');
+
 jest.mock('broadcast-channel');
+// jest.mock('fetch-jsonp', () => () => jest.fn());
+jest.mock('fetch-jsonp', () => {
+  return{
+    fetchJsonp: jest.fn()
+  }
+});
 
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
 
@@ -709,6 +718,31 @@ describe('PlantronicsService', () => {
       } catch (err) {
         expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, true);
       }
+    })
+  })
+  describe('disconnect function', () => {
+    it('calls makeRequestTask if the implementation is connected', () => {
+      plantronicsService.isConnected = true;
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask')
+      plantronicsService.disconnect();
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/SessionManager/UnRegister?name=${plantronicsService.pluginName}`);
+    })
+    it('sets the flags to the proper values after promise resolution', (done) => {
+      plantronicsService.isConnected = true;
+      const clearTimeoutsSpy = jest.spyOn(plantronicsService, 'clearTimeouts');
+      plantronicsService.disconnect().then(() => {
+        expect(plantronicsService.isConnected).toBe(false);
+        expect(plantronicsService._deviceInfo).toBeNull();
+        expect(clearTimeoutsSpy).toHaveBeenCalled();
+        expect(plantronicsService.isActive).toBe(false);
+        done();
+      });
+    })
+  })
+  describe('_fetch', () => {
+    it('should call the fetchJsonp function with the proper URL', () => {
+      plantronicsService._fetch('https://test.com');
+      expect(fetchJsonp.fetchJsonp).toHaveBeenCalledWith('https://test.com');
     })
   })
 });
