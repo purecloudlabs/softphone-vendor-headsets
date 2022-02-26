@@ -1,15 +1,29 @@
 import { VendorImplementation } from "../services/vendor-implementations/vendor-implementation";
 
+export enum HeadsetEvents {
+    implementationChanged = 'implementationChanged',
+    deviceHoldStatusChanged = 'deviceHoldStatusChanged',
+    deviceMuteStatusChanged = 'deviceMuteStatusChanged',
+    deviceAnsweredCall = 'deviceAnsweredCall',
+    deviceEndedCall = 'deviceEndedCall',
+    deviceRejectedCall = 'deviceRejectedCall',
+    loggableEvent = 'loggableEvent',
+    webHidPermissionRequested = 'webHidPermissionRequested',
+    deviceConnectionStatusChanged = 'deviceConnectionStatusChanged',
+    deviceMuteChanged = 'deviceMuteChanged',
+    deviceEventLogs = 'deviceEventLogs',
+}
+
 type Events = {
-    implementationChanged: VendorImplementation;
-    deviceHoldStatusChanged: EventInfo;
-    deviceMuteStatusChanged: EventInfo;
-    deviceAnsweredCall: EventInfo;
-    deviceEndedCall: EventInfo
-    deviceRejectedCall: RejectCallEventInfo;
-    loggableEvent: EventInfo;
-    'webHidPermissionRequested': { callback: any };
-    deviceConnectionStatusChanged: { currentVendor: VendorImplementation, isConnected: boolean, isConnecting: boolean};
+    [HeadsetEvents.implementationChanged]: VendorImplementation;
+    [HeadsetEvents.deviceHoldStatusChanged]: EventInfo;
+    [HeadsetEvents.deviceMuteStatusChanged]: EventInfo;
+    [HeadsetEvents.deviceAnsweredCall]: EventInfo;
+    [HeadsetEvents.deviceEndedCall]: EventInfo
+    [HeadsetEvents.deviceRejectedCall]: RejectCallEventInfo;
+    [HeadsetEvents.loggableEvent]: EventInfo;
+    [HeadsetEvents.webHidPermissionRequested]: { callback: any };
+    [HeadsetEvents.deviceConnectionStatusChanged]: { currentVendor: VendorImplementation, isConnected: boolean, isConnecting: boolean};
 }
 
 type EventInfo = {

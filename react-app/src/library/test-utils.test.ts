@@ -1,5 +1,8 @@
-import { VendorImplementation } from "./vendor-implementations/vendor-implementation";
-import { EmittedHeadsetEvents } from "../types/emitted-headset-events";
+/* istanbul ignore file */
+
+
+import { VendorImplementation } from "./services/vendor-implementations/vendor-implementation";
+import { EmittedHeadsetEvents } from "./types/emitted-headset-events";
 
 export const mockWebSocket = {
   readyState: 0,

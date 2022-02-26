@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import browserama from 'browserama';
 
 export function isFirefox(): boolean {

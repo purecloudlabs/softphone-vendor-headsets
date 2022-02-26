@@ -1,6 +1,6 @@
 import JabraChromeService from './jabra-chrome';
 import DeviceInfo from '../../../../types/device-info';
-import { mockLogger } from '../../../test-utils';
+import { mockLogger } from '../../../../test-utils.test';
 import { JabraChromeCommands } from './jabra-chrome-commands';
 import { Subscription } from 'rxjs';
 import { JabraChromeRequestedEvents } from './jabra-chrome-requested-events';

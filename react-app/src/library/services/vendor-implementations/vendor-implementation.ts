@@ -33,7 +33,6 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.config = config;
     this.vendorName = config.vendorName;
     this.logger = config.logger;
-    // this.externalSdk = config.externalSdk;
   }
 
   get isDeviceAttached(): boolean {
@@ -92,9 +91,8 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   private emitEvent(eventName: HeadsetEventName, eventBody: any) {
     this.emit(eventName, { vendor: this, body: {...eventBody } })
   }
-  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-  requestWebHidPermissions?(callback: any): void {
-  /* eslint-enable */
+
+  requestWebHidPermissions(callback: any): void {
     this.logger.debug('Emitting premission request event');
     this.emitEvent('webHidPermissionRequested', { callback });
   }
@@ -128,9 +126,5 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.isConnecting = headsetState.isConnecting;
     this.emitEvent('deviceConnectionStatusChanged', { currentVendor: this, ...headsetState });
   }
-  // defaultHeadsetChanged(deviceName: string, deviceInfo: any, deviceId: any): void {
-  //   // this.headsetService.triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId});
-  //   // HeadsetService.getInstance().triggerDefaultHeadsetChanged({deviceInfo, deviceName, deviceId})
-  // }
 }
 
