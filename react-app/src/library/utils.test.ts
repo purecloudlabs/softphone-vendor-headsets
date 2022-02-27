@@ -7,8 +7,8 @@ describe('utils', () => {
       const promiseResolutionDelay = 1000;
       const expectedRejection = `Timed out in ${timeout}ms`;
 
-      const passedInPromise = new Promise((resolve, reject) => {
-        let timeoutId = setTimeout(() => {
+      const passedInPromise = new Promise((resolve) => {
+        const timeoutId = setTimeout(() => {
           clearTimeout(timeoutId);
           resolve();
         }, promiseResolutionDelay);
@@ -28,8 +28,8 @@ describe('utils', () => {
       const promiseResolutionDelay = 100;
       const expectedResolution = 'success';
 
-      const passedInPromise = new Promise((resolve, reject) => {
-        let timeoutId = setTimeout(() => {
+      const passedInPromise = new Promise((resolve) => {
+        const timeoutId = setTimeout(() => {
           clearTimeout(timeoutId);
           resolve(expectedResolution);
         }, promiseResolutionDelay);

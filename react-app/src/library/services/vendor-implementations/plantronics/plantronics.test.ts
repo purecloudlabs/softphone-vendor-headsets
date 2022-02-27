@@ -167,8 +167,8 @@ describe('PlantronicsService', () => {
       expect(result).toBe(true);
     });
     it('should return false when device label does not contain the string "plt"', () => {
-      let testLabel = 'standard headset';
-      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      const testLabel = 'standard headset';
+      const result = plantronicsService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(false);
     })
     it('should return true when the device label contains the string "(047f:"', () => {

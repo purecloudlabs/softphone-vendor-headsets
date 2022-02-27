@@ -115,8 +115,8 @@ describe('JabraService', () => {
     let jabraService: JabraService;
     let jabraSdk: Promise<IApi>;
     const subject = new ReplaySubject<IDevice[]>(1);
-    const deviceSignalsSubject = new Subject<ICallControlSignal>();
-    const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+    // const deviceSignalsSubject = new Subject<ICallControlSignal>();
+    // const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
     Object.defineProperty(window.navigator, 'hid', { get: () => ({
         getDevices: () => { return [] }
     })});
@@ -816,7 +816,7 @@ describe('JabraService', () => {
             });
             const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
             const resetStateSpy = jest.spyOn(jabraService, 'resetState');
-            const jabraEndCalls = jabraService.endAllCalls();
+            jabraService.endAllCalls();
             expect(infoLoggerSpy).toHaveBeenCalledWith('Trying to release the call lock, but it is not held!')
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();

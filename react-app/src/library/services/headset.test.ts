@@ -2,48 +2,34 @@ import HeadsetService from './headset';
 import { VendorImplementation } from './vendor-implementations/vendor-implementation';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
-import JabraChromeService from './vendor-implementations/jabra/jabra-chrome/jabra-chrome';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorEvent } from '../types/emitted-headset-events';
 import JabraService from './vendor-implementations/jabra/jabra';
 import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
-import { IApi, IDevice, init, RequestedBrowserTransport, webHidPairing } from '@gnaudio/jabra-js';
-import { BehaviorSubject } from 'rxjs';
 import { HeadsetEvents } from '../types/consumed-headset-events';
 import { WebHidPermissionRequest } from '..';
 
 jest.mock('broadcast-channel');
 
-const initializeSdk = async (subject) => {
-  const sdk = await init({
-    appId: 'softphone-vendor-headsets-test',
-    appName: 'Softphone Headset Library Test',
-    transport: RequestedBrowserTransport.WEB_HID
-  });
-  sdk.deviceList = subject.asObservable() as any;
-  return sdk;
-}
-
 describe('HeadsetService', () => {
   let plantronics: VendorImplementation;
   let sennheiser: VendorImplementation;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   let jabraNative: VendorImplementation;
-  let jabraChrome: VendorImplementation;
   let jabra: VendorImplementation;
   let headsetService: HeadsetService;
-  let jabraSdk: Promise<IApi>;
-  let config: any = { logger: console};
-  const subject = new BehaviorSubject<IDevice[]>([]);
+  // let jabraSdk: Promise<IApi>;
+  const config: any = { logger: console};
 
   beforeEach(() => {
-    jabraSdk = initializeSdk(subject);
+    // jabraSdk = initializeSdk(subject);
     headsetService = HeadsetService.getInstance({ ...config, createNew: true });
     plantronics = PlantronicsService.getInstance({...config, vendorName: 'Plantronics'});
     sennheiser = SennheiserService.getInstance({...config, vendorName: 'Sennheiser'});
     jabraNative = JabraNativeService.getInstance({...config, vendorName: 'JabraNative'});
-    jabraChrome = JabraChromeService.getInstance({...config, vendorName: 'JabraChrome'});
+    /* eslint-enable */
     jabra = JabraService.getInstance({...config, vendorName: 'Jabra'});
 
     jest.spyOn(sennheiser, 'connect').mockResolvedValue(true);
@@ -56,8 +42,9 @@ describe('HeadsetService', () => {
     headsetService = null;
     plantronics = null;
     sennheiser = null;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     jabraNative = null;
-    jabraChrome = null;
+    /* eslint-enable */
     jabra = null;
     jest.resetAllMocks();
     jest.resetModules();
@@ -345,7 +332,7 @@ describe('HeadsetService', () => {
       headsetService = HeadsetService.getInstance(config);
     });
     it(
-      'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {;
+      'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {
         const result = headsetService['handleDeviceAnsweredCall']({vendor: {} as VendorImplementation, body: {name: 'AcceptCall', code: '1', event: {}}});
         expect(result).toBeUndefined();
       }
@@ -459,7 +446,7 @@ describe('HeadsetService', () => {
         const testEvent: VendorEvent<WebHidPermissionRequest> = {
           vendor: {} as VendorImplementation,
           body: {
-            callback: () => {}
+            callback: () => { return; }
           }
         };
         headsetService['handleWebHidPermissionRequested'](testEvent);
