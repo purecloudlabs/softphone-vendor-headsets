@@ -91,8 +91,9 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   private emitEvent(eventName: HeadsetEventName, eventBody: any) {
     this.emit(eventName, { vendor: this, body: {...eventBody } })
   }
-
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
   requestWebHidPermissions(callback: any): void {
+/* eslint-enable */
     this.logger.debug('Emitting premission request event');
     this.emitEvent('webHidPermissionRequested', { callback });
   }

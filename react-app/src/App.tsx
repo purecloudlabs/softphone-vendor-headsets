@@ -72,7 +72,7 @@ const App = () => {
       }
 
       if (value.event === 'webHidPermissionRequested') {
-        setWebHidRequestButton(<button onClick={ () => (value.payload as any).body.callback() }>Request WebHID Permissions</button>)
+        setWebHidRequestButton(<button onClick={ () => (value.payload as any).callback() }>Request WebHID Permissions</button>)
       }
     });
 
