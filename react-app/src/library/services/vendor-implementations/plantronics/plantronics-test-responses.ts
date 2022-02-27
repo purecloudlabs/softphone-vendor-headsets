@@ -82,7 +82,20 @@ const responses = {
                 Type: 1,
                 Type_Name: 'Error',
                 isError: true,
-            }
+            },
+
+            unknownEvent: {
+                Description: 'Call Manager State',
+                Result: [{
+                    CallOnHold: 0,
+                    Calls: '',
+                    HasActiveCall: false,
+                    Action: 473
+                }],
+                Type: 9,
+                Type_Name: 'CallManagerState',
+                isError: false
+            },
         },
 
         IncomingCall: {

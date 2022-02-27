@@ -166,7 +166,8 @@ export default class PlantronicsService extends VendorImplementation {
     if (!Array.isArray(result?.Result?.Calls)) {
       return [];
     }
-    return result?.Result?.Calls.filter(call => call.Source === this.pluginName);
+    return result.Result.Calls.filter(call => call.Source === this.pluginName);
+    // return result?.Result?.Calls.filter(call => call.Source === this.pluginName);
   }
 
   async getCallEvents(): Promise<any> {
