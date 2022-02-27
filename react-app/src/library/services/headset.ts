@@ -90,7 +90,7 @@ export default class HeadsetService {
       implementation.connect(deviceLabel);
     }
 
-    this._headsetEvents$.next({ event: 'implementationChanged', payload: implementation});
+    this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: implementation});
   }
 
   private performActionIfConnected (actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
@@ -138,7 +138,7 @@ export default class HeadsetService {
     }
 
     this.logger.info('Headset: device answered the call');
-    this._headsetEvents$.next({ event: 'deviceAnsweredCall', payload: { ...event.body }});
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceAnsweredCall, payload: { ...event.body }});
   }
 
   private handleDeviceRejectedCall(event: VendorConversationIdEvent): void {
@@ -147,32 +147,32 @@ export default class HeadsetService {
     }
 
     this.logger.info('Headset: device rejected the call');
-    this._headsetEvents$.next({ event: 'deviceRejectedCall', payload: { conversationId: event.body.conversationId }});
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceRejectedCall, payload: { conversationId: event.body.conversationId }});
   }
 
   private handleDeviceEndedCall(event: VendorEvent<EventInfo>): void {
     this.logger.info('Headset: device ended the call');
-    this._headsetEvents$.next({ event: 'deviceEndedCall', payload: { ...event.body } });
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceEndedCall, payload: { ...event.body } });
     // this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...event.body } });
   }
 
   private handleDeviceMuteStatusChanged(event: VendorEvent<MutedEventInfo>): void {
     this.logger.info('Headset: device mute status changed: ', event.body.isMuted);
-    this._headsetEvents$.next({ event: 'deviceMuteStatusChanged', payload: { ...event.body }});
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceMuteStatusChanged, payload: { ...event.body }});
   }
 
   private handleDeviceHoldStatusChanged(event: VendorEvent<HoldEventInfo>): void {
     this.logger.info('Headset: device hold status changed', event.body.holdRequested);
-    this._headsetEvents$.next({ event: 'deviceHoldStatusChanged', payload: { ...event.body }});
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceHoldStatusChanged, payload: { ...event.body }});
   }
 
   private handleDeviceConnectionStatusChanged(event: VendorEvent<any>): void {
-    this._headsetEvents$.next({ event: 'deviceConnectionStatusChanged', payload: { ...event.body }});
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceConnectionStatusChanged, payload: { ...event.body }});
   }
 
   private handleWebHidPermissionRequested(event: VendorEvent<WebHidPermissionRequest>): void {
     this.logger.debug('Requesting Webhid Permissions');
-    this._headsetEvents$.next({ event: 'webHidPermissionRequested', payload: { ...event.body } })
+    this._headsetEvents$.next({ event: HeadsetEvents.webHidPermissionRequested, payload: { ...event.body } })
   }
 
   /* This function has no functional purpose in a real life example
@@ -180,7 +180,7 @@ export default class HeadsetService {
    */
   // handleDeviceLogs(eventInfo: { vendor: VendorImplementation, body: { name: string, code: string, event: any }}): void {
   private handleDeviceLogs(eventInfo: VendorEvent<any>): void {
-    this._headsetEvents$.next({ event: 'loggableEvent', payload: { ...eventInfo.body }});
+    this._headsetEvents$.next({ event: HeadsetEvents.loggableEvent, payload: { ...eventInfo.body }});
   }
 
   retryConnection(): Promise<void> {
