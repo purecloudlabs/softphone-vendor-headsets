@@ -43,7 +43,8 @@ export default class PlantronicsService extends VendorImplementation {
 
   deviceLabelMatchesVendor(label: string): boolean {
     // includes vendor name or vendorId (chrome only)
-    return label.toLowerCase().includes('plantronics') || label.toLowerCase().includes('plt') || label.toLowerCase().includes('poly') || label.toLowerCase().includes('(047f:');
+    const lowerLabel = label.toLowerCase();
+    return ['plantronics', 'plt', 'poly', '(047f:'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
   static getInstance(config: ImplementationConfig): PlantronicsService {

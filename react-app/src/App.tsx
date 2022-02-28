@@ -37,7 +37,6 @@ const App = () => {
   useEffect(() => {
     console.info('subscribing to headset events');
     const sub = headset.headsetEvents$.subscribe(value => {
-      // TODO: headsetEvents$ probably shouldn't come from a behavior subject
       if (!value) {
         return;
       }

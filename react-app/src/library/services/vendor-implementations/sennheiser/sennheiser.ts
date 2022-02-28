@@ -33,7 +33,8 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   deviceLabelMatchesVendor(label: string): boolean {
-    return label.toLowerCase().includes('sennheiser') || label.toLowerCase().includes('senn') || label.toLowerCase().includes('epos');
+    const lowerLabel = label.toLowerCase();
+    return ['senn', 'epos'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
   get deviceName(): string {

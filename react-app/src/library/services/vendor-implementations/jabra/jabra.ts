@@ -51,7 +51,8 @@ export default class JabraService extends VendorImplementation {
     }
 
     deviceLabelMatchesVendor(label: string): boolean {
-        return label.toLowerCase().includes('jabra');
+        const lowerLabel = label.toLowerCase();
+        return ['jabra'].some(searchVal => lowerLabel.includes(searchVal))
     }
 
     static getInstance(config: ImplementationConfig): JabraService {
@@ -248,7 +249,7 @@ export default class JabraService extends VendorImplementation {
         }
     }
 
-    findDevice (device: IDevice, deviceLabel: string): boolean {
+    isDeviceInList (device: IDevice, deviceLabel: string): boolean {
         return deviceLabel.includes(device?.name?.toLowerCase());
     }
 
@@ -262,18 +263,16 @@ export default class JabraService extends VendorImplementation {
 
         const fetchDevicesTimeout = setTimeout(async () => {
             const devices = await firstValueFrom(jabraSdk.deviceList);
-            let selectedDevice = devices.find(device => this.findDevice(device, deviceLabel));
+            let selectedDevice = devices.find(device => this.isDeviceInList(device, deviceLabel));
             if (!selectedDevice) {
                 try {
                     selectedDevice = await new Promise((resolve, reject) => {
                         const waiter = setTimeout(reject, 30000);
                         this.requestWebHidPermissions(webHidPairing);
 
-                        //TODO: Touch up logic for edge case
-                        //TODO: Test new logic
                         jabraSdk.deviceList
                             .pipe(
-                                map((devices: IDevice[]) => devices.find(device => this.findDevice(device, deviceLabel))),
+                                map((devices: IDevice[]) => devices.find(device => this.isDeviceInList(device, deviceLabel))),
                                 filter(Boolean),
                                 first()
                             ).subscribe((device) => {

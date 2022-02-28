@@ -153,7 +153,8 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   deviceLabelMatchesVendor(label: string): boolean {
-    return label.toLowerCase().includes('jabra');
+    const lowerLabel = label.toLowerCase();
+    return ['jabra'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
   setMute(value: boolean): Promise<void> {

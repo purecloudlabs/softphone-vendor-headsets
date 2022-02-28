@@ -887,16 +887,16 @@ describe('JabraService', () => {
             expect(jabraService.isSupported()).toBe(false);
         })
     })
-    describe('findDevice', () => {
+    describe('isDeviceInList', () => {
         it('should return false if device is undefined', () => {
-            expect(jabraService.findDevice(undefined, 'Test Label 123')).toBe(false);
+            expect(jabraService.isDeviceInList(undefined, 'Test Label 123')).toBe(false);
         })
         it('should return false if name within device is undefined', () => {
             const testDevice = {
                 type: "Test",
                 id: '123'
             };
-            expect(jabraService.findDevice(testDevice as any, 'Test Label 123')).toBe(false);
+            expect(jabraService.isDeviceInList(testDevice as any, 'Test Label 123')).toBe(false);
         })
         it('should return true if all expected values are present and the label matches', () => {
             const testDevice = {
@@ -904,7 +904,7 @@ describe('JabraService', () => {
                 id: '123',
                 name: 'Test Label 123'
             };
-            expect(jabraService.findDevice(testDevice as any, 'test label 123')).toBe(true);
+            expect(jabraService.isDeviceInList(testDevice as any, 'test label 123')).toBe(true);
         })
     })
 })
