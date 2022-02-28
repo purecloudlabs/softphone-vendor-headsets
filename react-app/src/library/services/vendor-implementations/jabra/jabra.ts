@@ -15,13 +15,12 @@ import {
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
 import { Subscription, firstValueFrom } from "rxjs";
-import { first } from 'rxjs/operators';
+import { filter, first, map } from 'rxjs/operators';
 import { isCefHosted } from "../../../utils";
 
 export default class JabraService extends VendorImplementation {
     private static instance: JabraService;
     private headsetEventSubscription: Subscription;
-    private deviceListSubscription: Subscription;
     static connectTimeout = 5000;
 
     isActive = false;
@@ -249,33 +248,37 @@ export default class JabraService extends VendorImplementation {
         }
     }
 
+    findDevice (device: IDevice, deviceLabel: string): boolean {
+        return deviceLabel.includes(device?.name?.toLowerCase());
+    }
+
+
     async connect(deviceLabel: string): Promise<void> {
         if (!this.isConnecting) {
             this.changeConnectionStatus({isConnected: this.isConnected, isConnecting: true});
         }
         const jabraSdk = await this.jabraSdk;
         this.callControlFactory = this.createCallControlFactory(jabraSdk);
-        const findDevice = (device: IDevice) => {
-            return deviceLabel.includes(device?.name?.toLowerCase());
-        }
 
         const fetchDevicesTimeout = setTimeout(async () => {
             const devices = await firstValueFrom(jabraSdk.deviceList);
-
-            let selectedDevice = devices.find(findDevice);
-
+            let selectedDevice = devices.find(device => this.findDevice(device, deviceLabel));
             if (!selectedDevice) {
                 try {
                     selectedDevice = await new Promise((resolve, reject) => {
                         const waiter = setTimeout(reject, 30000);
                         this.requestWebHidPermissions(webHidPairing);
 
+                        //TODO: Touch up logic for edge case
+                        //TODO: Test new logic
                         jabraSdk.deviceList
                             .pipe(
-                                first((devices: IDevice[]) => !!devices.length)
-                            ).subscribe((devices) => {
+                                map((devices: IDevice[]) => devices.find(device => this.findDevice(device, deviceLabel))),
+                                filter(Boolean),
+                                first()
+                            ).subscribe((device) => {
                                 clearTimeout(waiter);
-                                resolve(devices.find(findDevice));
+                                resolve(device)
                             });
                     });
                 } catch (e) {
@@ -284,7 +287,6 @@ export default class JabraService extends VendorImplementation {
                     return;
                 }
             }
-
             this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
             this._processEvents(this.callControl);
             if (this.isConnecting && !this.isConnected) {
@@ -312,7 +314,6 @@ export default class JabraService extends VendorImplementation {
 
     async disconnect(): Promise<void> {
         this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
-        this.deviceListSubscription && this.deviceListSubscription.unsubscribe();
-        this.isConnected || this.isConnecting && this.changeConnectionStatus({isConnected: false, isConnecting: false});
+        (this.isConnected || this.isConnecting) && this.changeConnectionStatus({isConnected: false, isConnecting: false});
     }
 }

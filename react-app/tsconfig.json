@@ -2,9 +2,6 @@
   "include": [
     "./src/**/*.ts"
   ],
-  "exclude": [
-    "./test/**/*"
-  ],
   "compilerOptions": {
     "target": "es6",
     "module": "esnext",

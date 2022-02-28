@@ -1,12 +1,11 @@
 import JabraService from './jabra'
 import DeviceInfo from '../../../types/device-info';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, ReplaySubject } from 'rxjs';
 import {
     CallControlFactory,
     DeviceType,
     ErrorType,
     IApi,
-    ICallControl,
     ICallControlSignal,
     IConnection,
     IDevice,
@@ -19,7 +18,30 @@ import 'regenerator-runtime';
 import { mockLogger } from '../../../test-utils.test';
 
 jest.mock('broadcast-channel');
+
+const testDevice1: DeviceInfo = {
+    deviceName: 'Test Device 1',
+    ProductName: 'Super Headset',
+    headsetType: 'Wireless',
+};
+const testDevice2: DeviceInfo = {
+    deviceName: 'Test Device 2',
+    ProductName: 'Yellow Headset',
+    headsetType: 'Wired with buttons',
+};
+const testDevice3: DeviceInfo = {
+    deviceName: 'Test Device 3',
+    ProductName: 'Bluetooth Bannana',
+    headsetType: 'Looks like a fruit',
+};
+
 const flushPromises = () => Promise.resolve();
+
+function populateDevices(service: JabraService): void {
+    service.devices.set(testDevice1.deviceName, testDevice1);
+    service.devices.set(testDevice2.deviceName, testDevice2);
+    service.devices.set(testDevice3.deviceName, testDevice3);
+}
 
 const createMockCallControl = (deviceSignalsObservable: Observable<ICallControlSignal>) => {
     return {
@@ -81,6 +103,7 @@ const initializeSdk = async (subject) => {
 
 const resetJabraService = (service: JabraService) => {
     service.isConnecting = false;
+    service.isConnected = false;
     service.isActive = false;
     service.devices = new Map<string, DeviceInfo>();
     service.activeDeviceId = null;
@@ -91,9 +114,9 @@ const resetJabraService = (service: JabraService) => {
 describe('JabraService', () => {
     let jabraService: JabraService;
     let jabraSdk: Promise<IApi>;
-    const subject = new BehaviorSubject<IDevice[]>([]);
-    const deviceSignalsSubject = new Subject<ICallControlSignal>();
-    const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+    const subject = new ReplaySubject<IDevice[]>(1);
+    // const deviceSignalsSubject = new Subject<ICallControlSignal>();
+    // const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
     Object.defineProperty(window.navigator, 'hid', { get: () => ({
         getDevices: () => { return [] }
     })});
@@ -143,6 +166,7 @@ describe('JabraService', () => {
 
     describe('initial connection', () => {
         beforeEach(() => {
+            resetJabraService(jabraService);
             jest.useFakeTimers();
         });
         afterEach(() => {
@@ -172,32 +196,97 @@ describe('JabraService', () => {
             expect(jabraService.isConnected).toBe(true);
             expect(jabraService.isConnecting).toBe(false);
         })
-        // it('should set the proper values while trying to connect; failed to connect', async () => {
-        //     const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
-        //     const deviceSignalsSubject = new Subject<ICallControlSignal>();
-        //     const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
-        //     const callControlFactorySpy = jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue(
-        //         {
-        //             createCallControl: async () => {
-        //                 return callControl;
-        //             }
-        //         } as any
-        //     );
-        //     const deviceConnectionStatusChangedSpy = jest.spyOn(jabraService, 'deviceConnectionStatusChanged');
-        //     const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-        //     const requestWebHidPermissionsSpy = jest.spyOn(jabraService, 'requestWebHidPermissions');
-        //     const testLabel = 'test label 456';
-        //     jabraService.jabraSdk = jabraSdk;
-        //     await jabraService.connect(testLabel);
-        //     jest.runAllTimers();
-        //     await flushPromises();
-        //     jest.runOnlyPendingTimers();
-        //     await flushPromises();
-        //     expect(requestWebHidPermissionsSpy).toHaveBeenCalled();
-        //     expect(deviceConnectionStatusChangedSpy).toHaveBeenCalled();
-        //     expect(jabraService.isConnecting).toBe(false);
-        //     expect(errorLoggerSpy).toHaveBeenCalled();
-        // });
+        it('should set the proper values while trying to connect; failed to connect', async () => {
+            const deviceSignalsSubject = new Subject<ICallControlSignal>();
+            const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+            jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue(
+                {
+                    createCallControl: async () => {
+                        return callControl;
+                    }
+                } as any
+            );
+            const deviceConnectionStatusChangedSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
+            const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
+            const requestWebHidPermissionsSpy = jest.spyOn(jabraService, 'requestWebHidPermissions');
+            const testLabel = 'test label 456';
+            jabraService.jabraSdk = jabraSdk;
+            await jabraService.connect(testLabel);
+            jest.runAllTimers();
+            await flushPromises();
+            jest.runOnlyPendingTimers();
+            await flushPromises();
+            await flushPromises();
+            expect(requestWebHidPermissionsSpy).toHaveBeenCalled();
+            expect(deviceConnectionStatusChangedSpy).toHaveBeenCalled();
+            expect(jabraService.isConnecting).toBe(false);
+            expect(errorLoggerSpy).toHaveBeenCalled();
+        });
+        it('should set the proper values while trying to connect; failed initial connection, populated afterwards', async () => {
+            const testDevices = [
+                {
+                    id: 123 as any,
+                    name: 'Test Label 123',
+                    vendorId: 2830,
+                    productId: 3648,
+                    serialNumber: '123456789',
+                    currentConnections: [{
+                        hidChannel: {
+                            descriptor: [{
+                                reportSize: 1,
+                                reportType: 1,
+                                usage: 23,
+                                usagePage: 65344,
+                                valueType: "absolute"
+                            } as IHidUsage] as IHidUsage[],
+                        } as any,
+                        type: 2
+                    } as IConnection] as IConnection[],
+                    type: 255 as DeviceType,
+                    browserLabel: 'Test Label 123:3648',
+                } as IDevice,
+                {
+                    name: 'Definitely not this'
+                } as IDevice,
+                {
+                    id: 456 as any,
+                    name: 'Test Label 456'
+                } as IDevice
+            ] as IDevice[]
+            const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
+            const deviceSignalsSubject = new Subject<ICallControlSignal>();
+            const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+            jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue(
+                {
+                    createCallControl: async () => {
+                        return callControl;
+                    }
+                } as any
+            );
+            const deviceConnectionStatusChangedSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
+            const requestWebHidPermissionsSpy = jest.spyOn(jabraService, 'requestWebHidPermissions');
+            const testLabel = 'test label 456';
+            jabraService.jabraSdk = jabraSdk;
+            await jabraService.connect(testLabel);
+            jest.advanceTimersByTime(1800);
+            await flushPromises();
+            subject.next(testDevices);
+            await flushPromises();
+            await flushPromises();
+            // await flushPromises();
+            expect(requestWebHidPermissionsSpy).toHaveBeenCalled();
+            expect(processEventsSpy).toHaveBeenCalledWith(callControl);
+            expect(deviceConnectionStatusChangedSpy).toHaveBeenCalledWith({ isConnected:true, isConnecting: false });
+            expect(jabraService.isConnecting).toBe(false);
+            expect(jabraService.isConnected).toBe(true);
+        })
+        it('should have an instance of a CallControlFactory after calling the createCallControlFactory function', async () => {
+            const testLabel = 'test label 123';
+            jabraService.jabraSdk = jabraSdk;
+            await jabraService.connect(testLabel);
+            await flushPromises();
+            expect(jabraService.callControlFactory instanceof CallControlFactory).toBe(true);
+        })
     });
     describe('processEvents', () => {
         it('properly handles answer call events passed in from headset', async () => {
@@ -436,7 +525,7 @@ describe('JabraService', () => {
             const muteResult = jabraService.setMute(true);
             expect(jabraService.isMuted).toBe(false);
             expect(callControl.mute).not.toHaveBeenCalled();
-            expect(muteResult).resolves.toBe(null);
+            expect(muteResult).resolves.toBe(undefined);
         })
     })
     describe('setHold', () => {
@@ -465,15 +554,18 @@ describe('JabraService', () => {
             const holdResult = jabraService.setHold('123', true);
             expect(jabraService.isHeld).toBe(false);
             expect(callControl.hold).not.toHaveBeenCalled();
-            expect(holdResult).resolves.toBe(null);
+            expect(holdResult).resolves.toBe(undefined);
         })
     })
     describe('disconnect', () => {
         it('resets two connected flags after disconnecting', () => {
-            const jabraDisconnect = jabraService.disconnect();
+            jabraService.isConnected = true;
+            jabraService.isConnecting = true;
+            const headsetEventSubscriptionSpy = jest.spyOn(jabraService['headsetEventSubscription'], 'unsubscribe');
+            jabraService.disconnect();
+            expect(headsetEventSubscriptionSpy).toHaveBeenCalled();
             expect(jabraService.isConnecting).toBe(false);
             expect(jabraService.isConnected).toBe(false);
-            expect(jabraDisconnect).resolves.toReturn();
         })
 
     })
@@ -497,7 +589,7 @@ describe('JabraService', () => {
             jabraService.callControl = callControl as any;
             const answerCallResult = jabraService.answerCall();
             expect(callControl.offHook).not.toHaveBeenCalled();
-            expect(answerCallResult).resolves.toBe(null);
+            expect(answerCallResult).resolves.toBe(undefined);
         })
     })
     describe('incomingCall', () => {
@@ -724,7 +816,7 @@ describe('JabraService', () => {
             });
             const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
             const resetStateSpy = jest.spyOn(jabraService, 'resetState');
-            const jabraEndCalls = jabraService.endAllCalls();
+            jabraService.endAllCalls();
             expect(infoLoggerSpy).toHaveBeenCalledWith('Trying to release the call lock, but it is not held!')
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();
@@ -743,6 +835,76 @@ describe('JabraService', () => {
             const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
             jabraService.endAllCalls();
             expect(errorLoggerSpy).toHaveBeenCalledWith(ErrorType.UNEXPECTED_ERROR, 'Something much worse');
+        })
+    })
+    describe('deviceInfo', () => {
+        it('should return null if activeDeviceId is null', () => {
+            jabraService.devices.set(testDevice1.deviceName, testDevice1);
+            jabraService.activeDeviceId = null;
+            const result = jabraService.deviceInfo;
+            expect(result).toBeNull();
+        })
+        it('should return null if there are no devices registered', () => {
+            jabraService.activeDeviceId = 'foobar';
+            const result = jabraService.deviceInfo;
+            expect(result).toBeNull();
+        });
+        it('should return a device when it is registered and matches the activeDeviceId', () => {
+            jabraService.activeDeviceId = testDevice1.deviceName;
+            jabraService.devices.set(testDevice1.deviceName, testDevice1);
+            jabraService.devices.set(testDevice2.deviceName, testDevice2);
+
+            const result: DeviceInfo = jabraService.deviceInfo;
+
+            expect(result).toBe(testDevice1);
+        });
+    })
+    describe('deviceName', () => {
+        it('should return the deviceName of the active device', () => {
+            populateDevices(jabraService);
+            jabraService.activeDeviceId = testDevice1.deviceName;
+            expect(jabraService.deviceName).toEqual(testDevice1.deviceName);
+        });
+    });
+    describe('isDeviceAttached', () => {
+        it('should return true if the the device is in the devices list is the activeDeviceId', () => {
+            populateDevices(jabraService);
+            jabraService.activeDeviceId = testDevice1.deviceName;
+            expect(jabraService.isDeviceAttached).toEqual(true);
+        });
+        it('should return false if the the device is NOT in the devices list is the activeDeviceId', () => {
+            populateDevices(jabraService);
+            jabraService.activeDeviceId = 'Imaginary Device';
+            expect(jabraService.isDeviceAttached).toEqual(false);
+        });
+    });
+    describe('isSupported', () => {
+        it('should return true if proper values are met', () => {
+            expect(jabraService.isSupported()).toBe(true);
+        })
+        it('should return false if proper values are not met', () => {
+            Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
+            expect(jabraService.isSupported()).toBe(false);
+        })
+    })
+    describe('findDevice', () => {
+        it('should return false if device is undefined', () => {
+            expect(jabraService.findDevice(undefined, 'Test Label 123')).toBe(false);
+        })
+        it('should return false if name within device is undefined', () => {
+            const testDevice = {
+                type: "Test",
+                id: '123'
+            };
+            expect(jabraService.findDevice(testDevice as any, 'Test Label 123')).toBe(false);
+        })
+        it('should return true if all expected values are present and the label matches', () => {
+            const testDevice = {
+                type: "Test",
+                id: '123',
+                name: 'Test Label 123'
+            };
+            expect(jabraService.findDevice(testDevice as any, 'test label 123')).toBe(true);
         })
     })
 })

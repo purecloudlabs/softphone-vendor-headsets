@@ -1,3 +1,4 @@
+// import fetchJsonp from 'fetch-jsonp';
 import "whatwg-fetch";
 import responses from './plantronics-test-responses';
 import 'regenerator-runtime';
@@ -7,14 +8,18 @@ import { mockLogger, eventValidation } from "../../../test-utils.test";
 import DeviceInfo from "../../../types/device-info";
 import PlantronicsService from "./plantronics";
 import { PlantronicsCallEvents } from "./plantronics-call-events";
+import fetchJsonp from "fetch-jsonp";
 
 jest.mock('broadcast-channel');
+jest.mock('fetch-jsonp', () => jest.fn());
 
 const mockPlantronicsHost = 'http://localhost:3000/plantronics';
 
 const testDevice: DeviceInfo = {
   ProductName: 'testDevice1',
 };
+
+const originalFetchFunction = PlantronicsService.getInstance({ logger: console })._fetch;
 
 function resetService(plantronicsService: PlantronicsService) {
   plantronicsService.apiHost = mockPlantronicsHost
@@ -54,12 +59,10 @@ const queueCallEvents = function (scenario) {
   })
 }
 
-
 let callbackCount = 1;
 
 describe('PlantronicsService', () => {
   let plantronicsService: PlantronicsService;
-
   beforeEach(() => {
     plantronicsService = PlantronicsService.getInstance({ logger: console });
     plantronicsService._fetch = (url: string) => {
@@ -99,6 +102,11 @@ describe('PlantronicsService', () => {
       const result = plantronicsService.deviceName;
       expect(result).toEqual(testDevice.ProductName);
     });
+    it('should return undefined if _deviceInfo is undefined', () => {
+      plantronicsService._deviceInfo = undefined;
+      const result = plantronicsService.deviceName;
+      expect(result).toBeUndefined();
+    })
   });
 
   describe('apiHost', () => {
@@ -159,8 +167,8 @@ describe('PlantronicsService', () => {
       expect(result).toBe(true);
     });
     it('should return false when device label does not contain the string "plt"', () => {
-      let testLabel = 'standard headset';
-      let result = plantronicsService.deviceLabelMatchesVendor(testLabel);
+      const testLabel = 'standard headset';
+      const result = plantronicsService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(false);
     })
     it('should return true when the device label contains the string "(047f:"', () => {
@@ -609,6 +617,25 @@ describe('PlantronicsService', () => {
       await queueCallEvents([PlantronicsCallEvents.TerminateCall]);
       await deviceTerminated;
     });
+    it('should log an error if something goes wrong during _makeRequestTask', async () => {
+      plantronicsService.isConnected = true;
+      plantronicsService.isActive = true;
+      PlantronicsService['instance'] = null;
+      const loggerInfoSpy = jest.spyOn(plantronicsService.logger, 'info');
+      try {
+        plantronicsService.getCallEvents();
+      } catch (err) {
+        expect(loggerInfoSpy).toHaveBeenCalledWith('Error making request for all events', err);
+      }
+    })
+    it('should log a message if an unexpected event is received', async () => {
+      plantronicsService.isActive = true;
+      plantronicsService.isConnected = true;
+      const loggerInfoSpy = jest.spyOn(plantronicsService.logger, 'info');
+      jest.spyOn(plantronicsService, '_makeRequestTask').mockResolvedValueOnce(responses.CallServices.CallManagerState.unknownEvent)
+      await plantronicsService.getCallEvents();
+      expect(loggerInfoSpy).toHaveBeenCalledWith('Unknown call event from headset', { event: responses.CallServices.CallManagerState.unknownEvent.Result[0] });
+    })
   });
   describe('connect function', () => {
     it('handles all scenarios appropriately for Register endpoint', async () => {
@@ -657,6 +684,27 @@ describe('PlantronicsService', () => {
       await plantronicsService.connect();
       expect(plantronicsService.isActive).toBe(true);
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Currently active calls in the session');
+    });
+    it('logs an error message if we are unable to connect the headset', async () => {
+      const errorLoggerSpy = jest.spyOn(plantronicsService.logger, 'error');
+      const testIsActiveEvent = {
+        Description: 'Is Active',
+        Result: true,
+        Type: 2,
+        Type_Name: 'Bool',
+        isError: false
+      }
+      jest.spyOn(plantronicsService, '_makeRequestTask')
+        .mockResolvedValueOnce(responses.SessionManager.Register.default)
+        .mockResolvedValueOnce(testIsActiveEvent)
+        .mockRejectedValueOnce({ handled: true });
+      await plantronicsService.connect();
+      expect(errorLoggerSpy).toHaveBeenCalledWith('Unable to properly connect headset');
+    });
+    it('returns empty array if makeRequestTask resolves to undefined', async () => {
+      jest.spyOn(plantronicsService, '_makeRequestTask').mockResolvedValueOnce(undefined);
+      const getActiveCallsResult = await plantronicsService._getActiveCalls();
+      expect(getActiveCallsResult).toStrictEqual([]);
     });
   })
   describe('_makeRequest function', () => {
@@ -709,6 +757,73 @@ describe('PlantronicsService', () => {
       } catch (err) {
         expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, true);
       }
+    })
+    it('handles browersama.isFirefox true error case', async () => {
+      plantronicsService.isConnected = true;
+      plantronicsService.isActive = true;
+      const isActiveResponseWithStatus = {
+        ...responses.SessionManager.IsActive.default,
+        status: 418,
+        'Type_Name': 'Error'
+      };
+
+      await sendScenario({
+        '/SessionManager/IsActive*': {
+          responses: [isActiveResponseWithStatus]
+        }
+      });
+
+      try {
+      await plantronicsService._makeRequest(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, false);
+    } catch (err) {
+        expect(plantronicsService.errorCode).toBe('browser');
+        expect(plantronicsService.disableRetry).toBe(true);
+      }
+    })
+    it('handles successful return but no plantronics instance', async () => {
+      plantronicsService.isConnected = true;
+      plantronicsService.isActive = true;
+      PlantronicsService['instance'] = null;
+
+      await sendScenario({
+        '/SessionManager/IsActive*': {
+          responses: [responses.SessionManager.IsActive.default]
+        }
+      });
+
+      const noInstanceError = new Error('Application destroyed.');
+      try {
+        await plantronicsService._makeRequest(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, false);
+      } catch (err) {
+        expect(err).toStrictEqual(noInstanceError)
+      }
+    })
+  })
+  describe('disconnect function', () => {
+    it('calls makeRequestTask if the implementation is connected', () => {
+      plantronicsService.isConnected = true;
+      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask')
+      plantronicsService.disconnect();
+      expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/SessionManager/UnRegister?name=${plantronicsService.pluginName}`);
+    })
+    it('sets the flags to the proper values after promise resolution', (done) => {
+      plantronicsService.isConnected = true;
+      const clearTimeoutsSpy = jest.spyOn(plantronicsService, 'clearTimeouts');
+      plantronicsService.disconnect().then(() => {
+        expect(plantronicsService.isConnected).toBe(false);
+        expect(plantronicsService._deviceInfo).toBeNull();
+        expect(clearTimeoutsSpy).toHaveBeenCalled();
+        expect(plantronicsService.isActive).toBe(false);
+        done();
+      });
+    })
+  })
+  describe('_fetch', () => {
+    it('should call the fetchJsonp function with the proper URL', () => {
+      plantronicsService._fetch = originalFetchFunction;
+      console.log(plantronicsService._fetch('/test'));
+      plantronicsService._fetch('/test')
+      expect(fetchJsonp).toHaveBeenCalledWith('/test');
     })
   })
 });

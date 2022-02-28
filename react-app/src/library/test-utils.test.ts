@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-
+/* eslint-disable */
 
 import { VendorImplementation } from "./services/vendor-implementations/vendor-implementation";
 import { EmittedHeadsetEvents } from "./types/emitted-headset-events";
@@ -40,3 +40,4 @@ export function eventValidation (headsetService: VendorImplementation, eventName
     headsetService.on(eventName, handler);
   });
 }
+/* eslint-enable */

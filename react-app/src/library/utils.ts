@@ -50,7 +50,9 @@ export function isCefHosted (): boolean {
   return !!(window as any)._HostedContextFunctions;
 }
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export function requestCefPromise (cmd: any): Promise<any> {
+/* eslint-enable */
   return new Promise((resolve, reject) => {
     try {
       const sCmd = JSON.stringify(cmd);
