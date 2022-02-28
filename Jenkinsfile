@@ -8,7 +8,7 @@ webappPipeline {
     projectName = 'vendor-headsets'
     manifest = directoryManifest('dist')
     buildType = { (env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('release/')) ? 'MAINLINE' : 'FEATURE' }
-    publishPackage = { 'prod' }
+    publishPackage = { 'dev' }
     testJob = null
 
     buildStep = {
