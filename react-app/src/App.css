@@ -1,0 +1,104 @@
+.section {
+  margin: 25px 0;
+}
+
+* {
+  font-family: 'Roboto', sans-serif;
+  box-sizing: border-box;
+  color: #0a0a0a;
+}
+
+/* .primary-intro, h1 {
+  text-align: center;
+} */
+
+/* .intro {
+  padding: 20px;
+} */
+
+body > div {
+  display: flex;
+  flex-direction: column;
+}
+
+body > div > * {
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  align-items: start;
+}
+
+/* h1 {
+  position: fixed;
+  margin: 0;
+  padding: 20px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  color: white;
+  font-weight: 100;
+} */
+
+.entry-row {
+  margin: 0 5px 10px 6px;
+}
+
+.entry-row, a {
+  margin-right: 10px;
+}
+
+.entry-values {
+  padding: 0 0 0 15px;
+}
+
+.entry-value {
+  padding: 0 0 10px 0;
+}
+
+button {
+  border: 2px solid #623f5c;
+  padding: 5px;
+  border-radius: 3px;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea {
+  min-height: 200px;
+}
+
+#microphone-select {
+  margin-left: 5px;
+}
+
+#audioVisualizer {
+  margin-left: 10px;
+}
+
+button {
+  margin-right: 5px;
+}
+
+.pc {
+  display: inline-block;
+  font-family: "Ionicons";
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+.pc-reload {
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+}

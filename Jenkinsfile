@@ -1,25 +1,21 @@
 // this will need to be pipeline-library@master when the pr merges
-@Library('pipeline-library') _
+@Library('pipeline-library@ui-pipeline-legacy') _
 
 webappPipeline {
     slaveLabel = 'dev_v2'
     nodeVersion = '14.17.5'
     useArtifactoryRepo = false
     projectName = 'vendor-headsets'
-    manifest = customManifest('dist') {
-        sh('node ./create-manifest.js')
-        readJSON(file: 'dist/manifest.json')
-    }
+    manifest = directoryManifest('dist')
     buildType = { (env.BRANCH_NAME == 'master' || env.BRANCH_NAME.startsWith('release/')) ? 'MAINLINE' : 'FEATURE' }
-    publishPackage = { 'prod' }
+    publishPackage = { 'dev' }
     testJob = null
 
     buildStep = {
         sh('''
-            export CDN_URL="$(npx cdn --ecosystem pc --name $APP_NAME --build $BUILD_ID --version $VERSION)"
-            echo "CDN_URL $CDN_URL"
-            npm ci && npm run lint && npm test && npm run build
-            cd demo-app && npm ci && npm run build
+            export CDN_URL="$(npx cdn --ecosystem pc --name \$APP_NAME --build \$BUILD_ID --version \$VERSION)"
+            echo "CDN_URL: \$CDN_URL"
+            npm run install:all && npm run compile:module && npm run build && npm run lint && npm run test:coverage
         ''')
     }
 
