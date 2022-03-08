@@ -508,18 +508,18 @@ describe('HeadsetService', () => {
     it('should reject if not connected', async () => {
       headsetService.selectedImplementation = null;
 
-      await expect(() => headsetService.retryConnection()).rejects.toThrow('No active headset');
+      await expect(() => headsetService.retryConnection('Test Headset')).rejects.toThrow('No active headset');
     });
 
     it('should call connect', async () => {
       const impl = {
         connect: jest.fn().mockResolvedValue(null)
       };
-    
-      headsetService.selectedImplementation = impl as any;
-      await headsetService.retryConnection();
 
-      expect(impl.connect).toHaveBeenCalled();
+      headsetService.selectedImplementation = impl as any;
+      await headsetService.retryConnection('Test Headset');
+
+      expect(impl.connect).toHaveBeenCalledWith('Test Headset');
     });
   });
 });
