@@ -508,7 +508,7 @@ describe('HeadsetService', () => {
     it('should reject if not connected', async () => {
       headsetService.selectedImplementation = null;
 
-      await expect(() => headsetService.retryConnection()).rejects.toThrow('No active headset');
+      await expect(() => headsetService.retryConnection('Test Label')).rejects.toThrow('No active headset');
     });
 
     it('should call connect', async () => {
@@ -517,9 +517,9 @@ describe('HeadsetService', () => {
       };
     
       headsetService.selectedImplementation = impl as any;
-      await headsetService.retryConnection();
+      await headsetService.retryConnection('Test Label');
 
-      expect(impl.connect).toHaveBeenCalled();
+      expect(impl.connect).toHaveBeenCalledWith('Test Label');
     });
   });
 });
