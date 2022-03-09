@@ -1,6 +1,6 @@
 import groovy.json.JsonBuilder
 
-@Library('pipeline-library@COMUI-857') _
+@Library('pipeline-library@ui-pipeline-legacy') _
 
 def MAIN_BRANCH = 'master'
 def DEVELOP_BRANCH = 'develop'
@@ -30,6 +30,7 @@ webappPipeline {
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
 
     nodeVersion = '14.x'
+    // nodeVersion = '14.17.5'
     buildType = getBuildType
 
     manifest = directoryManifest('dist');
