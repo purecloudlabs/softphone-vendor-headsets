@@ -72,11 +72,6 @@ VERSION      : ${env.VERSION}
         sh("""
             echo 'CDN_URL ${cdnUrl}'
             npm run compile:module
-        """)
-    }
-
-    buildStep = {
-        sh("""
             npm run build
         """)
     }
@@ -111,9 +106,9 @@ VERSION      : ${env.VERSION}
 
         cmConfig = {
           return [
-            managerEmail: 'purecloud-client-media@genesys.com',
+            managerEmail: 'genesyscloud-client-media@genesys.com',
             rollbackPlan: 'Patch version with fix',
-            testResults: 'https://jenkins.inindca.com/job/valve-webrtcsdk-tests-test/',
+            testResults: 'https://jenkins.ininica.com/job/master/',
             qaId: '5d41d9195ca9700dac0ef53a'
           ]
         }
