@@ -52,7 +52,7 @@ export default class JabraService extends VendorImplementation {
 
     deviceLabelMatchesVendor(label: string): boolean {
         const lowerLabel = label.toLowerCase();
-        return ['jabra'].some(searchVal => lowerLabel.includes(searchVal))
+        return ['jabra'].some(searchVal => lowerLabel.includes(searchVal));
     }
 
     static getInstance(config: ImplementationConfig): JabraService {
