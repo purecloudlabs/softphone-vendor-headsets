@@ -1,6 +1,6 @@
 import groovy.json.JsonBuilder
 
-@Library('pipeline-library@ui-pipeline-legacy') _
+@Library('pipeline-library@COMUI-857') _
 
 def MAIN_BRANCH = 'master'
 def DEVELOP_BRANCH = 'develop'
@@ -30,10 +30,12 @@ webappPipeline {
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
 
     nodeVersion = '14.x'
-    // nodeVersion = '14.17.5'
     buildType = getBuildType
 
-    manifest = directoryManifest('dist');
+    manifest = customManifest('./dist') {
+      sh('node ./create-manifest.js')
+      readJSON(file: 'dist/manifest.json')
+    }
 
     deployConfig = [
       dev : 'always',
@@ -46,31 +48,37 @@ webappPipeline {
 
     testJob = 'no-tests' // see buildStep to spigot tests
 
-//     ciTests = {
-//         println("""
-// ========= BUILD VARIABLES =========
-// ENVIRONMENT  : ${env.ENVIRONMENT}
-// BUILD_NUMBER : ${env.BUILD_NUMBER}
-// BUILD_ID     : ${env.BUILD_ID}
-// BRANCH_NAME  : ${env.BRANCH_NAME}
-// APP_NAME     : ${env.APP_NAME}
-// VERSION      : ${env.VERSION}
-// ===================================
-//       """)
+    ciTests = {
+        println("""
+========= BUILD VARIABLES =========
+ENVIRONMENT  : ${env.ENVIRONMENT}
+BUILD_NUMBER : ${env.BUILD_NUMBER}
+BUILD_ID     : ${env.BUILD_ID}
+BRANCH_NAME  : ${env.BRANCH_NAME}
+APP_NAME     : ${env.APP_NAME}
+VERSION      : ${env.VERSION}
+===================================
+      """)
 
-//       sh("""
-//         npm i -g npm@7
-//         npm ci
-//         npm run test
-//       """)
-//     }
+      sh("""
+        npm i -g npm@7
+        npm run install:all
+        npm run lint
+        npm run test:coverage
+      """)
+    }
+
+    buildStep = {cdnUrl ->
+        sh("""
+            echo 'CDN_URL ${cdnUrl}'
+            npm run compile:module
+        """)
+    }
 
     buildStep = {
-        sh('''
-            export CDN_URL="$(npx cdn --ecosystem pc --name \$APP_NAME --build \$BUILD_ID --version \$VERSION)"
-            echo "CDN_URL: \$CDN_URL"
-            npm run install:all && npm run compile:module && npm run build && npm run lint && npm run test:coverage
-        ''')
+        sh("""
+            npm run build
+        """)
     }
 
     onSuccess = {
