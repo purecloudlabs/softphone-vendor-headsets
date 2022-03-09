@@ -29,8 +29,6 @@ webappPipeline {
     mailer = 'genesyscloud-client-media@genesys.com'
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
 
-    useArtifactoryRepo = false
-
     nodeVersion = '14.x'
     buildType = getBuildType
 
