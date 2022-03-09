@@ -25,17 +25,14 @@ def getBuildType = {
 
 webappPipeline {
     projectName = 'vendor-headsets'
-    team = 'Purecloud Client Media'
-    mailer = 'purecloud-client-media@genesys.com'
+    team = 'Genesys Client Media (WebRTC)'
+    mailer = 'genesyscloud-client-media@genesys.com'
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
 
     nodeVersion = '14.x'
     buildType = getBuildType
 
-    manifest = customManifest('dist') {
-        sh('node ./create-manifest.js')
-        readJSON(file: 'dist/manifest.json')
-    }
+    manifest = directoryManifest('dist');
 
     deployConfig = [
       dev : 'always',
@@ -47,6 +44,25 @@ webappPipeline {
     autoSubmitCm = true
 
     testJob = 'no-tests' // see buildStep to spigot tests
+
+//     ciTests = {
+//         println("""
+// ========= BUILD VARIABLES =========
+// ENVIRONMENT  : ${env.ENVIRONMENT}
+// BUILD_NUMBER : ${env.BUILD_NUMBER}
+// BUILD_ID     : ${env.BUILD_ID}
+// BRANCH_NAME  : ${env.BRANCH_NAME}
+// APP_NAME     : ${env.APP_NAME}
+// VERSION      : ${env.VERSION}
+// ===================================
+//       """)
+
+//       sh("""
+//         npm i -g npm@7
+//         npm ci
+//         npm run test
+//       """)
+//     }
 
     buildStep = {
         sh('''
@@ -70,9 +86,28 @@ webappPipeline {
             echo "=== dist folder ==="
             ls -als dist/
 
+            echo "=== Printing dist/deploy-info.json ==="
+            cat ./dist/deploy-info.json
+
             # echo "=== Printing dist/package.json ==="
             # cat ./dist/package.json
         """)
+
+        snykConfig = {
+          return [
+            organization: 'genesys-client-media-webrtc',
+            project: 'softphone-vendor-headsets'
+          ]
+        }
+
+        cmConfig = {
+          return [
+            managerEmail: 'purecloud-client-media@genesys.com',
+            rollbackPlan: 'Patch version with fix',
+            testResults: 'https://jenkins.inindca.com/job/valve-webrtcsdk-tests-test/',
+            qaId: '5d41d9195ca9700dac0ef53a'
+          ]
+        }
 
         // NOTE: this version only applies to the npm version published and NOT the cdn publish url/version
         def version = env.VERSION
