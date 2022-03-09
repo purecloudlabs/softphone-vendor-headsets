@@ -43,7 +43,7 @@ webappPipeline {
 
     autoSubmitCm = true
 
-    testJob = null // see buildStep to spigot tests
+    testJob = 'no-tests' // see buildStep to spigot tests
 
 //     ciTests = {
 //         println("""
