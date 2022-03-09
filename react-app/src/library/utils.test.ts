@@ -7,7 +7,7 @@ describe('utils', () => {
       const promiseResolutionDelay = 1000;
       const expectedRejection = `Timed out in ${timeout}ms`;
 
-      const passedInPromise = new Promise((resolve) => {
+      const passedInPromise = new Promise<void>((resolve) => {
         const timeoutId = setTimeout(() => {
           clearTimeout(timeoutId);
           resolve();
