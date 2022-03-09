@@ -108,7 +108,7 @@ VERSION      : ${env.VERSION}
           return [
             managerEmail: 'genesyscloud-client-media@genesys.com',
             rollbackPlan: 'Patch version with fix',
-            testResults: 'https://jenkins.ininica.com/job/master/',
+            testResults: 'https://jenkins.ininica.com/job/Softphone%20Vendor%20Headsets/job/master/',
             qaId: '5d41d9195ca9700dac0ef53a'
           ]
         }
