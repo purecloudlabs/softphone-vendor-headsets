@@ -32,10 +32,7 @@ webappPipeline {
     nodeVersion = '14.x'
     buildType = getBuildType
 
-    manifest = customManifest('./dist') {
-      sh('node ./create-manifest.js')
-      readJSON(file: 'dist/manifest.json')
-    }
+    manifest = directoryManifest('dist')
 
     deployConfig = [
       dev : 'always',
