@@ -110,12 +110,12 @@ export default class HeadsetService {
     return this.performActionIfConnected('endAllCalls', (implementation) => implementation.endAllCalls());
   }
 
-  retryConnection(): Promise<void> {
+  retryConnection(micLabel: string): Promise<void> {
     if (!this.selectedImplementation) {
       return Promise.reject(new Error('No active headset implementation'));
     }
 
-    return this.selectedImplementation.connect();
+    return this.selectedImplementation.connect(micLabel);
   }
 
   private performActionIfConnected (actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
