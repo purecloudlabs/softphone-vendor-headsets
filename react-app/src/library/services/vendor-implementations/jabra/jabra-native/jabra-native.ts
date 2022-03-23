@@ -4,6 +4,7 @@ import DeviceInfo from '../../../../types/device-info';
 import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
 import { JabraNativeCommands } from './jabra-native-commands';
 import { JabraHeadsetEvent, JabraDeviceEvent, JabraNativeEventNames, HeadsetEvent, DeviceEvent } from './jabra-native-types';
+import { CallInfo } from '../../../../types/call-info';
 
 const connectTimeout = 5000;
 const offHookThrottleTime = 500;
@@ -18,6 +19,7 @@ export default class JabraNativeService extends VendorImplementation {
   ignoreNextOffhookEvent = false;
   _connectionInProgress: any; // { resolve: Function, reject: Function }
   cefSupportsJabra = true;
+  incomingConversationId: string = ''
 
   private constructor(config: ImplementationConfig) {
     super(config);
@@ -167,7 +169,10 @@ export default class JabraNativeService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  incomingCall(): Promise<void> {
+  incomingCall(callInfo: CallInfo): Promise<void> {
+    if (callInfo) {
+      this.incomingConversationId = callInfo.conversationId;
+    }
     this._setRinging(true);
     return Promise.resolve();
   }
@@ -175,8 +180,14 @@ export default class JabraNativeService extends VendorImplementation {
   answerCall(): Promise<void> {
     // HACK: for some reason the headset echos an offhook event even though it was the app that answered the call rather than the headset
     this.ignoreNextOffhookEvent = true;
-
+    this.incomingConversationId = '';
     this._sendCmd(JabraNativeCommands.Offhook, true);
+    return Promise.resolve();
+  }
+
+  rejectCall(): Promise<void> {
+    this._setRinging(false);
+    this.incomingConversationId = '';
     return Promise.resolve();
   }
 
@@ -240,7 +251,7 @@ export default class JabraNativeService extends VendorImplementation {
         break;
 
       case JabraNativeEventNames.RejectCall:
-        this.deviceRejectedCall(null);
+        this.deviceRejectedCall(this.incomingConversationId);
         break;
 
       case JabraNativeEventNames.Mute:

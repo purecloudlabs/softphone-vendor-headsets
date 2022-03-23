@@ -59,6 +59,10 @@ const App = () => {
           handleHeadsetEvent(value.payload);
           answerIncomingCall(true);
           break;
+        case 'deviceRejectedCall':
+          handleHeadsetEvent(value.payload);
+          rejectIncomingCall()
+          break;
         case 'deviceEndedCall':
           handleHeadsetEvent(value.payload);
           endCurrentCall(true);
@@ -161,6 +165,11 @@ const App = () => {
     startHeadsetAudio();
   }
 
+  const rejectIncomingCall = () => {
+    console.log('**** REJECTING SIMULATED CALL ****', {currentCall});
+    endCurrentCall();
+  }
+
   const endAllCalls = () => {
     headset.endAllCalls();
     setCurrentCall(null);
@@ -221,15 +230,20 @@ const App = () => {
         </div>
       </div>
       <div className="entry-row">
-          <div className="entry-label">
-            <i className="ion-ios-information-outline"></i>
-          </div>
-          <div className="entry-values">
-            {t(`implementation.connectionStatus.${connectionStatus}`)}
-            {connectionStatus === 'notRunning' && (
-              <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection()}>Retry</button>
-            )}
-          </div>
+        {
+          headset.selectedImplementation &&
+          <>
+            <div className="entry-label">
+              <i className="ion-ios-information-outline"></i>
+            </div>
+            <div className="entry-values">
+              {t(`implementation.connectionStatus.${connectionStatus}`)}
+              {connectionStatus === 'notRunning' && (
+                <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection(headset.selectedImplementation.deviceInfo.deviceName)}>Retry</button>
+              )}
+            </div>
+          </>
+        }
       </div>
 
       <div className="entry-row">
@@ -241,6 +255,7 @@ const App = () => {
           </div>
           <div className="entry-value">
             <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
+            <button disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
             <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>

@@ -61,6 +61,7 @@ export default class HeadsetService {
       this.changeImplementation(implementation, newMicLabel);
     } else if (this.selectedImplementation) {
       this.selectedImplementation.disconnect();
+      this.selectedImplementation = null;
     }
   }
 

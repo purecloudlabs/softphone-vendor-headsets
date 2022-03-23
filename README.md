@@ -36,13 +36,12 @@ yarn softphone-headset-vendors
 **Example 2 - User presses the mute button from the headset**:
 - From the headset, the user presses the button which corresponds to mute
 - This is then received by the vendor instance (for example sennheiser.ts)
-- This event is then sent to `headset.ts` which in turn lets the consuming app know so that the screen properly reflect the state of the headset
+- This event is then sent to `headset.ts` which in turn lets the consuming app know so that the screen can properly reflect the state of the headset
 
 #### WebHID
 One of our supported vendors has began working with a technology known as [WebHID][1].  This is a relatively newer technology with a lot of promise but with its own caveats as well - https://wicg.github.io/webhid/
 - At this moment, WebHID only works with Chromium browsers (Google Chrome/Microsoft Edge).  Keep this in mind when developing and using the vendors we currently support
-- In order to use WebHID, you must grant permissions for the site you are currently on.  There is a function that must be called that causes a popup to show on screen where the user is then required to select their device and approve its use for WebHID purposes.  This function MUST be called with user action (i.e. clicking a button).  The solution we currently have in place is after the `user` takes the `action` of changing and selecting a new microphone, we check if it is the specific vendor that supports WebHID, then we emit an event that a consuming app should listen for and then fire the WebHID consent function
-
+- In order to use WebHID, you must grant permissions for the site you are currently on.  There is a function that must be called that causes a popup to show on screen where the user is then required to select their device and approve its use for WebHID purposes.  This function MUST be called with user action (i.e. clicking a button).  The solution we currently have in place is after the user changes and selects a new microphone, we check if it is the specific vendor that supports WebHID, then we emit an event that a consuming app should listen for. Once the consuming app receives that event, we will render an initial popup informing the user that additional permissions are required and prompting them to click either "Yes" or "No". Clicking "Yes" acts as the necessary `user action` and we render the necessary WebHID permission popup with the help of the passed in function.
 ### Contributing
 This repo uses [Jest][3] for tests and code coverage
 
@@ -58,6 +57,8 @@ Then navigate to https://localhost:8443 to see the test app.  This way you can s
 Run the tests using `npm run test:watch` or `npm run test:coverage`.  Both commands should be run in the folder.
 - `test:watch` will rerun the tests after changes to the code or the test itself
 - `test:coverage` will run the test suites and produce a report on coverage of the code
+
+All linting and tests must pass 100% and coverage should remain at 100%
 
 **Important Note**: Out of the box, the test scripts will not work on Windows machines.  A developer will more than likely need to make modifications to the scripts in the package.json as well as the shell scripts found in the `scripts` folder.  If you do not want to modify the scripts out of the box, using a Linux instance seemed to help.  The author of the library used an Ubuntu instance
 
