@@ -95,6 +95,10 @@ export default class HeadsetService {
     return this.performActionIfConnected('answerCall', (implementation) => implementation.answerCall(conversationId));
   }
 
+  rejectCall(conversationId: string): Promise<any> {
+    return this.performActionIfConnected('rejectCall', (implementation) => implementation.rejectCall(conversationId));
+  }
+
   setMute(value: boolean): Promise<any> {
     return this.performActionIfConnected('setMute', (implementation) => implementation.setMute(value));
   }

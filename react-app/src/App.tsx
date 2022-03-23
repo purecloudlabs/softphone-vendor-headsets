@@ -61,7 +61,7 @@ const App = () => {
           break;
         case 'deviceRejectedCall':
           handleHeadsetEvent(value.payload);
-          rejectIncomingCall()
+          rejectIncomingCall(true)
           break;
         case 'deviceEndedCall':
           handleHeadsetEvent(value.payload);
@@ -165,9 +165,13 @@ const App = () => {
     startHeadsetAudio();
   }
 
-  const rejectIncomingCall = () => {
+  const rejectIncomingCall = (fromHeadset?) => {
     console.log('**** REJECTING SIMULATED CALL ****', {currentCall});
-    endCurrentCall();
+    if (currentCall) {
+      currentCall.end();
+      !fromHeadset && headset.rejectCall(currentCall.id);
+    }
+    setCurrentCall(null);
   }
 
   const endAllCalls = () => {

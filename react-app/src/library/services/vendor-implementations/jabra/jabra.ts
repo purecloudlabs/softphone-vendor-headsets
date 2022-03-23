@@ -38,7 +38,7 @@ export default class JabraService extends VendorImplementation {
     callControl: ICallControl;
     ongoingCalls = 0;
     callLock = false;
-    incomingConversationId: string = ''
+    incomingConversationId = ''
 
     private constructor(config: ImplementationConfig) {
         super(config);
@@ -128,7 +128,6 @@ export default class JabraService extends VendorImplementation {
                     this.deviceMuteChanged(this.isMuted, { name: this.isMuted ? 'CallMuted' : 'CallUnmuted', code: signal.type });
                     break;
                 case 'REJECT_CALL':
-                    // callControl.offHook(false);
                     callControl.ring(false);
                     this.deviceRejectedCall(this.incomingConversationId);
                     try {

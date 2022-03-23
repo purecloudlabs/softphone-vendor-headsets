@@ -19,7 +19,7 @@ export default class JabraNativeService extends VendorImplementation {
   ignoreNextOffhookEvent = false;
   _connectionInProgress: any; // { resolve: Function, reject: Function }
   cefSupportsJabra = true;
-  incomingConversationId: string = ''
+  incomingConversationId = ''
 
   private constructor(config: ImplementationConfig) {
     super(config);

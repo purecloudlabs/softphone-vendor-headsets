@@ -220,6 +220,33 @@ describe('HeadsetService', () => {
     });
   });
 
+  describe('answerCall', () => {
+    beforeEach(() => {
+      headsetService = HeadsetService.getInstance(config);
+      jest.spyOn(plantronics, 'rejectCall').mockResolvedValue({});
+      headsetService.selectedImplementation = plantronics;
+    });
+    afterEach(() => {
+      jest.resetAllMocks();
+    });
+    it('should call rejectCall on the selected implementation when the implementation is connected', () => {
+      const conversationId = '1234';
+      plantronics.isConnected = true;
+
+      headsetService.rejectCall(conversationId);
+
+      expect(plantronics.rejectCall).toHaveBeenCalledWith(conversationId);
+    });
+    it('shouldnot call answerCall on the selected implmenetation when the implementation is not connected', () => {
+      const conversationId = '1234';
+      plantronics.isConnected = false;
+
+      headsetService.rejectCall(conversationId);
+
+      expect(plantronics.rejectCall).not.toHaveBeenCalled();
+    });
+  });
+
   describe('setMute', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);

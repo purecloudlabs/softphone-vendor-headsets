@@ -265,6 +265,16 @@ describe('PlantronicsService', () => {
       });
       expect(deviceAnsweredCallSpy).toHaveBeenCalled();
     });
+    it('will call deviceRejectedCall', () => {
+      plantronicsService.incomingConversationId = 'convoId1234';
+      const deviceRejectedCallSpy = jest.spyOn(plantronicsService, 'deviceRejectedCall');
+      plantronicsService.callCorrespondingFunction({
+        name: 'RejectCall',
+        code: '23',
+        event: {}
+      });
+      expect(deviceRejectedCallSpy).toHaveBeenCalledWith('convoId1234');
+    })
     it('will call deviceEndedCall', () => {
       const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
       plantronicsService.callCorrespondingFunction({
@@ -467,6 +477,13 @@ describe('PlantronicsService', () => {
       });
       await plantronicsService.endAllCalls();
       expect(endCallSpy).toHaveBeenCalledTimes(2);
+    });
+    it('properly calls endCall in the case of call rejection', () => {
+      plantronicsService.incomingConversationId = 'convoId1234';
+      const plantronicsEndCallSpy = jest.spyOn(plantronicsService, 'endCall');
+      plantronicsService.rejectCall('convoId1234');
+      expect(plantronicsService.incomingConversationId).toBe('');
+      expect(plantronicsEndCallSpy).toHaveBeenCalledWith('convoId1234');
     });
     it('calls _makeRequestTask wth proper endpoint for mute', async () => {
       const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
