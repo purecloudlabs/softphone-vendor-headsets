@@ -315,7 +315,7 @@ export default class JabraService extends VendorImplementation {
                 this.changeConnectionStatus({ isConnected: true, isConnecting: false });
             }
             clearTimeout(fetchDevicesTimeout);
-        }, 1750);
+        }, 2000);
     }
 
     async initializeJabraSdk(): Promise<IApi> {

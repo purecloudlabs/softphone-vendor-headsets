@@ -98,17 +98,17 @@ describe('HeadsetService', () => {
 
       expect(sennheiser.disconnect).not.toHaveBeenCalled();
     });
-    it('should change the selected implementation to what was passed in', () => {
+    it('should change the selected implementation to what was passed in', async () => {
       headsetService.selectedImplementation = sennheiser;
-      headsetService.changeImplementation(plantronics, 'test label');
+      await headsetService.changeImplementation(plantronics, 'test label');
       expect(headsetService.selectedImplementation).toBe(plantronics);
     });
-    it('should call disconnect on the old implementation, and connect on the new implementation', () => {
+    it('should call disconnect on the old implementation, and connect on the new implementation', async () => {
       jest.spyOn(sennheiser, 'disconnect');
       jest.spyOn(plantronics, 'connect');
       headsetService.selectedImplementation = sennheiser;
 
-      headsetService.changeImplementation(plantronics, 'test label');
+      await headsetService.changeImplementation(plantronics, 'test label');
 
       expect(sennheiser.disconnect).toHaveBeenCalled();
       expect(plantronics.connect).toHaveBeenCalled();
@@ -500,7 +500,7 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
     });
-    it('should check a values label to determine which microphone is selected', () => {
+    it('should check a values label to determine which microphone is selected', async () => {
       const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
       const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
       headsetService['jabra'].isSupported = jest.fn().mockReturnValue(true);
@@ -519,7 +519,7 @@ describe('HeadsetService', () => {
       expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'sennheiser test');
       headsetService.activeMicChange('senn test');
       expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'senn test');
-      headsetService.activeMicChange('epos test');
+      await headsetService.activeMicChange('epos test');
       expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'epos test');
 
       headsetService.activeMicChange('test test');

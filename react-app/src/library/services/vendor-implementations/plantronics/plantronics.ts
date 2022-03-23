@@ -295,7 +295,7 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  disconnect(): Promise<any> {
+  async disconnect(): Promise<any> {
     let promise;
     if (!this.isConnected) {
       promise = Promise.resolve();

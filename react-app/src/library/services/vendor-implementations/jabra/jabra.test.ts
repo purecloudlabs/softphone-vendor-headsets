@@ -268,7 +268,7 @@ describe('JabraService', () => {
             const testLabel = 'test label 456';
             jabraService.jabraSdk = jabraSdk;
             await jabraService.connect(testLabel);
-            jest.advanceTimersByTime(1800);
+            jest.advanceTimersByTime(2100);
             await flushPromises();
             subject.next(testDevices);
             await flushPromises();

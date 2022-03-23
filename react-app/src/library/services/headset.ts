@@ -71,7 +71,7 @@ export default class HeadsetService {
     }
 
     if (this.selectedImplementation) {
-      this.selectedImplementation.disconnect();
+      await this.selectedImplementation.disconnect();
     }
 
     this.selectedImplementation = implementation;
