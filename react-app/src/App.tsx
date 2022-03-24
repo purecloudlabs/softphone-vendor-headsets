@@ -68,7 +68,7 @@ const App = () => {
           endCurrentCall(true);
           break;
         case 'deviceConnectionStatusChanged':
-          updateDeviceConnection(value.payload);
+          setConnectionStatus(value.payload);
           break;
         default:
           handleHeadsetEvent(value.payload);
@@ -192,16 +192,6 @@ const App = () => {
     !fromHeadset && headset.setHold(currentCall.id, holdToggle);
   }
 
-  const updateDeviceConnection = (headsetState) => {
-    let key = 'notRunning';
-    if (headsetState.isConnecting) {
-      key = 'checking';
-    } else if (headsetState.isConnected) {
-      key = 'running';
-    }
-    setConnectionStatus(key);
-  }
-
   return (
     <>
       <div className="entry-row">
@@ -235,7 +225,7 @@ const App = () => {
       </div>
       <div className="entry-row">
         {
-          headset.selectedImplementation &&
+          connectionStatus !== 'noVendor' &&
           <>
             <div className="entry-label">
               <i className="ion-ios-information-outline"></i>

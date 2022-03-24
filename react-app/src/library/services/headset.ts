@@ -59,9 +59,12 @@ export default class HeadsetService {
     const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
-    } else if (this.selectedImplementation) {
-      this.selectedImplementation.disconnect();
+    } else {
+      if (this.selectedImplementation) {
+        this.selectedImplementation.disconnect();
+      }
       this.selectedImplementation = null;
+      this.handleDeviceConnectionStatusChanged();
     }
   }
 
@@ -123,6 +126,16 @@ export default class HeadsetService {
     return this.selectedImplementation.connect(micLabel);
   }
 
+  connectionStatus(): string {
+    if (this.selectedImplementation) {
+      if (!this.selectedImplementation.isConnected && !this.selectedImplementation.isConnecting) {
+        return 'notRunning';
+      }
+        return this.selectedImplementation.isConnected ? 'running' : 'checking';
+    }
+      return 'noVendor';
+  }
+
   private performActionIfConnected (actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
     const impl = this.selectedImplementation;
     if (!impl || !impl.isConnected) {
@@ -177,8 +190,8 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: HeadsetEvents.deviceHoldStatusChanged, payload: { ...event.body }});
   }
 
-  private handleDeviceConnectionStatusChanged(event: VendorEvent<any>): void {
-    this._headsetEvents$.next({ event: HeadsetEvents.deviceConnectionStatusChanged, payload: { ...event.body }});
+  private handleDeviceConnectionStatusChanged(): void {
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceConnectionStatusChanged, payload: this.connectionStatus() });
   }
 
   private handleWebHidPermissionRequested(event: VendorEvent<WebHidPermissionRequest>): void {
