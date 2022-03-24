@@ -77,7 +77,7 @@ export default class HeadsetService {
     this.selectedImplementation = implementation;
 
     if (implementation) {
-      implementation.connect(deviceLabel);
+      await implementation.connect(deviceLabel);
     }
 
     this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: implementation});
