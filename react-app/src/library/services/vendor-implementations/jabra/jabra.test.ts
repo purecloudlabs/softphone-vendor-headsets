@@ -723,7 +723,6 @@ describe('JabraService', () => {
             const resetStateSpy = jest.spyOn(jabraService, 'resetState');
             const jabraRejectCall = jabraService.rejectCall();
             expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
-            expect(callControl.releaseCallLock).toHaveBeenCalled();
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();
             expect(jabraRejectCall).resolves.toReturn();
@@ -801,7 +800,6 @@ describe('JabraService', () => {
             const resetStateSpy = jest.spyOn(jabraService, 'resetState');
             const jabraEndCalls = jabraService.endCall('123', false);
             expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
-            expect(callControl.releaseCallLock).toHaveBeenCalled();
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();
             expect(jabraEndCalls).resolves.toReturn();
@@ -868,7 +866,6 @@ describe('JabraService', () => {
             const resetStateSpy = jest.spyOn(jabraService, 'resetState');
             const jabraEndCalls = jabraService.endAllCalls();
             expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
-            expect(callControl.releaseCallLock).toHaveBeenCalled();
             expect(jabraService.callLock).toBe(false);
             expect(resetStateSpy).toHaveBeenCalled();
             expect(jabraEndCalls).resolves.toReturn();

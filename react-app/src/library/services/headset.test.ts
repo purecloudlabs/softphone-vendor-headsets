@@ -549,4 +549,22 @@ describe('HeadsetService', () => {
       expect(impl.connect).toHaveBeenCalledWith('Test Label');
     });
   });
+
+  describe('connectionStatus', () => {
+    it('should return proper connection status', () => {
+      headsetService.selectedImplementation = plantronics;
+      headsetService.selectedImplementation.isConnected = true;
+      expect(headsetService.connectionStatus()).toBe('running');
+
+      headsetService.selectedImplementation.isConnecting = true
+      headsetService.selectedImplementation.isConnected = false;
+      expect(headsetService.connectionStatus()).toBe('checking');
+
+      headsetService.selectedImplementation.isConnecting = false;
+      expect(headsetService.connectionStatus()).toBe('notRunning');
+
+      headsetService.selectedImplementation = null;
+      expect(headsetService.connectionStatus()).toBe('noVendor');
+    })
+  })
 });
