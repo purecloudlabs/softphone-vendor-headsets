@@ -19,7 +19,7 @@ const App = () => {
   const eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('')
-  const [connectionStatus, setConnectionStatus] = useState<string>('notRunning');
+  const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
@@ -59,12 +59,16 @@ const App = () => {
           handleHeadsetEvent(value.payload);
           answerIncomingCall(true);
           break;
+        case 'deviceRejectedCall':
+          handleHeadsetEvent(value.payload);
+          rejectIncomingCall(true)
+          break;
         case 'deviceEndedCall':
           handleHeadsetEvent(value.payload);
           endCurrentCall(true);
           break;
         case 'deviceConnectionStatusChanged':
-          updateDeviceConnection(value.payload);
+          setConnectionStatus(value.payload);
           break;
         default:
           handleHeadsetEvent(value.payload);
@@ -161,6 +165,15 @@ const App = () => {
     startHeadsetAudio();
   }
 
+  const rejectIncomingCall = (fromHeadset?) => {
+    console.log('**** REJECTING SIMULATED CALL ****', {currentCall});
+    if (currentCall) {
+      currentCall.end();
+      !fromHeadset && headset.rejectCall(currentCall.id);
+    }
+    setCurrentCall(null);
+  }
+
   const endAllCalls = () => {
     headset.endAllCalls();
     setCurrentCall(null);
@@ -177,16 +190,6 @@ const App = () => {
     console.log('**** TOGGLING HOLD STATUS ****');
     setHeld(holdToggle);
     !fromHeadset && headset.setHold(currentCall.id, holdToggle);
-  }
-
-  const updateDeviceConnection = (headsetState) => {
-    let key = 'notRunning';
-    if (headsetState.isConnecting) {
-      key = 'checking';
-    } else if (headsetState.isConnected) {
-      key = 'running';
-    }
-    setConnectionStatus(key);
   }
 
   return (
@@ -221,15 +224,20 @@ const App = () => {
         </div>
       </div>
       <div className="entry-row">
-          <div className="entry-label">
-            <i className="ion-ios-information-outline"></i>
-          </div>
-          <div className="entry-values">
-            {t(`implementation.connectionStatus.${connectionStatus}`)}
-            {connectionStatus === 'notRunning' && (
-              <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection()}>Retry</button>
-            )}
-          </div>
+        {
+          connectionStatus !== 'noVendor' &&
+          <>
+            <div className="entry-label">
+              <i className="ion-ios-information-outline"></i>
+            </div>
+            <div className="entry-values">
+              {t(`implementation.connectionStatus.${connectionStatus}`)}
+              {connectionStatus === 'notRunning' && (
+                <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection(headset.selectedImplementation.deviceInfo.deviceName)}>Retry</button>
+              )}
+            </div>
+          </>
+        }
       </div>
 
       <div className="entry-row">
@@ -241,6 +249,7 @@ const App = () => {
           </div>
           <div className="entry-value">
             <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
+            <button disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
             <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>

@@ -327,6 +327,35 @@ describe('SennheiserService', () => {
     });
   });
 
+  describe('rejectCall', () => {
+    beforeEach(() => {
+      sennheiserService = SennheiserService.getInstance({ logger: console });
+      sennheiserService.logger = mockLogger;
+      sennheiserService.websocket = mockWebSocket;
+    });
+    afterEach(() => {
+      sennheiserService.callMappings = {};
+    });
+    it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
+      jest.spyOn(sennheiserService, '_sendMessage');
+      const conversationId = '23f897b';
+      const CallID = 237894;
+      sennheiserService.callMappings = {
+        [conversationId]: CallID,
+        [CallID]: conversationId,
+      };
+      const expectedPayload: SennheiserPayload = {
+        Event: SennheiserEvents.IncomingCallRejected,
+        EventType: SennheiserEventTypes.Request,
+        CallID: CallID,
+      };
+
+      await sennheiserService.rejectCall(conversationId);
+
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
+    });
+  });
+
   describe('outgoingCall', () => {
     beforeEach(() => {
       sennheiserService = SennheiserService.getInstance({ logger: console });

@@ -4,11 +4,10 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
-import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
 import { WebHidPermissionRequest } from '..';
-import { HeadsetEvents } from '../types/consumed-headset-events';
+import { ConsumedHeadsetEvents, HeadsetEvents, DeviceConnectionStatus } from '../types/consumed-headset-events';
 
 export default class HeadsetService {
   private static instance: HeadsetService;
@@ -59,8 +58,12 @@ export default class HeadsetService {
     const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
     if (implementation) {
       this.changeImplementation(implementation, newMicLabel);
-    } else if (this.selectedImplementation) {
-      this.selectedImplementation.disconnect();
+    } else {
+      if (this.selectedImplementation) {
+        this.selectedImplementation.disconnect();
+      }
+      this.selectedImplementation = null;
+      this.handleDeviceConnectionStatusChanged();
     }
   }
 
@@ -70,13 +73,13 @@ export default class HeadsetService {
     }
 
     if (this.selectedImplementation) {
-      this.selectedImplementation.disconnect();
+      await this.selectedImplementation.disconnect();
     }
 
     this.selectedImplementation = implementation;
 
     if (implementation) {
-      implementation.connect(deviceLabel);
+      await implementation.connect(deviceLabel);
     }
 
     this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: implementation});
@@ -92,6 +95,10 @@ export default class HeadsetService {
 
   answerCall(conversationId: string): Promise<any> {
     return this.performActionIfConnected('answerCall', (implementation) => implementation.answerCall(conversationId));
+  }
+
+  rejectCall(conversationId: string): Promise<any> {
+    return this.performActionIfConnected('rejectCall', (implementation) => implementation.rejectCall(conversationId));
   }
 
   setMute(value: boolean): Promise<any> {
@@ -116,6 +123,16 @@ export default class HeadsetService {
     }
 
     return this.selectedImplementation.connect(micLabel);
+  }
+
+  connectionStatus(): DeviceConnectionStatus {
+    if (this.selectedImplementation) {
+      if (!this.selectedImplementation.isConnected && !this.selectedImplementation.isConnecting) {
+        return 'notRunning';
+      }
+      return this.selectedImplementation.isConnected ? 'running' : 'checking';
+    }
+    return 'noVendor';
   }
 
   private performActionIfConnected (actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {
@@ -172,8 +189,8 @@ export default class HeadsetService {
     this._headsetEvents$.next({ event: HeadsetEvents.deviceHoldStatusChanged, payload: { ...event.body }});
   }
 
-  private handleDeviceConnectionStatusChanged(event: VendorEvent<any>): void {
-    this._headsetEvents$.next({ event: HeadsetEvents.deviceConnectionStatusChanged, payload: { ...event.body }});
+  private handleDeviceConnectionStatusChanged(): void {
+    this._headsetEvents$.next({ event: HeadsetEvents.deviceConnectionStatusChanged, payload: this.connectionStatus() });
   }
 
   private handleWebHidPermissionRequested(event: VendorEvent<WebHidPermissionRequest>): void {

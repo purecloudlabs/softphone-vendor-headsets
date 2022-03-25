@@ -179,6 +179,15 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
+  rejectCall(conversationId: string): Promise<void> {
+    this._sendMessage({
+      Event: SennheiserEvents.IncomingCallRejected,
+      EventType: SennheiserEventTypes.Request,
+      CallID: this.callMappings[conversationId],
+    })
+    return Promise.resolve();
+  }
+
   outgoingCall(callInfo: CallInfo): Promise<void> {
     const { conversationId } = callInfo;
     const callId = this._createCallMapping(conversationId);

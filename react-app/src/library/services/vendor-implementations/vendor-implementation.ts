@@ -71,6 +71,10 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     return Promise.reject(new Error(`${this.vendorName} - answerCall() not implemented`));
   }
 
+  rejectCall(conversationId: string): Promise<any> {
+    return Promise.reject(new Error(`${this.vendorName} - rejectCall() not implemented`));
+  }
+
   endCall(conversationId: string, hasOtherActiveCalls: boolean): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - endCall() not implemented`));
   }
