@@ -19,7 +19,7 @@ const App = () => {
   const eventLogs = [] as any;
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('')
-  const [connectionStatus, setConnectionStatus] = useState<string>('notRunning');
+  const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();

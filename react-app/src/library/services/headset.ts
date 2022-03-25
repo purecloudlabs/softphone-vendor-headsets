@@ -4,11 +4,10 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
-import { ConsumedHeadsetEvents } from '../types/consumed-headset-events';
 import { CallInfo } from '../types/call-info';
 import { EventInfo, VendorConversationIdEvent, VendorEvent, HoldEventInfo, MutedEventInfo } from '../types/emitted-headset-events';
 import { WebHidPermissionRequest } from '..';
-import { HeadsetEvents } from '../types/consumed-headset-events';
+import { ConsumedHeadsetEvents, HeadsetEvents, DeviceConnectionStatus } from '../types/consumed-headset-events';
 
 export default class HeadsetService {
   private static instance: HeadsetService;
@@ -126,14 +125,14 @@ export default class HeadsetService {
     return this.selectedImplementation.connect(micLabel);
   }
 
-  connectionStatus(): string {
+  connectionStatus(): DeviceConnectionStatus {
     if (this.selectedImplementation) {
       if (!this.selectedImplementation.isConnected && !this.selectedImplementation.isConnecting) {
         return 'notRunning';
       }
-        return this.selectedImplementation.isConnected ? 'running' : 'checking';
+      return this.selectedImplementation.isConnected ? 'running' : 'checking';
     }
-      return 'noVendor';
+    return 'noVendor';
   }
 
   private performActionIfConnected (actionName: string, perform: (impl: VendorImplementation) => Promise<any>) {

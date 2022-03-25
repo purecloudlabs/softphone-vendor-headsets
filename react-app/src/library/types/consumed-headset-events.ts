@@ -23,8 +23,10 @@ type Events = {
     [HeadsetEvents.deviceRejectedCall]: RejectCallEventInfo;
     [HeadsetEvents.loggableEvent]: EventInfo;
     [HeadsetEvents.webHidPermissionRequested]: { callback: any };
-    [HeadsetEvents.deviceConnectionStatusChanged]: string;
+    [HeadsetEvents.deviceConnectionStatusChanged]: DeviceConnectionStatus;
 }
+
+export type DeviceConnectionStatus = 'checking' | 'running' | 'notRunning' | 'noVendor';
 
 type EventInfo = {
     name: string;
