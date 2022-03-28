@@ -26,6 +26,7 @@ export default class PlantronicsService extends VendorImplementation {
   _deviceInfo: DeviceInfo;
   callEventsTimerId: any;
   deviceStatusTimerId: any;
+  incomingConversationId: string;
 
 
   private constructor(config: ImplementationConfig) {
@@ -34,6 +35,7 @@ export default class PlantronicsService extends VendorImplementation {
     this._deviceInfo = null;
     this.callEventsTimerId = null;
     this.deviceStatusTimerId = null;
+    this.incomingConversationId = '';
   }
 
   clearTimeouts (): void {
@@ -212,6 +214,9 @@ export default class PlantronicsService extends VendorImplementation {
       case 'AcceptCall':
         this.deviceAnsweredCall(eventInfo);
         break;
+      case 'RejectCall':
+        this.deviceRejectedCall(this.incomingConversationId);
+        break;
       case 'TerminateCall':
         this.deviceEndedCall(eventInfo);
         break;
@@ -312,6 +317,7 @@ export default class PlantronicsService extends VendorImplementation {
     if (!conversationId) {
       throw new Error('Must provide conversationId');
     }
+    this.incomingConversationId = conversationId;
     let params = `?name=${this.pluginName}&tones=Unknown&route=ToHeadset`;
 
     const halfEncodedCallIdString = `"Id":"${conversationId}"`;
@@ -351,7 +357,13 @@ export default class PlantronicsService extends VendorImplementation {
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     this.isActive = true;
+    this.incomingConversationId = '';
     return this._makeRequestTask(`/CallServices/AnswerCall${encodeURI(params)}`);
+  }
+
+  rejectCall(conversationId: string): Promise<any> {
+    this.incomingConversationId = '';
+    return this.endCall(conversationId);
   }
 
   async endCall(conversationId: string): Promise<any> {

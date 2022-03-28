@@ -66,6 +66,12 @@ describe('answerCall', () => {
   });
 });
 
+describe('rejectCall', () => {
+  it('should throw not implemented', async () => {
+    await expect(() => implementation.rejectCall('convo')).rejects.toThrow('not implemented');
+  })
+})
+
 describe('outgoingCall', () => {
   it('should throw not implemented', async () => {
     await expect(() => implementation.outgoingCall({ conversationId: 'convo' })).rejects.toThrow('not implemented');

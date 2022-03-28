@@ -412,8 +412,9 @@ describe('JabraNativeService', () => {
 
   describe('incomingCall', () => {
     it('should call _setRinging() with true', async () => {
+      let callInfo: any = {conversationId: 'convoId123', contactName: 'Joseph Joestar'};
       const spy = jabraNativeService['_setRinging'] = jest.fn();
-      await jabraNativeService.incomingCall();
+      await jabraNativeService.incomingCall(callInfo);
       expect(spy).toHaveBeenCalledWith(true);
     });
   });
@@ -431,6 +432,14 @@ describe('JabraNativeService', () => {
       expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
     });
   });
+
+  describe('rejectCall', () => {
+    it('should call _setRinging() with false', async () => {
+      const setRingingSpy = jabraNativeService['_setRinging'] = jest.fn();
+      await jabraNativeService.rejectCall();
+      expect(setRingingSpy).toHaveBeenCalledWith(false);
+    })
+  })
 
   describe('outgoingCall', () => {
     it(`should call _sendCmd with the '${JabraNativeCommands.Offhook}' command and true`, async () => {

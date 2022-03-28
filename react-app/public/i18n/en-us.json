@@ -10,6 +10,7 @@
         "button": {
             "simulateCall": "Simulate Incoming Call",
             "answer": "Answer",
+            "reject": "Reject",
             "mute": "Mute",
             "unmute": "Unmute",
             "resume": "Resume",
