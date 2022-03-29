@@ -34,6 +34,13 @@ webappPipeline {
 
     manifest = directoryManifest('dist')
 
+    snykConfig = {
+      return [
+        organization: 'genesys-client-media-webrtc',
+        project: 'softphone-vendor-headsets'
+      ]
+    }
+
     deployConfig = [
       dev : 'always',
       test : 'always',
@@ -93,22 +100,6 @@ VERSION      : ${env.VERSION}
             # echo "=== Printing dist/package.json ==="
             # cat ./dist/package.json
         """)
-
-        snykConfig = {
-          return [
-            organization: 'genesys-client-media-webrtc',
-            project: 'softphone-vendor-headsets'
-          ]
-        }
-
-        cmConfig = {
-          return [
-            managerEmail: 'genesyscloud-client-media@genesys.com',
-            rollbackPlan: 'Patch version with fix',
-            testResults: 'https://jenkins.ininica.com/job/softphone-vendor-headsets/job/master/',
-            qaId: '5d41d9195ca9700dac0ef53a'
-          ]
-        }
 
         // NOTE: this version only applies to the npm version published and NOT the cdn publish url/version
         def version = env.VERSION
