@@ -233,7 +233,6 @@ const App = () => {
             <div className="entry-values">
               {t(`implementation.connectionStatus.${connectionStatus}`)}
               {connectionStatus === 'notRunning' && (
-                // <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection(headset.selectedImplementation.deviceInfo.deviceName)}>Retry</button>
                 <button type="button" style={{marginLeft: '5px'}} onClick={() => headset.retryConnection(webrtc.getDefaultMicrophone().label)}>Retry</button>
               )}
             </div>
