@@ -274,6 +274,7 @@ export default class JabraService extends VendorImplementation {
 
 
     async connect(deviceLabel: string): Promise<void> {
+        deviceLabel.toLowerCase();
         if (!this.isConnecting) {
             this.changeConnectionStatus({isConnected: this.isConnected, isConnecting: true});
         }
