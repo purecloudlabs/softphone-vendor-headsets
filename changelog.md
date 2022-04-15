@@ -31,4 +31,8 @@ Major version bump
 ### Added
 * [PCM-1684](https://inindca.atlassian.net/browse/PCM-1684) - Added logic to now handle Sennheiser's rebranded devices, EPOS.
 * [PCM-1667](https://inindca.atlassian.net/browse/PCM-1667) - Completed the work started on the new headset library. Included logic for three vendors: Jabra, Poly/Plantronics and
+<<<<<<< HEAD
     Sennheiser/EPOS. Each headset can now use call controls from the device itself
+=======
+    Sennheiser/EPOS. Each headset can now use call controls from the device itself
+>>>>>>> cce699cea46ff156bacfd69219e840a56fc0f9b6
