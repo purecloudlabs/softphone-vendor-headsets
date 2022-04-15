@@ -44,7 +44,6 @@ export default class JabraService extends VendorImplementation {
         super(config);
         this.vendorName = 'Jabra';
         this.devices = new Map<string, DeviceInfo>();
-        this.jabraSdk = this.initializeJabraSdk();
     }
 
     isSupported(): boolean {
@@ -53,7 +52,11 @@ export default class JabraService extends VendorImplementation {
 
     deviceLabelMatchesVendor(label: string): boolean {
         const lowerLabel = label.toLowerCase();
-        return ['jabra'].some(searchVal => lowerLabel.includes(searchVal));
+        if (['jabra'].some(searchVal => lowerLabel.includes(searchVal))) {
+            this.jabraSdk = this.initializeJabraSdk();
+            return true;
+        }
+        return false;
     }
 
     static getInstance(config: ImplementationConfig): JabraService {

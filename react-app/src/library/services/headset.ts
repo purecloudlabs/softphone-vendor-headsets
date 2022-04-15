@@ -55,15 +55,15 @@ export default class HeadsetService {
   }
 
   activeMicChange(newMicLabel: string): void {
-    const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
-    if (implementation) {
-      this.changeImplementation(implementation, newMicLabel);
-    } else {
-      if (this.selectedImplementation) {
-        this.selectedImplementation.disconnect();
+    if (newMicLabel) {
+      const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
+      if (implementation) {
+        this.changeImplementation(implementation, newMicLabel);
+      } else {
+        this.clearSelectedImplementation();
       }
-      this.selectedImplementation = null;
-      this.handleDeviceConnectionStatusChanged();
+    } else {
+      this.clearSelectedImplementation();
     }
   }
 
@@ -154,6 +154,14 @@ export default class HeadsetService {
     implementation.on(HeadsetEvents.deviceEventLogs, this.handleDeviceLogs.bind(this));
     implementation.on(HeadsetEvents.deviceConnectionStatusChanged, this.handleDeviceConnectionStatusChanged.bind(this));
     implementation.on(HeadsetEvents.webHidPermissionRequested, this.handleWebHidPermissionRequested.bind(this));
+  }
+
+  private clearSelectedImplementation (): void {
+    if (this.selectedImplementation) {
+      this.selectedImplementation.disconnect();
+    }
+    this.selectedImplementation = null;
+    this.handleDeviceConnectionStatusChanged();
   }
 
   private handleDeviceAnsweredCall(event: VendorEvent<EventInfo>): void {
