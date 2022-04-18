@@ -522,6 +522,12 @@ describe('HeadsetService', () => {
       await headsetService.activeMicChange('epos test');
       expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'epos test');
 
+      headsetService.selectedImplementation = sennheiser;
+
+      headsetService.activeMicChange(undefined);
+      expect(headsetService.selectedImplementation).toBeNull();
+      expect(disconnectSpy).toHaveBeenCalled();
+
       headsetService.activeMicChange('test test');
       expect(disconnectSpy).toHaveBeenCalled();
     });
