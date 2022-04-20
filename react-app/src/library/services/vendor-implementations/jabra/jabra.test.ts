@@ -712,21 +712,21 @@ describe('JabraService', () => {
             expect(resetStateSpy).toHaveBeenCalled();
             expect(jabraRejectCall).resolves.toReturn();
         })
-        it('prints out message if not in possession of callLock', () => {
-            const deviceSignalsSubject = new Subject<ICallControlSignal>();
+        // it('prints out message if not in possession of callLock', () => {
+        //     const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
-            const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+        //     const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
 
-            jabraService.callControl = callControl as any;
+        //     jabraService.callControl = callControl as any;
 
-            const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-            const resetStateSpy = jest.spyOn(jabraService, 'resetState');
-            const jabraRejectCall = jabraService.rejectCall();
-            expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
-            expect(jabraService.callLock).toBe(false);
-            expect(resetStateSpy).toHaveBeenCalled();
-            expect(jabraRejectCall).resolves.toReturn();
-        })
+        //     const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
+        //     const resetStateSpy = jest.spyOn(jabraService, 'resetState');
+        //     const jabraRejectCall = jabraService.rejectCall();
+        //     expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
+        //     expect(jabraService.callLock).toBe(false);
+        //     expect(resetStateSpy).toHaveBeenCalled();
+        //     expect(jabraRejectCall).resolves.toReturn();
+        // })
         it('properly handles flow when in possession of callLock', () => {
             const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
@@ -789,21 +789,21 @@ describe('JabraService', () => {
             expect(jabraEndCalls).resolves.toReturn();
             expect(callControl.offHook).not.toHaveBeenCalled();
         })
-        it('prints out message if not in possession of callLock', () => {
-            const deviceSignalsSubject = new Subject<ICallControlSignal>();
+        // it('prints out message if not in possession of callLock', () => {
+        //     const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
-            const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+        //     const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
 
-            jabraService.callControl = callControl as any;
+        //     jabraService.callControl = callControl as any;
 
-            const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-            const resetStateSpy = jest.spyOn(jabraService, 'resetState');
-            const jabraEndCalls = jabraService.endCall('123', false);
-            expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
-            expect(jabraService.callLock).toBe(false);
-            expect(resetStateSpy).toHaveBeenCalled();
-            expect(jabraEndCalls).resolves.toReturn();
-        })
+        //     const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
+        //     const resetStateSpy = jest.spyOn(jabraService, 'resetState');
+        //     const jabraEndCalls = jabraService.endCall('123', false);
+        //     expect(infoLoggerSpy).toHaveBeenCalledWith('Currently not in possession of the Call Lock; Cannot react to Device Actions');
+        //     expect(jabraService.callLock).toBe(false);
+        //     expect(resetStateSpy).toHaveBeenCalled();
+        //     expect(jabraEndCalls).resolves.toReturn();
+        // })
         it('properly handles flow when in possession of callLock', () => {
             const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
