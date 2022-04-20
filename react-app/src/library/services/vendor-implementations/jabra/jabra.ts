@@ -198,7 +198,7 @@ export default class JabraService extends VendorImplementation {
                 return this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions');
             }
             this.callControl.ring(false);
-            this.callControl.releaseCallLock();
+            // this.callControl.releaseCallLock();
         } catch ({message, type}) {
             if (this.checkForCallLockError(message, type)) {
                 this.logger.info(message);
@@ -207,7 +207,7 @@ export default class JabraService extends VendorImplementation {
             }
         } finally {
             this.incomingConversationId = ''
-            this.callLock = false;
+            // this.callLock = false;
             this.resetState();
         }
     }
@@ -235,9 +235,9 @@ export default class JabraService extends VendorImplementation {
         }
 
         try {
-            // if (!this.callLock) {
-            //     return this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions')
-            // }
+            if (!this.callLock) {
+                return this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions')
+            }
             // await Promise.all([
                 this.callControl.offHook(false),
                 this.callControl.releaseCallLock()
