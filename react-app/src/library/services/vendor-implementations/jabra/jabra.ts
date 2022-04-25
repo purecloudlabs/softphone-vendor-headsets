@@ -240,10 +240,8 @@ export default class JabraService extends VendorImplementation {
             if (!this.callLock) {
                 return this.logger.info('Currently not in possession of the Call Lock; Cannot react to Device Actions')
             }
-            // await Promise.all([
-                this.callControl.offHook(false),
-                this.callControl.releaseCallLock()
-            // ]);
+            this.callControl.offHook(false);
+            this.callControl.releaseCallLock();
         } catch ({message, type}) {
             if (this.checkForCallLockError(message, type)) {
                 this.logger.info(message);
