@@ -1,4 +1,4 @@
-export enum PlantronicsCallEvents {
+export enum PlantronicsCallEventCodes {
   Unknown = 0,
   AcceptCall = 1,
   TerminateCall = 2,
@@ -34,6 +34,17 @@ export enum PlantronicsCallEvents {
   DeviceChange = 32,
   DeviceArrived = 33,
   DeviceRemoved = 34,
+}
+
+export interface PlantronicsCallEvent {
+  Action: PlantronicsCallEventCodes;
+  CallId: {
+    ConferenceId: number;
+    Id: number;
+    InConference: boolean;
+  };
+  CallSource: string;
+  DeviceEvent: number;
 }
 
 // Don't need this, because CallEvents[code] will return the name
