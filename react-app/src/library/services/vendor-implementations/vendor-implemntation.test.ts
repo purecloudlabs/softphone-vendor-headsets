@@ -3,7 +3,7 @@ import deviceInfo from "../../types/device-info";
 import { VendorImplementation } from "./vendor-implementation";
 
 class TestImplementation extends VendorImplementation {
-  get deviceInfo(): deviceInfo {
+  get deviceInfo (): deviceInfo {
     return { deviceName: 'fake device' };
   }
 }
@@ -69,8 +69,8 @@ describe('answerCall', () => {
 describe('rejectCall', () => {
   it('should throw not implemented', async () => {
     await expect(() => implementation.rejectCall('convo')).rejects.toThrow('not implemented');
-  })
-})
+  });
+});
 
 describe('outgoingCall', () => {
   it('should throw not implemented', async () => {

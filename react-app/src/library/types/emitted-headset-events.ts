@@ -1,10 +1,9 @@
 import { VendorImplementation } from "../services/vendor-implementations/vendor-implementation";
-import { WebHidPermissionRequest } from "..";
 
 export interface EmittedHeadsetEvents {
-  deviceAnsweredCall: VendorEvent<EventInfo>;
-  deviceRejectedCall: VendorConversationIdEvent;
-  deviceEndedCall: VendorEvent<any>;
+  deviceAnsweredCall: VendorEvent<EventInfoWithConversationId>;
+  deviceRejectedCall: VendorEvent<EventInfoWithConversationId>;
+  deviceEndedCall: VendorEvent<EventInfoWithConversationId>;
   deviceMuteChanged: VendorEvent<MutedEventInfo>;
   deviceHoldStatusChanged: VendorEvent<HoldEventInfo>;
   deviceEventLogs: VendorEvent<any>;
@@ -17,19 +16,26 @@ export type VendorEvent<Type> = {
   body: Type;
 }
 
-export type VendorConversationIdEvent = VendorEvent<{ conversationId: string}>;
-
 export interface EventInfo {
   name: string;
-  code?: string;
-  event: any;
+  code?: string|number;
+  event?: any;
+  conversationId?: string;
+}
+
+export interface EventInfoWithConversationId extends EventInfo {
+  conversationId: string;
 }
 
 export interface MutedEventInfo extends EventInfo {
   isMuted: boolean;
 }
 
-export interface HoldEventInfo extends EventInfo {
+export interface HoldEventInfo extends EventInfoWithConversationId {
   holdRequested: boolean;
   toggle?: boolean;
+}
+
+export interface WebHidPermissionRequest {
+  callback: any
 }

@@ -1,17 +1,16 @@
 import SennheiserService from './sennheiser';
-import { SennheiserPayload } from './sennheiser-payload';
-import { SennheiserEvents } from './sennheiser-events';
-import { SennheiserEventTypes } from './sennheiser-event-types';
 import * as utils from '../../../utils';
 import DeviceInfo from '../../../types/device-info';
-import { mockWebSocket, mockLogger } from '../../../test-utils.test';
+import { mockLogger, createMockWebSocket } from '../../../test-utils';
 import { CallInfo } from '../../../types/call-info';
+import { SennheiserPayload, SennheiserEvents, SennheiserEventTypes } from './types';
 
 describe('SennheiserService', () => {
   let sennheiserService: SennheiserService;
 
   beforeEach(() => {
     sennheiserService = SennheiserService.getInstance({ logger: console, createNew: true });
+    sennheiserService.logger = mockLogger;
   });
 
   afterEach(() => {
@@ -19,13 +18,6 @@ describe('SennheiserService', () => {
   });
 
   describe('instantiation', () => {
-    let sennheiserService: SennheiserService;
-
-    beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-    });
-
     it('should be a singleton', () => {
       const sennheiserService2 = SennheiserService.getInstance({ logger: console });
 
@@ -40,15 +32,12 @@ describe('SennheiserService', () => {
   });
 
   describe('deviceName', () => {
-    beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-    });
     it('should return null if deviceInfo is null', () => {
       sennheiserService.deviceInfo = null;
       const result = sennheiserService.deviceName;
       expect(result).toBeNull();
     });
+
     it('should return the name of the device if deviceInfo is not null', () => {
       const ProductName = 'fake device';
       sennheiserService.deviceInfo = { ProductName };
@@ -58,15 +47,12 @@ describe('SennheiserService', () => {
   });
 
   describe('isDeviceAttached', () => {
-    beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-    });
     it('should return true if deviceInfo is defined', () => {
       sennheiserService.deviceInfo = { ProductName: 'fakeDevice' };
       const result = sennheiserService.isDeviceAttached;
       expect(result).toBe(true);
     });
+
     it('should return false if deviceInfo is undefined or null', () => {
       sennheiserService.deviceInfo = null;
       expect(sennheiserService.isDeviceAttached).toBe(false);
@@ -76,10 +62,6 @@ describe('SennheiserService', () => {
   });
 
   describe('deviceLabelMatchesVendor', () => {
-    beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-    });
     it('should return true when the device label contains the string "sennheiser"', () => {
       let testLabel = 'sennheiser headset';
       let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
@@ -93,6 +75,7 @@ describe('SennheiserService', () => {
       result = sennheiserService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(true);
     });
+
     it('should return false when the device label does not contain the string "sennheiser"', () => {
       let testLabel = 'standard headset';
       let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
@@ -106,6 +89,7 @@ describe('SennheiserService', () => {
       result = sennheiserService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(false);
     });
+
     it('should return true when the device label contains the string "senn"', () => {
       let testLabel = 'senn headset';
       let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
@@ -119,6 +103,7 @@ describe('SennheiserService', () => {
       result = sennheiserService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(true);
     });
+
     it('should return false when the device label does not contain the string "senn"', () => {
       let testLabel = 'standard headset';
       let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
@@ -132,6 +117,7 @@ describe('SennheiserService', () => {
       result = sennheiserService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(false);
     });
+
     it('should return true when the device label contains the string "epos"', () => {
       let testLabel = 'EPOS headset';
       let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
@@ -145,6 +131,7 @@ describe('SennheiserService', () => {
       result = sennheiserService.deviceLabelMatchesVendor(testLabel);
       expect(result).toBe(true);
     });
+
     it('should return false when the device label does not contain the string "epos"', () => {
       let testLabel = 'standard headset';
       let result = sennheiserService.deviceLabelMatchesVendor(testLabel);
@@ -162,14 +149,9 @@ describe('SennheiserService', () => {
 
   describe('disconnect', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
-      sennheiserService.logger = mockLogger;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+    
     it('should not call _sendMessage if the service is not connected', async () => {
       sennheiserService.isConnected = false;
       jest.spyOn(sennheiserService, '_sendMessage');
@@ -178,6 +160,7 @@ describe('SennheiserService', () => {
 
       expect(sennheiserService._sendMessage).not.toHaveBeenCalled();
     });
+
     it('should call _sendMessage with the correct payload when the service is connected', async () => {
       sennheiserService.isConnected = true;
       jest.spyOn(sennheiserService, '_sendMessage');
@@ -194,14 +177,9 @@ describe('SennheiserService', () => {
 
   describe('setMute', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
-      sennheiserService.logger = mockLogger;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.MuteFromApp when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const expectedPayload: SennheiserPayload = {
@@ -213,6 +191,7 @@ describe('SennheiserService', () => {
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
+
     it('should call _sendMessage with a payload using SennheiserEvents.UnmuteFromApp when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = null;
@@ -229,36 +208,31 @@ describe('SennheiserService', () => {
 
   describe('setHold', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.Hold when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      sennheiserService.callMappings[conversationId] = 12345;
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.Hold,
         EventType: SennheiserEventTypes.Request,
-        CallID: sennheiserService.callMappings[conversationId],
+        CallID: conversationId
       };
 
       await sennheiserService.setHold(conversationId, true);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
+
     it('should call _sendMessage with a payload using SennheiserEvents.Resume when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = null;
       const conversationId = '23f897b';
-      sennheiserService.callMappings[conversationId] = 12345;
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.Resume,
         EventType: SennheiserEventTypes.Request,
-        CallID: sennheiserService.callMappings[conversationId],
+        CallID: conversationId
       };
 
       await sennheiserService.setHold(conversationId, value);
@@ -269,29 +243,25 @@ describe('SennheiserService', () => {
 
   describe('incomingCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
         contactName: 'Ted Danson',
         conversationId: '23f897b'
-      }
+      };
 
       // Run Test
       await sennheiserService.incomingCall(callInfo);
 
       // Get generated call mapping to create expected payload
-      const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
+      // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCall,
         EventType: SennheiserEventTypes.Request,
-        CallID: generatedCallId,
+        CallID: callInfo.conversationId
       };
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
@@ -300,25 +270,16 @@ describe('SennheiserService', () => {
 
   describe('answerCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      const CallID = 237894;
-      sennheiserService.callMappings = {
-        [conversationId]: CallID,
-        [CallID]: conversationId,
-      };
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCallAccepted,
         EventType: SennheiserEventTypes.Request,
-        CallID: CallID,
+        CallID: conversationId,
       };
 
       await sennheiserService.answerCall(conversationId);
@@ -329,25 +290,16 @@ describe('SennheiserService', () => {
 
   describe('rejectCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      const CallID = 237894;
-      sennheiserService.callMappings = {
-        [conversationId]: CallID,
-        [CallID]: conversationId,
-      };
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCallRejected,
         EventType: SennheiserEventTypes.Request,
-        CallID: CallID,
+        CallID: conversationId
       };
 
       await sennheiserService.rejectCall(conversationId);
@@ -358,29 +310,25 @@ describe('SennheiserService', () => {
 
   describe('outgoingCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
         contactName: 'Joe Fixit',
         conversationId: '23f897b'
-      }
+      };
 
       // Run Test
       await sennheiserService.outgoingCall(callInfo);
 
       // Get generated call mapping to create expected payload
-      const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
+      // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.OutgoingCall,
         EventType: SennheiserEventTypes.Request,
-        CallID: generatedCallId,
+        CallID: callInfo.conversationId
       };
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
@@ -389,38 +337,21 @@ describe('SennheiserService', () => {
 
   describe('endCall', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.websocket = mockWebSocket;
+      sennheiserService.websocket = createMockWebSocket();
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
+
     it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      const CallID = 237894;
-      sennheiserService.callMappings = {
-        [conversationId]: CallID,
-        [CallID]: conversationId,
-      };
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.CallEnded,
         EventType: SennheiserEventTypes.Request,
-        CallID: CallID,
+        CallID: conversationId
       };
 
       await sennheiserService.endCall(conversationId);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-    });
-    it('should not call _sendMessage when there is no callId for the provided conversationId', async () => {
-      jest.spyOn(sennheiserService, '_sendMessage');
-      const conversationId = '23f897b';
-
-      await sennheiserService.endCall(conversationId);
-
-      expect(sennheiserService._sendMessage).not.toHaveBeenCalled();
     });
   });
 
@@ -428,9 +359,7 @@ describe('SennheiserService', () => {
     let message;
 
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.callMappings = {};
+      sennheiserService.websocket = createMockWebSocket();
 
       jest.spyOn(sennheiserService, '_handleAck');
       jest.spyOn(sennheiserService, '_handleError');
@@ -492,16 +421,20 @@ describe('SennheiserService', () => {
           EventType: SennheiserEventTypes.Request,
         };
 
+        sennheiserService.isConnected = true;
+
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._sendMessage).toHaveBeenCalledTimes(1);
         expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
       });
+
       it('should set isConnecting to false', () => {
         sennheiserService.isConnecting = true;
         sennheiserService._handleMessage(message);
         expect(sennheiserService.isConnecting).toBe(false);
       });
+
       it('should set isConnected to true', () => {
         sennheiserService.isConnected = false;
         sennheiserService._handleMessage(message);
@@ -530,6 +463,7 @@ describe('SennheiserService', () => {
 
         expect(sennheiserService.deviceInfo).toEqual(expectedDeviceInfo);
       });
+
       it('should not change deviceInfo if payload.HeadsetName is undefined', () => {
         message = { data: `{ "Event": "${SennheiserEvents.HeadsetConnected}" }` };
         const expectedDeviceInfo: DeviceInfo = {
@@ -559,6 +493,7 @@ describe('SennheiserService', () => {
 
         expect(sennheiserService.deviceInfo).toBeNull();
       });
+
       it('should NOT set deviceInfo to null if the HeadsetName on the payload is the different than the currently set deviceName', () => {
         const testDeviceName1 = 'Test Device 1';
         const testDeviceName2 = 'Test Device 2';
@@ -590,6 +525,7 @@ describe('SennheiserService', () => {
 
         expect(sennheiserService.deviceAnsweredCall).toHaveBeenCalledTimes(1);
       });
+
       it(`should NOT call deviceAnsweredCall() when the payload EventType is NOT '${SennheiserEventTypes.Notification}'`, () => {
         message = {
           data: `{
@@ -617,8 +553,10 @@ describe('SennheiserService', () => {
         expect(sennheiserService._handleAck).toHaveBeenCalledWith(expectedPayload);
         expect(sennheiserService.deviceHoldStatusChanged).not.toHaveBeenCalled();
       });
+
       it(`should call deviceHoldStatusChanged(true) if the event type is NOT ${SennheiserEventTypes.Notification}`, () => {
         const expectedPayload: SennheiserPayload = {
+          CallID: '23f897b',
           Event: SennheiserEvents.Hold,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -627,7 +565,7 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
-        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(true, { name: 'CallHold' });
+        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith({ holdRequested: true, name: SennheiserEvents.Hold, conversationId: expectedPayload.CallID });
       });
     });
 
@@ -644,8 +582,10 @@ describe('SennheiserService', () => {
         expect(sennheiserService._handleAck).toHaveBeenCalledWith(expectedPayload);
         expect(sennheiserService.deviceHoldStatusChanged).not.toHaveBeenCalled();
       });
+
       it(`should call deviceHoldStatusChanged(false) if the event type is NOT ${SennheiserEventTypes.Notification}`, () => {
         const expectedPayload: SennheiserPayload = {
+          CallID: '23f897b',
           Event: SennheiserEvents.Resume,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -654,7 +594,7 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
-        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(false, { name: 'HeldCallResumed' });
+        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith({ holdRequested: false, name: SennheiserEvents.Resume, conversationId: expectedPayload.CallID });
       });
     });
 
@@ -662,40 +602,33 @@ describe('SennheiserService', () => {
       it('should call deviceMuteChanged(true)', () => {
         message = { data: `{ "Event": "${SennheiserEvents.MuteFromHeadset}" }` };
         sennheiserService._handleMessage(message);
-        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(true, { name: "MuteSoftphone" });
+        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith({ isMuted: true, name: SennheiserEvents.MuteFromHeadset });
       });
     });
 
     describe(`event type: ${SennheiserEvents.UnmuteFromHeadset}`, () => {
-      it('should call deviceMuteChanged(true)', () => {
+      it('should call deviceMuteChanged(false)', () => {
         message = { data: `{ "Event": "${SennheiserEvents.UnmuteFromHeadset}" }` };
         sennheiserService._handleMessage(message);
-        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(false, { name: 'UnmuteSoftphone' });
+        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith({ isMuted: false, name: SennheiserEvents.UnmuteFromHeadset });
       });
     });
 
     describe(`event type: ${SennheiserEvents.CallEnded}`, () => {
-      const callId = 1234;
-      const conversationId = '12r3kh';
-
       it('should delete the call mappings for callId and conversationId', () => {
         const payload: SennheiserPayload = {
-          CallID: callId,
+          CallID: '23f897b',
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Notification,
         };
         message = { data: JSON.stringify(payload) };
-        sennheiserService.callMappings[callId] = conversationId;
-        sennheiserService.callMappings[conversationId] = callId;
 
         sennheiserService._handleMessage(message);
-
-        expect(sennheiserService.callMappings[callId]).toBeFalsy();
-        expect(sennheiserService.callMappings[conversationId]).toBeFalsy();
+        expect(sennheiserService.deviceEndedCall).toHaveBeenCalledWith({ name: SennheiserEvents.CallEnded, conversationId: payload.CallID });
       });
+
       it(`should call deviceEndedCall() when the payload event type is '${SennheiserEventTypes.Notification}'`, () => {
         const payload: SennheiserPayload = {
-          CallID: callId,
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -705,9 +638,9 @@ describe('SennheiserService', () => {
 
         expect(sennheiserService.deviceEndedCall).toHaveBeenCalledTimes(1);
       });
+
       it(`should NOT call deviceEndedCall() when the payload event type is NOT '${SennheiserEventTypes.Notification}'`, () => {
         const payload: SennheiserPayload = {
-          CallID: callId,
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Ack,
         };
@@ -721,39 +654,41 @@ describe('SennheiserService', () => {
 
     describe(`event type: ${SennheiserEvents.IncomingCallRejected}`, () => {
       it('should call deviceRejectedCall() with the relevant conversationID', () => {
-        const callId = 1234;
         const conversationId = '12r3kh';
-        sennheiserService.callMappings[callId] = conversationId;
-        sennheiserService.callMappings[conversationId] = callId;
         const payload: SennheiserPayload = {
-          CallID: callId,
+          CallID: conversationId,
           Event: SennheiserEvents.IncomingCallRejected,
         };
         message = { data: JSON.stringify(payload) };
 
         sennheiserService._handleMessage(message);
 
-        expect(sennheiserService.deviceRejectedCall).toHaveBeenCalledWith(conversationId);
+        expect(sennheiserService.deviceRejectedCall).toHaveBeenCalledWith({ name: payload.Event, conversationId: payload.CallID });
       });
     });
 
     describe(`event type: ${SennheiserEvents.TerminateConnection}`, () => {
+      let mockWebSocket;
+
+      beforeEach(() => {
+        mockWebSocket = sennheiserService.websocket;
+      });
+
       it('should close the websocket connection if the socket.ReadyState === 1, and set the websocket to null', () => {
         message = { data: `{ "Event": "${SennheiserEvents.TerminateConnection}" }` };
         mockWebSocket.readyState = 1;
         jest.spyOn(mockWebSocket, 'close');
-        sennheiserService.websocket = mockWebSocket;
 
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService.websocket).toBeNull();
         expect(mockWebSocket.close).toHaveBeenCalled();
       });
+
       it('should NOT call close() on the websocket if socket.ReadyState is !== 1', () => {
         message = { data: `{ "Event": "${SennheiserEvents.TerminateConnection}" }` };
         mockWebSocket.readyState = 2;
         jest.spyOn(mockWebSocket, 'close');
-        sennheiserService.websocket = mockWebSocket;
 
         sennheiserService._handleMessage(message);
 
@@ -774,6 +709,7 @@ describe('SennheiserService', () => {
 
         expect(sennheiserService._handleAck).toHaveBeenCalledWith(payload);
       });
+
       it(`should call NOT _handleAck with the given payload when the event type is NOT ${SennheiserEventTypes.Ack}`, () => {
         const payload = {
           Event: 'UnexpectedEvent',
@@ -790,9 +726,6 @@ describe('SennheiserService', () => {
 
   describe('endAllCalls', () => {
     it('should return a Promise<void>', () => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
-      sennheiserService.logger = mockLogger;
       jest.spyOn(mockLogger, 'warn');
 
       sennheiserService.endAllCalls();
@@ -802,15 +735,12 @@ describe('SennheiserService', () => {
   });
 
   describe('webSocketOnOpen', () => {
-    beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-    });
-
     it('should set websocketConnected to true', () => {
       sennheiserService.websocketConnected = false;
       sennheiserService.webSocketOnOpen();
       expect(sennheiserService.websocketConnected).toBe(true);
     });
+
     it('should call logger to inform that the websocket is connected', () => {
       jest.spyOn(mockLogger, 'info');
       sennheiserService.webSocketOnOpen();
@@ -820,8 +750,6 @@ describe('SennheiserService', () => {
 
   describe('webSocketOnClose', () => {
     beforeEach(() => {
-      sennheiserService = SennheiserService.getInstance({ logger: console });
-      sennheiserService.logger = mockLogger;
       sennheiserService.websocketConnected = true;
     });
 
@@ -846,16 +774,19 @@ describe('SennheiserService', () => {
 
       expect(mockLogger.error).toHaveBeenCalled();
     });
+
     it('should set isConnecting to false', () => {
       sennheiserService.isConnecting = true;
       sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
       expect(sennheiserService.isConnecting).toBe(false);
     });
+
     it('should set isConnected to false', () => {
       sennheiserService.isConnected = true;
       sennheiserService.webSocketOnClose({ code: 123, reason: 'something broke', wasClean: true });
       expect(sennheiserService.isConnected).toBe(false);
     });
+
     it('should log an error if isConnected is false', () => {
       sennheiserService.isConnected = false;
       jest.spyOn(mockLogger, 'error');
@@ -864,6 +795,7 @@ describe('SennheiserService', () => {
 
       expect(mockLogger.error).toHaveBeenCalled();
     });
+
     it("should set errorCode to 'browser' when isConnected is false and the browser is Firefox", () => {
       sennheiserService.isConnected = false;
       sennheiserService.errorCode = null;
@@ -873,6 +805,7 @@ describe('SennheiserService', () => {
 
       expect(sennheiserService.errorCode).toEqual('browser');
     });
+
     it('should set disableRetry to true when isConnected is false and the browser is Firefox', () => {
       sennheiserService.isConnected = false;
       sennheiserService.disableRetry = false;
@@ -894,6 +827,7 @@ describe('SennheiserService', () => {
       expect(sennheiserService.isConnected).toBe(false);
       expect(sennheiserService.isConnecting).toBe(true);
     });
+
     it('should set the socket opopen, onclose, and onmessage functions', () => {
       sennheiserService.websocket = null;
       sennheiserService.connect();
@@ -901,6 +835,7 @@ describe('SennheiserService', () => {
       expect(typeof sennheiserService.websocket.onclose).toBe('function');
       expect(typeof sennheiserService.websocket.onmessage).toBe('function');
     });
+    
     it('should set the service websocket', () => {
       sennheiserService.websocket = null;
       sennheiserService.connect();

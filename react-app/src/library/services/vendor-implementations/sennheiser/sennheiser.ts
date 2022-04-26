@@ -1,10 +1,8 @@
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
-import { SennheiserEvents } from './sennheiser-events';
-import { SennheiserEventTypes } from './sennheiser-event-types';
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../..';
-import { SennheiserPayload } from './sennheiser-payload';
 import * as utils from '../../../utils';
+import { SennheiserPayload, SennheiserEvents, SennheiserEventTypes } from './types';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 
@@ -19,45 +17,43 @@ export default class SennheiserService extends VendorImplementation {
   activeDeviceId = null;
   websocketConnected = false;
 
-  callMappings: any = {};
-
   websocket = null;
   deviceInfo: DeviceInfo = null;
 
-  static getInstance(config: ImplementationConfig): SennheiserService {
-    if (!SennheiserService.instance) {
+  static getInstance (config: ImplementationConfig): SennheiserService {
+    if (!SennheiserService.instance || config.createNew) {
       SennheiserService.instance = new SennheiserService(config);
     }
 
     return SennheiserService.instance;
   }
 
-  deviceLabelMatchesVendor(label: string): boolean {
+  deviceLabelMatchesVendor (label: string): boolean {
     const lowerLabel = label.toLowerCase();
     return ['senn', 'epos'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
-  get deviceName(): string {
+  get deviceName (): string {
     return this.deviceInfo && this.deviceInfo.ProductName;
   }
 
-  get isDeviceAttached(): boolean {
+  get isDeviceAttached (): boolean {
     return !!this.deviceInfo;
   }
 
-  _handleError(payload: SennheiserPayload): void {
+  _handleError (payload: SennheiserPayload): void {
     this.logger.error('Non-zero return code from sennheiser', payload);
   }
-  _handleAck(payload: SennheiserPayload): void {
+  _handleAck (payload: SennheiserPayload): void {
     this.logger.debug(`Received Ack for ${payload.Event}`);
   }
 
-  _sendMessage(payload: SennheiserPayload): void {
+  _sendMessage (payload: SennheiserPayload): void {
     this.logger.debug('sending sennheiser message', payload);
     this.websocket.send(JSON.stringify(payload));
   }
 
-  _registerSoftphone(): void {
+  _registerSoftphone (): void {
     const payload: SennheiserPayload = {
       Event: SennheiserEvents.EstablishConnection,
       EventType: SennheiserEventTypes.Request,
@@ -72,7 +68,7 @@ export default class SennheiserService extends VendorImplementation {
     this._sendMessage(payload);
   }
 
-  connect(): Promise<void> {
+  connect (): Promise<void> {
     !this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: true });
 
     const socket = new WebSocket(websocketUri);
@@ -89,7 +85,7 @@ export default class SennheiserService extends VendorImplementation {
     this.logger.info('websocket open the sennheiser software');
   };
 
-  webSocketOnClose(err: { code: number, reason: string, wasClean: boolean }): void {
+  webSocketOnClose (err: { code: number, reason: string, wasClean: boolean }): void {
     this.websocketConnected = false;
     if (!err.wasClean) {
       this.logger.error(err);
@@ -109,7 +105,7 @@ export default class SennheiserService extends VendorImplementation {
     }
   }
 
-  disconnect(): Promise<void> {
+  disconnect (): Promise<void> {
     if (!this.isConnected) {
       return Promise.resolve();
     }
@@ -122,24 +118,7 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  private _createCallMapping(conversationId: string) {
-    const ID_LENGTH = 7;
-    const callId = Math.round(Math.random() * Math.pow(10, ID_LENGTH)); // Generate random number
-
-    this.callMappings = {
-      [conversationId]: callId,
-      [callId]: conversationId,
-    };
-
-    this.logger.info('Created callId mapping for sennheiser headset', {
-      conversationId,
-      sennheiserCallId: callId,
-    });
-
-    return callId;
-  }
-
-  setMute(value: boolean): Promise<void> {
+  setMute (value: boolean): Promise<void> {
     this._sendMessage({
       Event: value ? SennheiserEvents.MuteFromApp : SennheiserEvents.UnmuteFromApp,
       EventType: SennheiserEventTypes.Request,
@@ -147,83 +126,72 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  setHold(conversationId: string, value: boolean): Promise<void> {
+  setHold (conversationId: string, value: boolean): Promise<void> {
     this._sendMessage({
       Event: value ? SennheiserEvents.Hold : SennheiserEvents.Resume,
       EventType: SennheiserEventTypes.Request,
-      CallID: this.callMappings[conversationId],
+      CallID: conversationId,
     });
 
     return Promise.resolve();
   }
 
-  incomingCall(callInfo: CallInfo): Promise<void> {
-    const { conversationId } = callInfo;
-    const callId = this._createCallMapping(conversationId);
-
+  incomingCall (callInfo: CallInfo): Promise<void> {
     this._sendMessage({
       Event: SennheiserEvents.IncomingCall,
       EventType: SennheiserEventTypes.Request,
-      CallID: callId,
+      CallID: callInfo.conversationId,
     });
 
     return Promise.resolve();
   }
 
-  answerCall(conversationId: string): Promise<void> {
+  answerCall (conversationId: string): Promise<void> {
     this._sendMessage({
       Event: SennheiserEvents.IncomingCallAccepted,
       EventType: SennheiserEventTypes.Request,
-      CallID: this.callMappings[conversationId],
+      CallID: conversationId,
     });
     return Promise.resolve();
   }
 
-  rejectCall(conversationId: string): Promise<void> {
+  rejectCall (conversationId: string): Promise<void> {
     this._sendMessage({
       Event: SennheiserEvents.IncomingCallRejected,
       EventType: SennheiserEventTypes.Request,
-      CallID: this.callMappings[conversationId],
-    })
+      CallID: conversationId,
+    });
     return Promise.resolve();
   }
 
-  outgoingCall(callInfo: CallInfo): Promise<void> {
+  outgoingCall (callInfo: CallInfo): Promise<void> {
     const { conversationId } = callInfo;
-    const callId = this._createCallMapping(conversationId);
 
     this._sendMessage({
       Event: SennheiserEvents.OutgoingCall,
       EventType: SennheiserEventTypes.Request,
-      CallID: callId,
+      CallID: conversationId,
     });
 
     return Promise.resolve();
   }
 
-  endCall(conversationId: string): Promise<void> {
-    const callId = this.callMappings[conversationId];
-
-    if (!callId) {
-      this.logger.info('Failed to find sennheiser callId, assuming call was already ended');
-      return Promise.resolve();
-    }
-
+  endCall (conversationId: string): Promise<void> {
     this._sendMessage({
       Event: SennheiserEvents.CallEnded,
       EventType: SennheiserEventTypes.Request,
-      CallID: callId,
+      CallID: conversationId,
     });
 
     return Promise.resolve();
   }
 
-  endAllCalls(): Promise<void> {
+  endAllCalls (): Promise<void> {
     this.logger.warn('There is no functionality defined for SennheiserService.endAllCalls()');
     return Promise.resolve();
   }
 
-  _handleMessage(message: { data: string }): void {
+  _handleMessage (message: { data: string }): void {
     let payload: SennheiserPayload;
     try {
       payload = JSON.parse(message.data);
@@ -239,96 +207,88 @@ export default class SennheiserService extends VendorImplementation {
       return;
     }
 
-    let conversationId: string;
-    const callId: number = payload.CallID;
-    if (callId) {
-      conversationId = this.callMappings[callId];
-    }
+    const conversationId = payload.CallID;
 
     switch (payload.Event) {
-      case SennheiserEvents.SocketConnected:
-        this._registerSoftphone();
-        break;
-      case SennheiserEvents.EstablishConnection:
-        this._sendMessage({
-          Event: SennheiserEvents.SPLogin,
-          EventType: SennheiserEventTypes.Request,
-        });
-        break;
-      case SennheiserEvents.SPLogin:
-        if (!this.isConnected || this.isConnecting) {
-          this.changeConnectionStatus({ isConnected: true, isConnecting: false})
-        }
+    case SennheiserEvents.SocketConnected:
+      this._registerSoftphone();
+      break;
+    case SennheiserEvents.EstablishConnection:
+      this._sendMessage({
+        Event: SennheiserEvents.SPLogin,
+        EventType: SennheiserEventTypes.Request,
+      });
+      break;
+    case SennheiserEvents.SPLogin:
+      if (!this.isConnected || this.isConnecting) {
+        this.changeConnectionStatus({ isConnected: true, isConnecting: false });
+      }
         
-        this._sendMessage({
-          Event: SennheiserEvents.SystemInformation,
-          EventType: SennheiserEventTypes.Request,
-        });
-        break;
-      case SennheiserEvents.HeadsetConnected:
-        if (payload.HeadsetName) {
-          this.deviceInfo = {
-            deviceName: payload.HeadsetName,
-            headsetType: payload.HeadsetType,
-          };
-        }
-        break;
-      case SennheiserEvents.HeadsetDisconnected:
-        if (payload.HeadsetName === this.deviceName) {
-          this.deviceInfo = null;
-        }
+      this._sendMessage({
+        Event: SennheiserEvents.SystemInformation,
+        EventType: SennheiserEventTypes.Request,
+      });
+      break;
+    case SennheiserEvents.HeadsetConnected:
+      if (payload.HeadsetName) {
+        this.deviceInfo = {
+          deviceName: payload.HeadsetName,
+          headsetType: payload.HeadsetType,
+        };
+      }
+      break;
+    case SennheiserEvents.HeadsetDisconnected:
+      if (payload.HeadsetName === this.deviceName) {
+        this.deviceInfo = null;
+      }
 
-        break;
-      case SennheiserEvents.IncomingCallAccepted:
-        if (payload.EventType === SennheiserEventTypes.Notification) {
-          this.deviceAnsweredCall({name: payload.Event});
-        }
+      break;
+    case SennheiserEvents.IncomingCallAccepted:
+      if (payload.EventType === SennheiserEventTypes.Notification) {
+        this.deviceAnsweredCall({ name: payload.Event, conversationId });
+      }
 
+      break;
+    case SennheiserEvents.Hold:
+      if (payload.EventType === SennheiserEventTypes.Ack) {
+        this._handleAck(payload);
         break;
-      case SennheiserEvents.Hold:
-        if (payload.EventType === SennheiserEventTypes.Ack) {
-          this._handleAck(payload);
-          break;
-        }
-        this.deviceHoldStatusChanged(true, {name: payload.Event});
+      }
+      this.deviceHoldStatusChanged({ holdRequested: true, name: payload.Event, conversationId });
+      break;
+    case SennheiserEvents.Resume:
+      if (payload.EventType === SennheiserEventTypes.Ack) {
+        this._handleAck(payload);
         break;
-      case SennheiserEvents.Resume:
-        if (payload.EventType === SennheiserEventTypes.Ack) {
-          this._handleAck(payload);
-          break;
-        }
-        this.deviceHoldStatusChanged(false, {name: payload.Event});
-        break;
-      case SennheiserEvents.MuteFromHeadset:
-        this.deviceMuteChanged(true, {name: payload.Event});
-        break;
-      case SennheiserEvents.UnmuteFromHeadset:
-        this.deviceMuteChanged(false, {name: payload.Event});
-        break;
-      case SennheiserEvents.CallEnded:
-        // clean up mappings
-        delete this.callMappings[callId];
-        delete this.callMappings[conversationId];
-
-        if (payload.EventType === SennheiserEventTypes.Notification) {
-          this.deviceEndedCall({name: payload.Event});
-        }
-        break;
-      case SennheiserEvents.IncomingCallRejected:
-        this.deviceRejectedCall(conversationId);
-        break;
-      case SennheiserEvents.TerminateConnection:
-        if (this.websocket.readyState === 1) {
-          this.websocket.close();
-        }
-        this.websocket = null;
-        break;
-      default:
-        if (payload.EventType === SennheiserEventTypes.Ack) {
-          // this is mostly for testing purposes so we can confirm reciept of events we don't normally care about
-          this._handleAck(payload);
-        }
-        break;
+      }
+      this.deviceHoldStatusChanged({ holdRequested: false, name: payload.Event, conversationId });
+      break;
+    case SennheiserEvents.MuteFromHeadset:
+      this.deviceMuteChanged({ isMuted: true, name: payload.Event });
+      break;
+    case SennheiserEvents.UnmuteFromHeadset:
+      this.deviceMuteChanged({ isMuted: false, name: payload.Event });
+      break;
+    case SennheiserEvents.CallEnded:
+      if (payload.EventType === SennheiserEventTypes.Notification) {
+        this.deviceEndedCall({ name: payload.Event, conversationId });
+      }
+      break;
+    case SennheiserEvents.IncomingCallRejected:
+      this.deviceRejectedCall({ name: payload.Event, conversationId });
+      break;
+    case SennheiserEvents.TerminateConnection:
+      if (this.websocket.readyState === 1) {
+        this.websocket.close();
+      }
+      this.websocket = null;
+      break;
+    default:
+      if (payload.EventType === SennheiserEventTypes.Ack) {
+        // this is mostly for testing purposes so we can confirm reciept of events we don't normally care about
+        this._handleAck(payload);
+      }
+      break;
     }
   }
 }
