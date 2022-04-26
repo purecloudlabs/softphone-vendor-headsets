@@ -19,7 +19,8 @@ export default class JabraNativeService extends VendorImplementation {
   ignoreNextOffhookEvent = false;
   _connectionInProgress: any; // { resolve: Function, reject: Function }
   cefSupportsJabra = true;
-  incomingConversationId = ''
+  pendingConversationId: string;
+  activeConversationId: string;
 
   private constructor(config: ImplementationConfig) {
     super(config);
@@ -101,29 +102,41 @@ export default class JabraNativeService extends VendorImplementation {
     // if is incoming
     if (isOffhook) {
       if (this.headsetState.ringing) {
-        this.deviceAnsweredCall();
+        this.deviceAnsweredCall({name: 'CallOffHook', conversationId: this.pendingConversationId});
+        this.activeConversationId = this.pendingConversationId;
         // jabra requires you to echo the event back in acknowledgement
         this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
         this._setRinging(false);
+        this.pendingConversationId = null;
       }
 
       return;
     }
     this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
     this._getHeadsetIntoVanillaState();
-    this.deviceEndedCall();
+    this.deviceEndedCall({name: 'CallOnHook', conversationId: this.activeConversationId});
+    this.activeConversationId = null;
   }
 
   private _handleMuteEvent(isMuted: boolean): void {
     // jabra requires you to echo the event back in acknowledgement
     this._sendCmd(JabraNativeCommands.Mute, isMuted);
-    this.deviceMuteChanged(isMuted);
+    this.isMuted = isMuted;
+    this.deviceMuteChanged({
+      isMuted: isMuted,
+      name: isMuted ? 'CallMuted' : 'CallUnmuted',
+      conversationId: this.activeConversationId
+  });
   }
 
   private _handleHoldEvent(isHeld: boolean): void {
     // jabra requires you to echo the event back in acknowledgement
     this._sendCmd(JabraNativeCommands.Hold, !!isHeld);
-    this.deviceHoldStatusChanged(!!isHeld);
+    this.deviceHoldStatusChanged({
+      holdRequested: !!isHeld,
+      name: !!isHeld ? 'OnHold' : 'ResumeCall',
+      conversationId: this.activeConversationId
+    });
   }
 
   private _getHeadsetIntoVanillaState(): void {
@@ -159,57 +172,53 @@ export default class JabraNativeService extends VendorImplementation {
     return ['jabra'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
-  setMute(value: boolean): Promise<void> {
+  async setMute(value: boolean): Promise<void> {
     this._sendCmd(JabraNativeCommands.Mute, value);
-    return Promise.resolve();
   }
 
-  setHold(conversationId: string, value: boolean): Promise<void> {
+  async setHold(conversationId: string, value: boolean): Promise<void> {
     this._sendCmd(JabraNativeCommands.Hold, value);
-    return Promise.resolve();
   }
 
-  incomingCall(callInfo: CallInfo): Promise<void> {
+  async incomingCall(callInfo: CallInfo): Promise<void> {
     if (callInfo) {
-      this.incomingConversationId = callInfo.conversationId;
+      this.pendingConversationId = callInfo.conversationId;
     }
     this._setRinging(true);
-    return Promise.resolve();
   }
 
-  answerCall(): Promise<void> {
+  async answerCall(): Promise<void> {
     // HACK: for some reason the headset echos an offhook event even though it was the app that answered the call rather than the headset
     this.ignoreNextOffhookEvent = true;
-    this.incomingConversationId = '';
+    this.activeConversationId = this.pendingConversationId;
+    this.pendingConversationId = null;
     this._sendCmd(JabraNativeCommands.Offhook, true);
-    return Promise.resolve();
   }
 
-  rejectCall(): Promise<void> {
+  async rejectCall(): Promise<void> {
     this._setRinging(false);
-    this.incomingConversationId = '';
-    return Promise.resolve();
+    this.pendingConversationId = null;
   }
 
-  outgoingCall(): Promise<void> {
+  async outgoingCall(callInfo: CallInfo): Promise<void> {
+    // this.pendingConversationId = callInfo.conversationId;
+    this.activeConversationId = callInfo.conversationId;
     this._sendCmd(JabraNativeCommands.Offhook, true);
-    return Promise.resolve();
   }
 
-  endCall(conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
+  async endCall(conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
     this._setRinging(false);
 
     if (!hasOtherActiveCalls) {
       this._sendCmd(JabraNativeCommands.Offhook, false);
     }
-
-    return Promise.resolve();
+    this.activeConversationId = null;
   }
 
-  endAllCalls(): Promise<void> {
+  async endAllCalls(): Promise<void> {
     this._setRinging(false);
     this._sendCmd(JabraNativeCommands.Offhook, false);
-    return Promise.resolve();
+    this.activeConversationId = null;
   }
 
   async updateDevices(): Promise<void> {
@@ -251,7 +260,7 @@ export default class JabraNativeService extends VendorImplementation {
         break;
 
       case JabraNativeEventNames.RejectCall:
-        this.deviceRejectedCall(this.incomingConversationId);
+        this.deviceRejectedCall({name: JabraNativeEventNames.RejectCall, conversationId: this.pendingConversationId});
         break;
 
       case JabraNativeEventNames.Mute:

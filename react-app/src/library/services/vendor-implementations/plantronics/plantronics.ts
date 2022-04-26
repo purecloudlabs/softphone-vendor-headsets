@@ -1,6 +1,6 @@
 import fetchJsonp from 'fetch-jsonp';
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
-import { PlantronicsCallEvents } from './plantronics-call-events';
+import { PlantronicsCallEvent, PlantronicsCallEventCodes } from './plantronics-call-events';
 import browserama from 'browserama';
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../../types/call-info';
@@ -27,7 +27,7 @@ export default class PlantronicsService extends VendorImplementation {
   callEventsTimerId: any;
   deviceStatusTimerId: any;
   incomingConversationId: string;
-
+  callMappings: {[callIdOrConversationId: string|number]: string|number} = {};
 
   private constructor(config: ImplementationConfig) {
     super(config);
@@ -35,7 +35,22 @@ export default class PlantronicsService extends VendorImplementation {
     this._deviceInfo = null;
     this.callEventsTimerId = null;
     this.deviceStatusTimerId = null;
-    this.incomingConversationId = '';
+    this.incomingConversationId = null;
+  }
+
+  private _createCallMapping(conversationId: string): number {
+    const ID_LENGTH = 8;
+    const callId = Math.round(Math.random() * Math.pow(10, ID_LENGTH)); // Generate random number
+
+    this.callMappings[conversationId] = callId;
+    this.callMappings[callId] = conversationId;
+
+    this.logger.info('Created callId mapping for plantronics headset', {
+      conversationId,
+      plantronicsCallId: callId,
+    });
+
+    return callId;
   }
 
   clearTimeouts (): void {
@@ -182,14 +197,14 @@ export default class PlantronicsService extends VendorImplementation {
       return;
     }
     if (response.Result) {
-      response.Result.forEach(event => {
-        const eventType = PlantronicsCallEvents[event.Action];
+      response.Result.forEach((event: PlantronicsCallEvent) => {
+        const eventType = PlantronicsCallEventCodes[event.Action];
 
         if (!eventType) {
           return this.logger.info('Unknown call event from headset', { event });
         }
 
-        const eventInfo = { name: eventType, code: event.Action, event };
+        const eventInfo = { name: eventType, event };
         this.logger.debug('headset info', eventInfo);
         this.callCorrespondingFunction(eventInfo);
       });
@@ -209,35 +224,40 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  callCorrespondingFunction(eventInfo: {name: string, code?: string, event?: any }): void {
+  callCorrespondingFunction(eventInfo: {name: string, event?: PlantronicsCallEvent }): void {
+    const callId = eventInfo.event.CallId.Id;
+    const conversationId = this.callMappings[callId] as string;
+
     switch (eventInfo.name) {
       case 'AcceptCall':
-        this.deviceAnsweredCall(eventInfo);
+        this.deviceAnsweredCall({...eventInfo, conversationId});
         break;
       case 'RejectCall':
-        this.deviceRejectedCall(this.incomingConversationId);
+        this.deviceRejectedCall({name: eventInfo.name, conversationId: this.incomingConversationId});
         break;
       case 'TerminateCall':
-        this.deviceEndedCall(eventInfo);
+        this.deviceEndedCall({...eventInfo, conversationId});
         break;
       case 'CallEnded':
+        delete this.callMappings[callId];
+        delete this.callMappings[conversationId];
         this._checkIsActiveTask();
         break;
       case 'Mute':
-        this.deviceMuteChanged(true, eventInfo);
+        this.deviceMuteChanged({isMuted: true, ...eventInfo, conversationId});
         break;
       case 'Unmute':
-        this.deviceMuteChanged(false, eventInfo);
+        this.deviceMuteChanged({isMuted: false, ...eventInfo, conversationId});
         break;
       case 'HoldCall':
-        this.deviceHoldStatusChanged(true, eventInfo);
+        this.deviceHoldStatusChanged({holdRequested: true, ...eventInfo, conversationId});
         break;
       case 'ResumeCall':
-        this.deviceHoldStatusChanged(false, eventInfo);
+        this.deviceHoldStatusChanged({holdRequested: false, ...eventInfo, conversationId});
         break;
       default:
-        this.logger.info('A headset event has occurred', eventInfo);
-        this.deviceEventLogs(eventInfo);
+        this.logger.info('A headset event has occurred', {...eventInfo, conversationId});
+        this.deviceEventLogs({...eventInfo, conversationId});
     }
   }
 
@@ -317,10 +337,14 @@ export default class PlantronicsService extends VendorImplementation {
     if (!conversationId) {
       throw new Error('Must provide conversationId');
     }
+
+    // this is because plantronics only accepts numeric callIds, so we have to make one up
+    const callId = this._createCallMapping(conversationId);
+
     this.incomingConversationId = conversationId;
     let params = `?name=${this.pluginName}&tones=Unknown&route=ToHeadset`;
 
-    const halfEncodedCallIdString = `"Id":"${conversationId}"`;
+    const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     if (contactName) {
@@ -331,16 +355,20 @@ export default class PlantronicsService extends VendorImplementation {
     this.logger.info('params of endpoint', params);
 
     this.isActive = true;
-    return this._makeRequestTask(`/CallServices/IncomingCall${encodeURI(params)}`);
+    return this._makeRequestTask(`/CallServices/IncomingCall${params}`);
   }
 
   outgoingCall({ conversationId, contactName }: CallInfo): Promise<any> {
     if (!conversationId) {
       throw new Error('Must provide conversationId');
     }
+
+    // this is because plantronics only accepts numeric callIds, so we have to make one up
+    const callId = this._createCallMapping(conversationId);
+
     let params = `?name=${this.pluginName}&tones=Unknown&route=ToHeadset`;
 
-    const halfEncodedCallIdString = `"Id":"${conversationId}"`;
+    const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     if (contactName) {
@@ -349,30 +377,31 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     this.isActive = true;
-    return this._makeRequestTask(`/CallServices/OutgoingCall${encodeURI(params)}`);
+    return this._makeRequestTask(`/CallServices/OutgoingCall${params}`);
   }
 
   answerCall(conversationId: string): Promise<any> {
-    const halfEncodedCallIdString = `"Id":"${conversationId}"`;
+    const callId = this.callMappings[conversationId];
+    const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     this.isActive = true;
-    this.incomingConversationId = '';
-    return this._makeRequestTask(`/CallServices/AnswerCall${encodeURI(params)}`);
+    this.incomingConversationId = null;
+    return this._makeRequestTask(`/CallServices/AnswerCall${params}`);
   }
 
   rejectCall(conversationId: string): Promise<any> {
-    this.incomingConversationId = '';
+    this.incomingConversationId = null;
     return this.endCall(conversationId);
   }
 
   async endCall(conversationId: string): Promise<any> {
     let params = `?name=${this.pluginName}`;
-
-    const halfEncodedCallIdString = `"Id":"${conversationId}"`;
+    const callId = this.callMappings[conversationId];
+    const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
-    const response = await this._makeRequestTask(`/CallServices/TerminateCall${encodeURI(params)}`);
+    const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;
@@ -380,7 +409,7 @@ export default class PlantronicsService extends VendorImplementation {
 
   async endAllCalls(): Promise<void> {
     const calls = await this._getActiveCalls();
-    calls.forEach(call => this.endCall(call.CallId));
+    calls.forEach(call => this.endCall(this.callMappings[call.CallId] as string));
   }
 
   async setMute(value: boolean): Promise<any> {
@@ -391,10 +420,11 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async setHold(conversationId: string, value: boolean): Promise<any> {
-    const halfEncodedCallIdString = `"Id":"${conversationId}"`;
+    const callId = this.callMappings[conversationId];
+    const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
     const response = await this._makeRequestTask(
-      `/CallServices/${value ? 'HoldCall' : 'ResumeCall'}${encodeURI(params)}`
+      `/CallServices/${value ? 'HoldCall' : 'ResumeCall'}${params}`
     );
 
     return response;

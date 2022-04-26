@@ -27,7 +27,6 @@ const App = () => {
   useEffect(() => {
     webrtc.initialize();
     _updateDeviceList();
-    window.addEventListener('message', receiveMessage.bind(this), false);
 
     return function cleanup() {
       setCurrentCall(null);
@@ -83,19 +82,6 @@ const App = () => {
       sub.unsubscribe();
     }
   }, [ currentCall ]);
-
-  const receiveMessage = (event) => {
-    if (event.data.direction === 'jabra-headset-extension-from-content-script') {
-      if (event.source === window) {
-        return;
-      }
-      window.postMessage(event.date, '*');
-      return;
-    }
-    if (event.source === window && window.parent !== window) {
-      window.parent.postMessage(event.data, '*');
-    }
-  }
 
   const _updateDeviceList = async () => {
     await webrtc.ensureAudioPermissions();
@@ -158,6 +144,15 @@ const App = () => {
     headset.incomingCall({conversationId: call.id, contactName: call.contactName});
   }
 
+  const simulateOutgoingCall = () => {
+    console.log('**** SIMULATING OUTGOING CALL ****');
+    const call = new MockCall();
+    call.answer();
+    startHeadsetAudio();
+    setCurrentCall(call);
+    headset.outgoingCall({conversationId: call.id, contactName: call.contactName});
+  }
+
   const answerIncomingCall = (fromHeadset?) => {
     console.log('**** ANSWERING SIMULATED CALL ****', {currentCall});
     currentCall.answer();
@@ -216,7 +211,7 @@ const App = () => {
               {
                 microphones.map(mic => {
                   return (
-                    <option value={mic.deviceId}>{mic.label}</option>
+                    <option key={mic.deviceId} value={mic.deviceId}>{mic.label}</option>
                   )
                 })
               }
@@ -245,6 +240,7 @@ const App = () => {
           <div className="entry-value">{t('dummy.controlInstructions')}</div>
           <div className="entry-value">
             <button type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button>
+            <button type="button" onClick={() => simulateOutgoingCall()}>{t('dummy.button.simulateOutgoingCall')}</button>
             <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
           </div>
           <div className="entry-value">

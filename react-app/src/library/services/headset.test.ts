@@ -4,7 +4,7 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import { CallInfo } from '../types/call-info';
-import { EventInfo, VendorEvent } from '../types/emitted-headset-events';
+import { EventInfo, EventInfoWithConversationId, VendorEvent } from '../types/emitted-headset-events';
 import JabraService from './vendor-implementations/jabra/jabra';
 import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
@@ -360,7 +360,7 @@ describe('HeadsetService', () => {
     });
     it(
       'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {
-        const result = headsetService['handleDeviceAnsweredCall']({vendor: {} as VendorImplementation, body: {name: 'AcceptCall', code: '1', event: {}}});
+        const result = headsetService['handleDeviceAnsweredCall']({vendor: {} as VendorImplementation, body: {name: 'AcceptCall', code: '1', event: {}, conversationId: 'myconvo'}});
         expect(result).toBeUndefined();
       }
     );
@@ -375,7 +375,7 @@ describe('HeadsetService', () => {
 
 
         headsetService.selectedImplementation = plantronics
-        headsetService['handleDeviceAnsweredCall'](testEvent as VendorEvent<EventInfo>);
+        headsetService['handleDeviceAnsweredCall'](testEvent as VendorEvent<EventInfoWithConversationId>);
       }
     );
   });
@@ -386,7 +386,7 @@ describe('HeadsetService', () => {
     });
     it(
       'should return nothing if the selected implementation does not match the vendor passed in from the event', () => {
-        const result = headsetService['handleDeviceRejectedCall']({vendor: {} as VendorImplementation, body: {conversationId: 'a1b2c3'}});
+        const result = headsetService['handleDeviceRejectedCall']({vendor: {} as VendorImplementation, body: {name: 'CallRejected', conversationId: 'a1b2c3'}});
         expect(result).toBeUndefined();
       }
     );
@@ -398,7 +398,7 @@ describe('HeadsetService', () => {
           done();
         });
         headsetService.selectedImplementation = plantronics;
-        const testEvent = {vendor: plantronics, body: {conversationId: 'a1b2c3'}}
+        const testEvent = {vendor: plantronics, body: {name: 'callrejected', conversationId: 'a1b2c3'}}
         headsetService['handleDeviceRejectedCall'](testEvent);
       }
     );
@@ -418,7 +418,7 @@ describe('HeadsetService', () => {
           expect(event.payload).toStrictEqual(testEvent.body);
           done();
         });
-        const testEvent = {vendor: {} as VendorImplementation, body: {name: 'TerminateCall', code: '2', event: {}}}
+        const testEvent = {vendor: {} as VendorImplementation, body: {name: 'TerminateCall', code: '2', event: {}, conversationId: 'convo421'}}
         headsetService['handleDeviceEndedCall'](testEvent);
       }
     );
@@ -452,7 +452,7 @@ describe('HeadsetService', () => {
           expect(event.payload).toStrictEqual(testEvent.body);
           done();
         });
-        const testEvent = {vendor: {} as VendorImplementation, body: {name: 'HoldCall', code: '3', event: {}, holdRequested: true, toggle: false}}
+        const testEvent = {vendor: {} as VendorImplementation, body: {name: 'HoldCall', code: '3', event: {}, holdRequested: true, toggle: false, conversationId: 'convo41556'}}
         headsetService['handleDeviceHoldStatusChanged'](testEvent);
       }
     );

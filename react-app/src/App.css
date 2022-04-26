@@ -25,7 +25,7 @@ body > div > * {
   width: 100%;
   padding: 10px;
   display: flex;
-  align-items: start;
+  align-items: flex-start;
 }
 
 /* h1 {

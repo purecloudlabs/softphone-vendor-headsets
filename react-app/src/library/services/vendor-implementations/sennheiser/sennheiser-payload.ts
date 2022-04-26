@@ -2,7 +2,7 @@ import { SennheiserEvents } from './sennheiser-events';
 import { SennheiserEventTypes } from './sennheiser-event-types';
 
 export interface SennheiserPayload {
-  CallID?: number;
+  CallID?: string;
   DNDOption?: 'Yes' | 'No';
   Event?: SennheiserEvents;
   EventType?: SennheiserEventTypes;

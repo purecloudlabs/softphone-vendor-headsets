@@ -444,7 +444,7 @@ describe('JabraNativeService', () => {
   describe('outgoingCall', () => {
     it(`should call _sendCmd with the '${JabraNativeCommands.Offhook}' command and true`, async () => {
       const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
-      await jabraNativeService.outgoingCall();
+      await jabraNativeService.outgoingCall({conversationId: 'myconvo1'});
       expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
     });
   });

@@ -7,7 +7,7 @@ import browserama from 'browserama';
 import { mockLogger, eventValidation } from "../../../test-utils.test";
 import DeviceInfo from "../../../types/device-info";
 import PlantronicsService from "./plantronics";
-import { PlantronicsCallEvents } from "./plantronics-call-events";
+import { PlantronicsCallEventCodes } from "./plantronics-call-events";
 import fetchJsonp from "fetch-jsonp";
 
 jest.mock('broadcast-channel');
@@ -262,7 +262,7 @@ describe('PlantronicsService', () => {
         name: 'AcceptCall',
         code: '1',
         event: {}
-      });
+      } as any);
       expect(deviceAnsweredCallSpy).toHaveBeenCalled();
     });
     it('will call deviceRejectedCall', () => {
@@ -272,7 +272,7 @@ describe('PlantronicsService', () => {
         name: 'RejectCall',
         code: '23',
         event: {}
-      });
+      } as any);
       expect(deviceRejectedCallSpy).toHaveBeenCalledWith('convoId1234');
     })
     it('will call deviceEndedCall', () => {
@@ -559,7 +559,7 @@ describe('PlantronicsService', () => {
 
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
-      await queueCallEvents([PlantronicsCallEvents.AcceptCall, PlantronicsCallEvents.CallInProgress]);
+      await queueCallEvents([PlantronicsCallEventCodes.AcceptCall, PlantronicsCallEventCodes.CallInProgress]);
     })
   });
   describe('getCallEvents', () => {
@@ -576,7 +576,7 @@ describe('PlantronicsService', () => {
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
       const deviceAnswered = eventValidation(plantronicsService, 'deviceAnsweredCall');
-      await queueCallEvents([PlantronicsCallEvents.AcceptCall, PlantronicsCallEvents.CallInProgress]);
+      await queueCallEvents([PlantronicsCallEventCodes.AcceptCall, PlantronicsCallEventCodes.CallInProgress]);
       await deviceAnswered;
     });
     it('should mute and unmute from headset', async () => {
@@ -592,11 +592,11 @@ describe('PlantronicsService', () => {
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
       const deviceMuted = eventValidation(plantronicsService, 'deviceMuteChanged');
-      await queueCallEvents([PlantronicsCallEvents.Mute]);
+      await queueCallEvents([PlantronicsCallEventCodes.Mute]);
       await deviceMuted;
 
       const deviceUnmuted = eventValidation(plantronicsService, 'deviceMuteChanged');
-      await queueCallEvents([PlantronicsCallEvents.Unmute]);
+      await queueCallEvents([PlantronicsCallEventCodes.Unmute]);
       await deviceUnmuted;
     });
     it('should hold and resume from the headset', async () => {
@@ -612,11 +612,11 @@ describe('PlantronicsService', () => {
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
       const deviceHeld = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
-      await queueCallEvents([PlantronicsCallEvents.HoldCall]);
+      await queueCallEvents([PlantronicsCallEventCodes.HoldCall]);
       await deviceHeld;
 
       const deviceResumed = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
-      await queueCallEvents([PlantronicsCallEvents.ResumeCall]);
+      await queueCallEvents([PlantronicsCallEventCodes.ResumeCall]);
       await deviceResumed;
     });
     it('should terminate the call from the headset', async () => {
@@ -631,7 +631,7 @@ describe('PlantronicsService', () => {
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
       const deviceTerminated = eventValidation(plantronicsService, 'deviceEndedCall');
-      await queueCallEvents([PlantronicsCallEvents.TerminateCall]);
+      await queueCallEvents([PlantronicsCallEventCodes.TerminateCall]);
       await deviceTerminated;
     });
     it('should log an error if something goes wrong during _makeRequestTask', async () => {

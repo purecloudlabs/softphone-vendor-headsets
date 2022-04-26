@@ -1,4 +1,4 @@
-import { PlantronicsCallEvents } from "./plantronics-call-events";
+import { PlantronicsCallEventCodes } from "./plantronics-call-events";
 
 const responses = {
     CallServices: {
@@ -10,7 +10,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.CallInProgress]
+                _triggersEvents: [PlantronicsCallEventCodes.CallInProgress]
             }
         },
 
@@ -105,7 +105,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.CallRinging]
+                _triggersEvents: [PlantronicsCallEventCodes.CallRinging]
             }
         },
 
@@ -116,7 +116,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.CallInProgress]
+                _triggersEvents: [PlantronicsCallEventCodes.CallInProgress]
             }
         },
 
@@ -127,7 +127,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.CallEnded, PlantronicsCallEvents.CallIdle]
+                _triggersEvents: [PlantronicsCallEventCodes.CallEnded, PlantronicsCallEventCodes.CallIdle]
             }
         },
 
@@ -138,7 +138,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.Mute]
+                _triggersEvents: [PlantronicsCallEventCodes.Mute]
             },
             unmute: {
                 Description: 'Mute Call',
@@ -146,7 +146,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.Unmute]
+                _triggersEvents: [PlantronicsCallEventCodes.Unmute]
             },
             errorState: {
                 handled: true,
@@ -179,7 +179,7 @@ const responses = {
                 Type: 2,
                 Type_Name: 'Bool',
                 isError: false,
-                _triggersEvents: [PlantronicsCallEvents.CallInProgress]
+                _triggersEvents: [PlantronicsCallEventCodes.CallInProgress]
             }
         }
     },
@@ -258,7 +258,7 @@ const responses = {
                 Type: 1,
                 Type_Name: 'Error',
                 isError: true,
-                _triggersEvents: [PlantronicsCallEvents.CallIdle]
+                _triggersEvents: [PlantronicsCallEventCodes.CallIdle]
             },
             errorState: {
                 Description: '',
@@ -270,7 +270,7 @@ const responses = {
                 Type: 1,
                 Type_Name: 'Error',
                 isError: true,
-                // _triggerEvents: [PlantronicsCallEvents.CallIdle]
+                // _triggerEvents: [PlantronicsCallEventCodes.CallIdle]
             }
         }
     },

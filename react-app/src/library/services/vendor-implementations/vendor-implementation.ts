@@ -1,7 +1,7 @@
 import DeviceInfo from '../../types/device-info';
 import StrictEventEmitter from 'strict-event-emitter-types';
 import { EventEmitter } from 'events';
-import { EmittedHeadsetEvents } from '../../types/emitted-headset-events';
+import { EmittedHeadsetEvents, EventInfo, EventInfoWithConversationId, HoldEventInfo, MutedEventInfo } from '../../types/emitted-headset-events';
 import { CallInfo } from '../..';
 
 type HeadsetEventName = keyof EmittedHeadsetEvents;
@@ -102,27 +102,27 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.emitEvent('webHidPermissionRequested', { callback });
   }
 
-  deviceAnsweredCall(eventInfo?: { name: string, code?: string | number, event?: any }): void {
+  deviceAnsweredCall(eventInfo: EventInfoWithConversationId): void {
     this.emitEvent('deviceAnsweredCall', eventInfo);
   }
 
-  deviceRejectedCall(conversationId: string): void {
-    this.emitEvent('deviceRejectedCall', conversationId);
+  deviceRejectedCall(eventInfo: EventInfoWithConversationId): void {
+    this.emitEvent('deviceRejectedCall', eventInfo);
   }
 
-  deviceEndedCall(eventInfo?: { name: string, code?: string | number, event?: any }): void {
+  deviceEndedCall(eventInfo: EventInfoWithConversationId): void {
     this.emitEvent('deviceEndedCall', eventInfo);
   }
 
-  deviceMuteChanged(isMuted: boolean, eventInfo?: { name: string, code?: string | number, event?: any }): void {
-    this.emitEvent('deviceMuteChanged', { isMuted, ...eventInfo });
+  deviceMuteChanged(eventInfo: MutedEventInfo): void {
+    this.emitEvent('deviceMuteChanged', { ...eventInfo });
   }
 
-  deviceHoldStatusChanged(holdRequested: boolean, eventInfo?: { name: string, code?: string | number, event?: any }, toggle?: boolean): void {
-    this.emitEvent('deviceHoldStatusChanged', { holdRequested, ...eventInfo, toggle });
+  deviceHoldStatusChanged(eventInfo: HoldEventInfo): void {
+    this.emitEvent('deviceHoldStatusChanged', { ...eventInfo });
   }
 
-  deviceEventLogs(eventInfo: { name: string, code?: string | number, event?: any }): void {
+  deviceEventLogs(eventInfo: EventInfo): void {
     this.emitEvent('deviceEventLogs', eventInfo);
   }
 
