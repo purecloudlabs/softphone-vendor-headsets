@@ -309,20 +309,27 @@ describe('JabraNativeService', () => {
     it('should call _sendCmd() and deviceMuteChanged() with the appropriate values', () => {
       const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
       jest.spyOn(jabraNativeService, 'deviceMuteChanged');
-      const isMuted = Boolean(true); // Using the Boolean object so as to test for reference equality
-
+      let isMuted = Boolean(true); // Using the Boolean object so as to test for reference equality
+      jabraNativeService.activeConversationId = 'convoId123';
       jabraNativeService['_handleMuteEvent'](isMuted);
 
       expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Mute, isMuted);
-      expect(jabraNativeService.deviceMuteChanged).toHaveBeenCalledWith(isMuted);
+      expect(jabraNativeService.deviceMuteChanged).toHaveBeenCalledWith({ isMuted, name: 'CallMuted', conversationId: jabraNativeService.activeConversationId });
+
+      isMuted = Boolean(false);
+      jabraNativeService['_handleMuteEvent'](isMuted);
+
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Mute, isMuted);
+      expect(jabraNativeService.deviceMuteChanged).toHaveBeenCalledWith({ isMuted, name: 'CallUnmuted', conversationId: jabraNativeService.activeConversationId });
     });
   });
 
   describe('_handleHoldEvent', () => {
     it('should call deviceHoldStatusChanged() with null and false', () => {
+      jabraNativeService.activeConversationId = 'convoId123';
       jest.spyOn(jabraNativeService, 'deviceHoldStatusChanged');
       jabraNativeService['_handleHoldEvent'](null as any);
-      expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith(false);
+      expect(jabraNativeService.deviceHoldStatusChanged).toHaveBeenCalledWith({holdRequested: false, name: 'ResumeCall', conversationId: jabraNativeService.activeConversationId });
     });
   });
 

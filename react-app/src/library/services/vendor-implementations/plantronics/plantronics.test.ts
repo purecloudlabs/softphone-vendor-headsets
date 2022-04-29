@@ -523,7 +523,9 @@ describe('PlantronicsService', () => {
           repeatResponse: responses.DeviceServices.Info.default
         }
       });
-      plantronicsService['_createCallMapping'] = jest.fn().mockReturnValue(12345678);
+      plantronicsService.callMappings = {
+        'convoId123': '12345678'
+      };
       const conversationIdString = encodeURI(`"Id":"12345678"`);
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
       completeEndpoint += `&callID={${conversationIdString}}`;
@@ -593,9 +595,12 @@ describe('PlantronicsService', () => {
           responses: [responses.CallServices.ResumeCall.default]
         }
       });
-      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      plantronicsService.callMappings = {
+        "convoId123": '12345678'
+      }
+      const conversationIdString = encodeURI(`"Id":"12345678"`);
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
-      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      completeEndpoint += `&callID={${conversationIdString}}`;
       await plantronicsService.setHold('convoId123', true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/HoldCall${completeEndpoint}`);
 
@@ -926,6 +931,15 @@ describe('PlantronicsService', () => {
       console.log(plantronicsService._fetch('/test'));
       plantronicsService._fetch('/test')
       expect(fetchJsonp).toHaveBeenCalledWith('/test');
+    })
+  })
+  describe('_createCallMapping', () => {
+    it('should populate the callMappings value in the service', () => {
+      const returnedValue = plantronicsService['_createCallMapping']('convoId123');
+      expect(plantronicsService.callMappings).toStrictEqual({
+        [returnedValue]: 'convoId123',
+        'convoId123': returnedValue
+      });
     })
   })
 });

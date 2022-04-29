@@ -636,27 +636,19 @@ describe('SennheiserService', () => {
     });
 
     describe(`event type: ${SennheiserEvents.CallEnded}`, () => {
-      const callId = 1234;
-      const conversationId = '12r3kh';
-
       it('should delete the call mappings for callId and conversationId', () => {
         const payload: SennheiserPayload = {
-          // CallID: callId,
+          CallID: '23f897b',
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Notification,
         };
         message = { data: JSON.stringify(payload) };
-        // sennheiserService.callMappings[callId] = conversationId;
-        // sennheiserService.callMappings[conversationId] = callId;
 
         sennheiserService._handleMessage(message);
-
-        // expect(sennheiserService.callMappings[callId]).toBeFalsy();
-        // expect(sennheiserService.callMappings[conversationId]).toBeFalsy();
+        expect(sennheiserService.deviceEndedCall).toHaveBeenCalledWith({ name: SennheiserEvents.CallEnded, conversationId: payload.CallID });
       });
       it(`should call deviceEndedCall() when the payload event type is '${SennheiserEventTypes.Notification}'`, () => {
         const payload: SennheiserPayload = {
-          // CallID: callId,
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -668,7 +660,6 @@ describe('SennheiserService', () => {
       });
       it(`should NOT call deviceEndedCall() when the payload event type is NOT '${SennheiserEventTypes.Notification}'`, () => {
         const payload: SennheiserPayload = {
-          // CallID: callId,
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Ack,
         };
