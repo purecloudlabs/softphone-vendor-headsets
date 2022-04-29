@@ -34,6 +34,7 @@
     "test:coverage": "npm run pretest; jest --collectCoverage=true --runInBand; npm run posttest",
     "test:unit": "npm run pretest; jest --runInBand; npm run posttest",
     "test:watch": "npm run pretest; jest --watch --collectCoverage=false --runInBand; npm run posttest",
+    "test:clear": "jest --clearCache",
     "lint": "eslint -c .eslintrc.json ./react-app/src --ext .ts,.tsx",
     "lint:fix": "npm run lint -- --fix"
   },
