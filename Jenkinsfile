@@ -26,7 +26,7 @@ def getBuildType = {
 webappPipeline {
     projectName = 'vendor-headsets'
     team = 'Genesys Client Media (WebRTC)'
-    mailer = 'genesyscloud-client-media@genesys.com'
+    mailer = 'maxwell.mooney@genesys.com'
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
 
     nodeVersion = '14.x'
@@ -149,28 +149,32 @@ VERSION      : ${env.VERSION}
             }
         } // end download pipeline utils
 
-        stage('Publish to NPM') {
-            script {
-                dir(pwd) {
-                    npmFunctions.publishNpmPackage([
-                        tag: tag, // optional
-                        useArtifactoryRepo: false, // optional, default `true`
-                        version: version, // optional, default is version in package.json
-                        dryRun: false // dry run the publish, default `false`
-                    ])
-                }
-            }
-        } // end publish to npm
+        // stage('Publish to NPM') {
+        //     script {
+        //         dir(pwd) {
+        //             npmFunctions.publishNpmPackage([
+        //                 tag: tag, // optional
+        //                 useArtifactoryRepo: false, // optional, default `true`
+        //                 version: version, // optional, default is version in package.json
+        //                 dryRun: false // dry run the publish, default `false`
+        //             ])
+        //         }
+        //     }
+        // } // end publish to npm
+
+        stage('Tag Test') {
+          script {
+            gitFunctions.tagCommit(
+              "test-tag.${env.BUILD_NUMBER}".toString(),
+              gitFunctions.getCurrentCommit(),
+              false
+            )
+          }
+        }
 
         if (isMain()) {
             stage('Tag commit and merge main branch back into develop branch') {
                 script {
-                    gitFunctions.tagCommit(
-                      "v${version}",
-                      gitFunctions.getCurrentCommit(),
-                      false
-                    )
-
                     gitFunctions.mergeBackAndPrep(
                       MAIN_BRANCH,
                       DEVELOP_BRANCH,
