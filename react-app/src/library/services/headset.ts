@@ -105,11 +105,11 @@ export default class HeadsetService {
 
     this.selectedImplementation = implementation;
 
+    this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: implementation});
+
     if (implementation) {
       await implementation.connect(deviceLabel);
     }
-
-    this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: implementation});
   }
 
   incomingCall(callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
