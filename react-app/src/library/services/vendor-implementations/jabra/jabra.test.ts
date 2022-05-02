@@ -131,16 +131,16 @@ describe('JabraService', () => {
   });
   Object.defineProperty(window.navigator, 'locks', { get: () => ({}) });
   (window as any).BroadcastChannel = BroadcastChannel;
-  
+
   // override the warn fn to cut down on noise from the jabra sdk
-  beforeAll(() => {
+  beforeAll((...args) => {
     origConsoleWarn = console.warn;
     console.warn = function (message) {
       if (message.includes('No partner key provided.')) {
         return;
       }
 
-      return origConsoleWarn.apply(...arguments);
+      return origConsoleWarn.apply(args);
     }
   });
 

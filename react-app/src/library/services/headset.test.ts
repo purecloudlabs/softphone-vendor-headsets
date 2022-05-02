@@ -4,7 +4,7 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import { CallInfo } from '../types/call-info';
-import { EventInfo, EventInfoWithConversationId, VendorEvent } from '../types/emitted-headset-events';
+import { EventInfoWithConversationId, VendorEvent } from '../types/emitted-headset-events';
 import JabraService from './vendor-implementations/jabra/jabra';
 import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
