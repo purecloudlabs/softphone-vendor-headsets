@@ -331,7 +331,7 @@ export default class JabraService extends VendorImplementation {
         const waitForDevice: Observable<IDevice> = this.jabraSdk.deviceList
             .pipe(
                 defaultIfEmpty(null),
-                first((devices) => devices.length),
+                first((devices: IDevice[]) => !!devices.length),
                 map((devices: IDevice[]) => {
                     return devices.find(device => this.isDeviceInList(device, deviceLabel));
                 }),
