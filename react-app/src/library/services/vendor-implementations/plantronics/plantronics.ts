@@ -262,15 +262,11 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   connect(): Promise<any> {
-    console.log('inside connect');
     !this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
-    console.log('connection status updated');
     this.pollForDeviceStatus();
     this.pollForCallEvents();
-    console.log('polls OPEN');
     return this._makeRequestTask(`/SessionManager/Register?name=${this.pluginName}`)
       .catch(response => {
-        console.log('something went wrong while registering', response);
         if (response.Err && response.Err.Description === 'Plugin exists') {
           return this.logger.debug('Plugin already exists', response);
         }
@@ -281,7 +277,6 @@ export default class PlantronicsService extends VendorImplementation {
         this._makeRequestTask(`/SessionManager/IsActive?name=${this.pluginName}&active=true`)
       )
       .catch(response => {
-        console.log('something went wrong with isActive', response);
         if (response.Err && !response.isError) {
           return this.logger.debug('Is Active', response);
         }
@@ -289,7 +284,6 @@ export default class PlantronicsService extends VendorImplementation {
         return Promise.reject(response);
       })
       .then(response => {
-        console.log('so far so good', response);
         if (response?.Result !== true) {
           return Promise.reject(response);
         }
@@ -297,15 +291,12 @@ export default class PlantronicsService extends VendorImplementation {
         return this._makeRequestTask(`/UserPreference/SetDefaultSoftPhone?name=${this.pluginName}`);
       })
       .then(() => {
-        console.log('in then block that has getDeviceStatus');
         this.getDeviceStatus();
       })
       .then(() => {
-        console.log('in then block that has _getActiveCalls');
         return this._getActiveCalls();
       })
       .then(calls => {
-        console.log('we got calls', calls);
         if (calls.length) {
           this.isActive = true;
           return this.logger.info('Currently active calls in the session');
@@ -314,7 +305,6 @@ export default class PlantronicsService extends VendorImplementation {
         }
       })
       .catch(err => {
-        console.log('something went wrong near the end');
         if (!err?.handled) {
           return Promise.reject(err);
         }

@@ -373,14 +373,6 @@ describe('SennheiserService', () => {
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
-    // it('should not call _sendMessage when there is no callId for the provided conversationId', async () => {
-    //   jest.spyOn(sennheiserService, '_sendMessage');
-    //   const conversationId = '23f897b';
-
-    //   await sennheiserService.endCall(conversationId);
-
-    //   expect(sennheiserService._sendMessage).not.toHaveBeenCalled();
-    // });
   });
 
   describe('_handleMessage', () => {
@@ -389,7 +381,6 @@ describe('SennheiserService', () => {
     beforeEach(() => {
       sennheiserService = SennheiserService.getInstance({ logger: console });
       sennheiserService.logger = mockLogger;
-      // sennheiserService.callMappings = {};
 
       jest.spyOn(sennheiserService, '_handleAck');
       jest.spyOn(sennheiserService, '_handleError');
