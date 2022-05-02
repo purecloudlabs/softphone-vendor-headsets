@@ -12,8 +12,8 @@ import {
     IDevice
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
-import { Subscription, firstValueFrom, Observable, TimeoutError } from "rxjs";
-import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
+import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from "rxjs";
+import { defaultIfEmpty, filter, first, map, tap, timeout } from 'rxjs/operators';
 import { isCefHosted } from "../../../utils";
 
 export default class JabraService extends VendorImplementation {
@@ -22,13 +22,11 @@ export default class JabraService extends VendorImplementation {
     static connectTimeout = 5000;
 
     isActive = false;
-    devices: Map<string, DeviceInfo>;
-    activeDeviceId: string = null;
+    _deviceInfo: DeviceInfo;
     isMuted = false;
     isHeld = false;
     version: string = null;
     _connectDeferred: any; // { resolve: Function, reject: Function }
-    device = null;
     jabraSdk: IApi;
     callControlFactory: CallControlFactory;
     callControl: ICallControl;
@@ -40,7 +38,6 @@ export default class JabraService extends VendorImplementation {
     private constructor(config: ImplementationConfig) {
         super(config);
         this.vendorName = 'Jabra';
-        this.devices = new Map<string, DeviceInfo>();
     }
 
     isSupported(): boolean {
@@ -56,7 +53,7 @@ export default class JabraService extends VendorImplementation {
     }
 
     static getInstance(config: ImplementationConfig): JabraService {
-        if (!JabraService.instance) {
+        if (!JabraService.instance || config.createNew) {
             JabraService.instance = new JabraService(config);
         }
 
@@ -64,15 +61,11 @@ export default class JabraService extends VendorImplementation {
     }
 
     get deviceInfo(): DeviceInfo {
-        if (this.activeDeviceId === null || this.devices.size === 0) {
-            return null;
-        }
-
-        return this.devices.get(this.activeDeviceId);
+        return this._deviceInfo;
     }
 
     get deviceName(): string {
-        return this.deviceInfo.deviceName;
+        return this.deviceInfo?.deviceName;
     }
 
     get isDeviceAttached(): boolean {
@@ -84,7 +77,7 @@ export default class JabraService extends VendorImplementation {
         this.setMute(false);
     }
 
-    async _processEvents(callControl: ICallControl): Promise<void> {
+    _processEvents(callControl: ICallControl): void {
         this.headsetEventSubscription = callControl.deviceSignals.subscribe(async (signal) => {
             if (!this.callLock) {
                 this.logger.debug('Currently not in possession of the Call Lock; Cannot react to Device Actions');
@@ -174,21 +167,18 @@ export default class JabraService extends VendorImplementation {
     }
 
     async incomingCall(callInfo: CallInfo): Promise<void> {
-        if (callInfo) {
-            this.pendingConversationId = callInfo.conversationId;
-            try {
-                this.callLock = await this.callControl.takeCallLock();
-                if (this.callLock) {
-                    this.callControl.ring(true);
-                    return Promise.resolve();
-                }
-            } catch ({message, type}) {
-                if (this.checkForCallLockError(message, type)) {
-                    this.logger.info(message);
-                    this.callControl.ring(true);
-                } else {
-                    this.logger.error(type, message);
-                }
+        this.pendingConversationId = callInfo.conversationId;
+        try {
+            this.callLock = await this.callControl.takeCallLock();
+            if (this.callLock) {
+                this.callControl.ring(true);
+            }
+        } catch ({message, type}) {
+            if (this.checkForCallLockError(message, type)) {
+                this.logger.info(message);
+                this.callControl.ring(true);
+            } else {
+                this.logger.error(type, message);
             }
         }
     }
@@ -227,9 +217,8 @@ export default class JabraService extends VendorImplementation {
     async outgoingCall(callInfo: CallInfo): Promise<void> {
         try {
             this.callLock = await this.callControl.takeCallLock();
-            // this.pendingConversationId = callInfo.conversationId;
-            this.activeConversationId = callInfo.conversationId;
             if (this.callLock) {
+                this.activeConversationId = callInfo.conversationId;
                 this.callControl.offHook(true);
                 return Promise.resolve();
             }
@@ -291,7 +280,7 @@ export default class JabraService extends VendorImplementation {
     }
 
     isDeviceInList (device: IDevice, deviceLabel: string): boolean {
-        return deviceLabel.includes(device?.name?.toLowerCase());
+        return deviceLabel.toLowerCase().includes(device?.name?.toLowerCase());
     }
 
 
@@ -308,6 +297,8 @@ export default class JabraService extends VendorImplementation {
 
         const deviceLabel = originalDeviceLabel.toLocaleLowerCase();
 
+        this._deviceInfo = null;
+
         let selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
         if (!selectedDevice) {
             try {
@@ -321,9 +312,13 @@ export default class JabraService extends VendorImplementation {
         this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
         await this.resetHeadsetState();
         this._processEvents(this.callControl);
-        if (this.isConnecting && !this.isConnected) {
-            this.changeConnectionStatus({ isConnected: true, isConnecting: false });
-        }        
+        this._deviceInfo = {
+            ProductName: selectedDevice.name,
+            deviceName: selectedDevice.name,
+            attached: true,
+            deviceId: selectedDevice.id.toString()
+        };       
+        this.changeConnectionStatus({ isConnected: true, isConnecting: false });
     }
 
     async getPreviouslyConnectedDevice (deviceLabel: string): Promise<IDevice> {
@@ -331,55 +326,52 @@ export default class JabraService extends VendorImplementation {
         const waitForDevice: Observable<IDevice> = this.jabraSdk.deviceList
             .pipe(
                 defaultIfEmpty(null),
-                first((devices) => devices.length),
-                map((devices: IDevice[]) => {
-                    return devices.find(device => this.isDeviceInList(device, deviceLabel));
-                }),
+                first((devices: IDevice[]) => !!devices.length),
+                map((devices: IDevice[]) =>  devices.find(device => this.isDeviceInList(device, deviceLabel))),
                 filter(device => !!device),
                 timeout(3000)
             );
 
         return firstValueFrom(waitForDevice)
             .catch(err => {
-                if (err instanceof TimeoutError) {
+                if (err instanceof TimeoutError || err instanceof EmptyError) {
                     return null;
                 }
+
+                return Promise.reject(err);
             });
     }
 
     async getDeviceFromWebhid (deviceLabel: string): Promise<IDevice> {
-        return new Promise((resolve, reject) => {
-            this.requestWebHidPermissions(webHidPairing);
+        this.requestWebHidPermissions(webHidPairing);
 
+        return firstValueFrom(
             this.jabraSdk.deviceList
                 .pipe(
                     map((devices: IDevice[]) => devices.find(device => this.isDeviceInList(device, deviceLabel))),
                     filter(device => !!device),
                     first(),
-                    timeout(10000)
-                ).subscribe({
-                    next: (device: IDevice) => {
-                        resolve(device)
-                    },
-                    error: (err) => {
-                        if (err instanceof TimeoutError) {
-                            err = new Error('The selected device was not granted WebHID permissions');
-                        }
-                        this.logger.error(err);
-                        reject(err)
-                    }
-                });
-        });
+                    timeout(30000),
+                )
+            ).catch((err) => {
+                if (err instanceof TimeoutError) {
+                    err = new Error('The selected device was not granted WebHID permissions');
+                }
+                this.logger.error(err);
+                return Promise.reject(err)
+            });
     }
 
+    /* istanbul ignore next */
     async initializeJabraSdk(): Promise<IApi> {
-        return await init({
+        return init({
             appId: 'softphone-vendor-headsets',
             appName: 'Softphone Headset Library',
             transport: RequestedBrowserTransport.CHROME_EXTENSION_WITH_WEB_HID_FALLBACK
         });
     }
 
+    /* istanbul ignore next */
     createCallControlFactory (sdk: IApi): CallControlFactory {
         return new CallControlFactory(sdk);
     }

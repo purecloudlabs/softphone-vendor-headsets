@@ -25,7 +25,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test:watch": "react-scripts test",
+    "test:coverage": "jest --collectCoverage=true --runInBand",
     "eject": "react-scripts eject"
   },
   "browserslist": {
@@ -39,5 +40,21 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@gnaudio/jabra-js).+\\.js$"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
+  },
+  "devDependencies": {
+    "broadcast-channel": "^4.11.0"
   }
 }
