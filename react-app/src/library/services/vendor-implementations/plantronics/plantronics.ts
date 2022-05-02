@@ -27,7 +27,7 @@ export default class PlantronicsService extends VendorImplementation {
   callEventsTimerId: any;
   deviceStatusTimerId: any;
   incomingConversationId: string;
-  callMappings: {[callIdOrConversationId: string|number]: string|number} = {};
+  callMappings: {[callIdOrConversationId in string|number]: string|number} = {};
 
   private constructor(config: ImplementationConfig) {
     super(config);

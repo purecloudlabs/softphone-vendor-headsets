@@ -261,7 +261,11 @@ describe('PlantronicsService', () => {
       plantronicsService.callCorrespondingFunction({
         name: 'AcceptCall',
         code: '1',
-        event: {}
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
       } as any);
       expect(deviceAnsweredCallSpy).toHaveBeenCalled();
     });
@@ -271,54 +275,131 @@ describe('PlantronicsService', () => {
       plantronicsService.callCorrespondingFunction({
         name: 'RejectCall',
         code: '23',
-        event: {}
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
       } as any);
-      expect(deviceRejectedCallSpy).toHaveBeenCalledWith('convoId1234');
+      expect(deviceRejectedCallSpy).toHaveBeenCalledWith({ conversationId: 'convoId1234', name: 'RejectCall' });
     })
     it('will call deviceEndedCall', () => {
       const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
       plantronicsService.callCorrespondingFunction({
-        name: 'TerminateCall'
-      });
+        name: 'TerminateCall',
+        event: {
+          CallId: {
+            Id: '123456',
+          }
+        }
+      } as any);
       expect(deviceEndedCallSpy).toHaveBeenCalled();
     });
     it('will call _checkIsActiveTask', () => {
       const _checkIsActiveTaskSpy = jest.spyOn(plantronicsService, '_checkIsActiveTask');
       plantronicsService.callCorrespondingFunction({
-        name: 'CallEnded'
-      });
+        name: 'CallEnded',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
       expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
     })
     it('will call deviceMuteChanged with the proper flag', () => {
+      plantronicsService.callMappings = { '123456': 'convo1234' };
       const deviceMuteChangedSpy = jest.spyOn(plantronicsService, 'deviceMuteChanged');
       plantronicsService.callCorrespondingFunction({
+        name: 'Mute',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(deviceMuteChangedSpy).toHaveBeenCalledWith({
+        conversationId: 'convo1234',
+        event: {
+          CallId: {
+            Id: '123456'
+          },
+        },
+        isMuted: true,
         name: 'Mute'
       });
-      expect(deviceMuteChangedSpy).toHaveBeenCalledWith(true, {name: 'Mute'});
 
       plantronicsService.callCorrespondingFunction({
+        name: 'Unmute',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(deviceMuteChangedSpy).toHaveBeenCalledWith({
+        conversationId: 'convo1234',
+        event: {
+          CallId: {
+            Id: '123456'
+          },
+        },
+        isMuted: false,
         name: 'Unmute'
       });
-      expect(deviceMuteChangedSpy).toHaveBeenCalledWith(false, {name: 'Unmute'});
     });
     it('will call deviceHoldStatusChanged with the proper flag', () => {
+      plantronicsService.callMappings = { '123456': 'convo1234' };
       const deviceHoldStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceHoldStatusChanged');
       plantronicsService.callCorrespondingFunction({
+        name: 'HoldCall',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith({
+        conversationId: 'convo1234',
+        event: {
+          CallId: {
+            Id: '123456'
+          },
+        },
+        holdRequested: true,
         name: 'HoldCall'
       });
-      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith(true, {name: 'HoldCall'});
 
       plantronicsService.callCorrespondingFunction({
+        name: 'ResumeCall',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith({
+        conversationId: 'convo1234',
+        event: {
+          CallId: {
+            Id: '123456'
+          },
+        },
+        holdRequested: false,
         name: 'ResumeCall'
       });
-      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith(false, {name: 'ResumeCall'});
     });
 
     it('calls deviceEventLogs when no valid event was passed in', () => {
       const deviceEventLogsSpy = jest.spyOn(plantronicsService, 'deviceEventLogs');
       plantronicsService.callCorrespondingFunction({
-        name: 'Test'
-      });
+        name: 'Test',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
       expect(deviceEventLogsSpy).toHaveBeenCalled();
     })
   });
@@ -364,19 +445,20 @@ describe('PlantronicsService', () => {
       });
 
       let callInfo: any = {conversationId: 'convoId123', contactName: 'Dio Brando'};
-      const conversationIdString = `"Id":"${callInfo.conversationId}"`;
+      plantronicsService['_createCallMapping'] = jest.fn().mockReturnValue(12345678);
+      const conversationIdString = `"Id":"${12345678}"`;
       const contactNameString = `"Name":"${callInfo.contactName}"`;
       const endpointParams = `?name=${plantronicsService.pluginName}&tones=Unknown&route=ToHeadset`;
       let completeEndpoint = endpointParams;
-      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
-      completeEndpoint += encodeURI(`&contact={${encodeURI(contactNameString)}}`);
+      completeEndpoint += `&callID={${encodeURI(conversationIdString)}}`;
+      completeEndpoint += `&contact={${encodeURI(contactNameString)}}`;
       await plantronicsService.incomingCall(callInfo)
       expect(plantronicsService.isActive).toBe(true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/IncomingCall${completeEndpoint}`);
       resetService(plantronicsService);
 
       completeEndpoint = endpointParams;
-      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
+      completeEndpoint += `&callID={${encodeURI(conversationIdString)}}`;
       callInfo = {conversationId: 'convoId123'};
       await plantronicsService.incomingCall(callInfo);
       expect(plantronicsService.isActive).toBe(true);
@@ -403,19 +485,20 @@ describe('PlantronicsService', () => {
       });
 
       let callInfo: any = {conversationId: 'convoId123', contactName: 'Dio Brando'};
-      const conversationIdString = `"Id":"${callInfo.conversationId}"`;
+      plantronicsService['_createCallMapping'] = jest.fn().mockReturnValue(12345678);
+      const conversationIdString = `"Id":"12345678"`;
       const contactNameString = `"Name":"${callInfo.contactName}"`;
       const endpointParams = `?name=${plantronicsService.pluginName}&tones=Unknown&route=ToHeadset`;
       let completeEndpoint = endpointParams;
-      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
-      completeEndpoint += encodeURI(`&contact={${encodeURI(contactNameString)}}`);
+      completeEndpoint += `&callID={${encodeURI(conversationIdString)}}`;
+      completeEndpoint += `&contact={${encodeURI(contactNameString)}}`;
       await plantronicsService.outgoingCall({...callInfo})
       expect(plantronicsService.isActive).toBe(true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/OutgoingCall${completeEndpoint}`);
       resetService(plantronicsService);
 
       completeEndpoint = endpointParams;
-      completeEndpoint += encodeURI(`&callID={${encodeURI(conversationIdString)}}`);
+      completeEndpoint += `&callID={${encodeURI(conversationIdString)}}`;
       callInfo = {conversationId: 'convoId123'};
       await plantronicsService.outgoingCall({ ...callInfo });
       expect(plantronicsService.isActive).toBe(true);
@@ -440,9 +523,12 @@ describe('PlantronicsService', () => {
           repeatResponse: responses.DeviceServices.Info.default
         }
       });
-      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      plantronicsService.callMappings = {
+        'convoId123': '12345678'
+      };
+      const conversationIdString = encodeURI(`"Id":"12345678"`);
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
-      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      completeEndpoint += `&callID={${conversationIdString}}`;
       await plantronicsService.answerCall('convoId123');
       expect(plantronicsService.isActive).toBe(true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/AnswerCall${completeEndpoint}`);
@@ -460,9 +546,10 @@ describe('PlantronicsService', () => {
         }
       });
 
-      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      plantronicsService['_createCallMapping'] = jest.fn().mockReturnValue(12345678);
+      const conversationIdString = encodeURI(`"Id":"12345678"`);
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
-      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      completeEndpoint += `&callID={${conversationIdString}}`;
       await plantronicsService.endCall('convoId123');
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/TerminateCall${completeEndpoint}`);
       expect(getCallEventsSpy).toHaveBeenCalled();
@@ -482,7 +569,7 @@ describe('PlantronicsService', () => {
       plantronicsService.incomingConversationId = 'convoId1234';
       const plantronicsEndCallSpy = jest.spyOn(plantronicsService, 'endCall');
       plantronicsService.rejectCall('convoId1234');
-      expect(plantronicsService.incomingConversationId).toBe('');
+      expect(plantronicsService.incomingConversationId).toBe(null);
       expect(plantronicsEndCallSpy).toHaveBeenCalledWith('convoId1234');
     });
     it('calls _makeRequestTask wth proper endpoint for mute', async () => {
@@ -508,9 +595,12 @@ describe('PlantronicsService', () => {
           responses: [responses.CallServices.ResumeCall.default]
         }
       });
-      const conversationIdString = encodeURI(`"Id":"convoId123"`);
+      plantronicsService.callMappings = {
+        "convoId123": '12345678'
+      }
+      const conversationIdString = encodeURI(`"Id":"12345678"`);
       let completeEndpoint = `?name=${plantronicsService.pluginName}`;
-      completeEndpoint += encodeURI(`&callID={${conversationIdString}}`);
+      completeEndpoint += `&callID={${conversationIdString}}`;
       await plantronicsService.setHold('convoId123', true);
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/HoldCall${completeEndpoint}`);
 
@@ -841,6 +931,15 @@ describe('PlantronicsService', () => {
       console.log(plantronicsService._fetch('/test'));
       plantronicsService._fetch('/test')
       expect(fetchJsonp).toHaveBeenCalledWith('/test');
+    })
+  })
+  describe('_createCallMapping', () => {
+    it('should populate the callMappings value in the service', () => {
+      const returnedValue = plantronicsService['_createCallMapping']('convoId123');
+      expect(plantronicsService.callMappings).toStrictEqual({
+        [returnedValue]: 'convoId123',
+        'convoId123': returnedValue
+      });
     })
   })
 });

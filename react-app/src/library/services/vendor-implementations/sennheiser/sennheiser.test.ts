@@ -167,9 +167,6 @@ describe('SennheiserService', () => {
       sennheiserService.websocket = mockWebSocket;
       sennheiserService.logger = mockLogger;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should not call _sendMessage if the service is not connected', async () => {
       sennheiserService.isConnected = false;
       jest.spyOn(sennheiserService, '_sendMessage');
@@ -198,9 +195,6 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
       sennheiserService.logger = mockLogger;
-    });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
     });
     it('should call _sendMessage with a payload using SennheiserEvents.MuteFromApp when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
@@ -233,17 +227,13 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should call _sendMessage with a payload using SennheiserEvents.Hold when the value argument is defined', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      sennheiserService.callMappings[conversationId] = 12345;
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.Hold,
         EventType: SennheiserEventTypes.Request,
-        CallID: sennheiserService.callMappings[conversationId],
+        CallID: conversationId
       };
 
       await sennheiserService.setHold(conversationId, true);
@@ -254,11 +244,10 @@ describe('SennheiserService', () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const value = null;
       const conversationId = '23f897b';
-      sennheiserService.callMappings[conversationId] = 12345;
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.Resume,
         EventType: SennheiserEventTypes.Request,
-        CallID: sennheiserService.callMappings[conversationId],
+        CallID: conversationId
       };
 
       await sennheiserService.setHold(conversationId, value);
@@ -273,9 +262,6 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
@@ -287,11 +273,11 @@ describe('SennheiserService', () => {
       await sennheiserService.incomingCall(callInfo);
 
       // Get generated call mapping to create expected payload
-      const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
+      // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCall,
         EventType: SennheiserEventTypes.Request,
-        CallID: generatedCallId,
+        CallID: callInfo.conversationId
       };
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
@@ -304,21 +290,13 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      const CallID = 237894;
-      sennheiserService.callMappings = {
-        [conversationId]: CallID,
-        [CallID]: conversationId,
-      };
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCallAccepted,
         EventType: SennheiserEventTypes.Request,
-        CallID: CallID,
+        CallID: conversationId,
       };
 
       await sennheiserService.answerCall(conversationId);
@@ -333,21 +311,13 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      const CallID = 237894;
-      sennheiserService.callMappings = {
-        [conversationId]: CallID,
-        [CallID]: conversationId,
-      };
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.IncomingCallRejected,
         EventType: SennheiserEventTypes.Request,
-        CallID: CallID,
+        CallID: conversationId
       };
 
       await sennheiserService.rejectCall(conversationId);
@@ -362,9 +332,6 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
@@ -376,11 +343,11 @@ describe('SennheiserService', () => {
       await sennheiserService.outgoingCall(callInfo);
 
       // Get generated call mapping to create expected payload
-      const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
+      // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.OutgoingCall,
         EventType: SennheiserEventTypes.Request,
-        CallID: generatedCallId,
+        CallID: callInfo.conversationId
       };
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
@@ -393,34 +360,18 @@ describe('SennheiserService', () => {
       sennheiserService.logger = mockLogger;
       sennheiserService.websocket = mockWebSocket;
     });
-    afterEach(() => {
-      sennheiserService.callMappings = {};
-    });
     it('should call _sendMessage with a payload using SennheiserEvents.CallEnded', async () => {
       jest.spyOn(sennheiserService, '_sendMessage');
       const conversationId = '23f897b';
-      const CallID = 237894;
-      sennheiserService.callMappings = {
-        [conversationId]: CallID,
-        [CallID]: conversationId,
-      };
       const expectedPayload: SennheiserPayload = {
         Event: SennheiserEvents.CallEnded,
         EventType: SennheiserEventTypes.Request,
-        CallID: CallID,
+        CallID: conversationId
       };
 
       await sennheiserService.endCall(conversationId);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-    });
-    it('should not call _sendMessage when there is no callId for the provided conversationId', async () => {
-      jest.spyOn(sennheiserService, '_sendMessage');
-      const conversationId = '23f897b';
-
-      await sennheiserService.endCall(conversationId);
-
-      expect(sennheiserService._sendMessage).not.toHaveBeenCalled();
     });
   });
 
@@ -430,7 +381,6 @@ describe('SennheiserService', () => {
     beforeEach(() => {
       sennheiserService = SennheiserService.getInstance({ logger: console });
       sennheiserService.logger = mockLogger;
-      sennheiserService.callMappings = {};
 
       jest.spyOn(sennheiserService, '_handleAck');
       jest.spyOn(sennheiserService, '_handleError');
@@ -619,6 +569,7 @@ describe('SennheiserService', () => {
       });
       it(`should call deviceHoldStatusChanged(true) if the event type is NOT ${SennheiserEventTypes.Notification}`, () => {
         const expectedPayload: SennheiserPayload = {
+          CallID: '23f897b',
           Event: SennheiserEvents.Hold,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -627,7 +578,7 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
-        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(true, { name: 'CallHold' });
+        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith({ holdRequested: true, name: SennheiserEvents.Hold, conversationId: expectedPayload.CallID });
       });
     });
 
@@ -646,6 +597,7 @@ describe('SennheiserService', () => {
       });
       it(`should call deviceHoldStatusChanged(false) if the event type is NOT ${SennheiserEventTypes.Notification}`, () => {
         const expectedPayload: SennheiserPayload = {
+          CallID: '23f897b',
           Event: SennheiserEvents.Resume,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -654,7 +606,7 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
-        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith(false, { name: 'HeldCallResumed' });
+        expect(sennheiserService.deviceHoldStatusChanged).toHaveBeenCalledWith({ holdRequested: false, name: SennheiserEvents.Resume, conversationId: expectedPayload.CallID });
       });
     });
 
@@ -662,40 +614,32 @@ describe('SennheiserService', () => {
       it('should call deviceMuteChanged(true)', () => {
         message = { data: `{ "Event": "${SennheiserEvents.MuteFromHeadset}" }` };
         sennheiserService._handleMessage(message);
-        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(true, { name: "MuteSoftphone" });
+        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith({ isMuted: true, name: SennheiserEvents.MuteFromHeadset });
       });
     });
 
     describe(`event type: ${SennheiserEvents.UnmuteFromHeadset}`, () => {
-      it('should call deviceMuteChanged(true)', () => {
+      it('should call deviceMuteChanged(false)', () => {
         message = { data: `{ "Event": "${SennheiserEvents.UnmuteFromHeadset}" }` };
         sennheiserService._handleMessage(message);
-        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith(false, { name: 'UnmuteSoftphone' });
+        expect(sennheiserService.deviceMuteChanged).toHaveBeenCalledWith({ isMuted: false, name: SennheiserEvents.UnmuteFromHeadset });
       });
     });
 
     describe(`event type: ${SennheiserEvents.CallEnded}`, () => {
-      const callId = 1234;
-      const conversationId = '12r3kh';
-
       it('should delete the call mappings for callId and conversationId', () => {
         const payload: SennheiserPayload = {
-          CallID: callId,
+          CallID: '23f897b',
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Notification,
         };
         message = { data: JSON.stringify(payload) };
-        sennheiserService.callMappings[callId] = conversationId;
-        sennheiserService.callMappings[conversationId] = callId;
 
         sennheiserService._handleMessage(message);
-
-        expect(sennheiserService.callMappings[callId]).toBeFalsy();
-        expect(sennheiserService.callMappings[conversationId]).toBeFalsy();
+        expect(sennheiserService.deviceEndedCall).toHaveBeenCalledWith({ name: SennheiserEvents.CallEnded, conversationId: payload.CallID });
       });
       it(`should call deviceEndedCall() when the payload event type is '${SennheiserEventTypes.Notification}'`, () => {
         const payload: SennheiserPayload = {
-          CallID: callId,
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Notification,
         };
@@ -707,7 +651,6 @@ describe('SennheiserService', () => {
       });
       it(`should NOT call deviceEndedCall() when the payload event type is NOT '${SennheiserEventTypes.Notification}'`, () => {
         const payload: SennheiserPayload = {
-          CallID: callId,
           Event: SennheiserEvents.CallEnded,
           EventType: SennheiserEventTypes.Ack,
         };
@@ -721,19 +664,16 @@ describe('SennheiserService', () => {
 
     describe(`event type: ${SennheiserEvents.IncomingCallRejected}`, () => {
       it('should call deviceRejectedCall() with the relevant conversationID', () => {
-        const callId = 1234;
         const conversationId = '12r3kh';
-        sennheiserService.callMappings[callId] = conversationId;
-        sennheiserService.callMappings[conversationId] = callId;
         const payload: SennheiserPayload = {
-          CallID: callId,
+          CallID: conversationId,
           Event: SennheiserEvents.IncomingCallRejected,
         };
         message = { data: JSON.stringify(payload) };
 
         sennheiserService._handleMessage(message);
 
-        expect(sennheiserService.deviceRejectedCall).toHaveBeenCalledWith(conversationId);
+        expect(sennheiserService.deviceRejectedCall).toHaveBeenCalledWith({ name: payload.Event, conversationId: payload.CallID });
       });
     });
 
