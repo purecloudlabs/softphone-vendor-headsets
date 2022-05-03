@@ -84,8 +84,8 @@ export default class JabraService extends VendorImplementation {
                 return;
             }
 
-            switch (SignalType[signal.type]) {
-                case 'HOOK_SWITCH':
+            switch (signal.type) {
+                case SignalType.HOOK_SWITCH:
                     if (signal.value) {
                         callControl.offHook(true);
                         callControl.ring(false);
@@ -110,8 +110,8 @@ export default class JabraService extends VendorImplementation {
                         }
                     }
                     break;
-                case 'FLASH':
-                case 'ALT_HOLD':
+                case SignalType.FLASH:
+                case SignalType.ALT_HOLD:
                     this.isHeld = !this.isHeld;
                     callControl.hold(this.isHeld);
                     this.deviceHoldStatusChanged({
@@ -121,7 +121,7 @@ export default class JabraService extends VendorImplementation {
                         conversationId: this.activeConversationId
                     });
                     break;
-                case 'PHONE_MUTE':
+                case SignalType.PHONE_MUTE:
                     this.isMuted = !this.isMuted;
                     callControl.mute(this.isMuted);
                     this.deviceMuteChanged({
@@ -131,7 +131,7 @@ export default class JabraService extends VendorImplementation {
                         conversationId: this.activeConversationId
                     });
                     break;
-                case 'REJECT_CALL':
+                case SignalType.REJECT_CALL:
                     callControl.ring(false);
                     this.deviceRejectedCall({name: SignalType[signal.type], conversationId: this.pendingConversationId});
                     try {

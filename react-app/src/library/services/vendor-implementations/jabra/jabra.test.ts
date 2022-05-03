@@ -2,14 +2,10 @@ import JabraService from './jabra';
 import DeviceInfo from '../../../types/device-info';
 import { Observable, Subject, ReplaySubject, BehaviorSubject } from 'rxjs';
 import {
-  CallControlFactory,
-  DeviceType,
   ErrorType,
   IApi,
   ICallControlSignal,
-  IConnection,
   IDevice,
-  IHidUsage,
 } from '@gnaudio/jabra-js';
 import { BroadcastChannel } from 'broadcast-channel';
 import 'regenerator-runtime';

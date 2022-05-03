@@ -1,3 +1,15 @@
+export enum JabraNativeCommands {
+  Ring = 'ringer',
+  Offhook = 'offhook',
+  Mute = 'mute',
+  Hold = 'hold',
+}
+
+export interface JabraNativeHeadsetState {
+  ringing: boolean;
+  offHook: boolean;
+}
+
 export const HeadsetEvent = 'JabraEvent';
 export const DeviceEvent = 'JabraDeviceAttached';
 

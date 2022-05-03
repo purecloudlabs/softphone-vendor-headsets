@@ -1,10 +1,8 @@
 import { debounce, isCefHosted, requestCefPromise, timedPromise } from '../../../../utils';
 import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
 import DeviceInfo from '../../../../types/device-info';
-import { JabraNativeHeadsetState } from './jabra-native-heaset-state';
-import { JabraNativeCommands } from './jabra-native-commands';
-import { JabraHeadsetEvent, JabraDeviceEvent, JabraNativeEventNames, HeadsetEvent, DeviceEvent } from './jabra-native-types';
 import { CallInfo } from '../../../../types/call-info';
+import { JabraNativeHeadsetState, JabraHeadsetEvent, HeadsetEvent, JabraDeviceEvent, DeviceEvent, JabraNativeCommands, JabraNativeEventNames } from './types';
 
 const connectTimeout = 5000;
 const offHookThrottleTime = 500;
@@ -17,7 +15,6 @@ export default class JabraNativeService extends VendorImplementation {
   activeDeviceId: string = null;
   headsetState: JabraNativeHeadsetState = null;
   ignoreNextOffhookEvent = false;
-  _connectionInProgress: any; // { resolve: Function, reject: Function }
   cefSupportsJabra = true;
   pendingConversationId: string;
   activeConversationId: string;
@@ -181,9 +178,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   async incomingCall(callInfo: CallInfo): Promise<void> {
-    if (callInfo) {
-      this.pendingConversationId = callInfo.conversationId;
-    }
+    this.pendingConversationId = callInfo.conversationId;
     this._setRinging(true);
   }
 
@@ -224,10 +219,6 @@ export default class JabraNativeService extends VendorImplementation {
   async updateDevices(): Promise<void> {
     try {
       const data = (await requestCefPromise({ cmd: 'requestJabraDevices' })) as DeviceInfo[];
-
-      if (this._connectionInProgress) {
-        this._connectionInProgress.resolve();
-      }
 
       this.changeConnectionStatus({ isConnected: true, isConnecting: false });
 

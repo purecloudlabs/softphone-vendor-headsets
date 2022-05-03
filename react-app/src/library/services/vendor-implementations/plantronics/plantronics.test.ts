@@ -4,7 +4,7 @@ import responses from './plantronics-test-responses';
 import 'regenerator-runtime';
 import { BroadcastChannel } from "broadcast-channel";
 import browserama from 'browserama';
-import { mockLogger, eventValidation } from "../../../test-utils.test";
+import { mockLogger, eventValidation } from "../../../test-utils";
 import DeviceInfo from "../../../types/device-info";
 import PlantronicsService from "./plantronics";
 import { PlantronicsCallEventCodes } from "./plantronics-call-events";

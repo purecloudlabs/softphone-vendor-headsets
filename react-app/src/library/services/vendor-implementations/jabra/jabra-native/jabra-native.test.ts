@@ -1,9 +1,8 @@
 import JabraNativeService from './jabra-native';
 import DeviceInfo from '../../../../types/device-info';
-import { mockLogger } from '../../../../test-utils.test';
-import { JabraNativeCommands } from './jabra-native-commands';
-import { DeviceEvent, HeadsetEvent, JabraDeviceEvent, JabraHeadsetEvent, JabraNativeEventNames } from './jabra-native-types';
+import { mockLogger } from '../../../../test-utils';
 import * as utils from '../../../../utils';
+import { DeviceEvent, HeadsetEvent, JabraNativeEventNames, JabraDeviceEvent, JabraHeadsetEvent, JabraNativeCommands } from './types';
 
 const ASYNC_TIMEOUT = 1000;
 const testDevice1 = { deviceID: '123', deviceName: 'testDevice1' };
@@ -18,7 +17,6 @@ function resetJabraNativeService(service: JabraNativeService) {
   service.activeDeviceId = null;
   service.logger = mockLogger;
   service.ignoreNextOffhookEvent = false;
-  service._connectionInProgress = null;
 }
 
 function populateDevices(service: JabraNativeService): void {
@@ -517,13 +515,6 @@ describe('JabraNativeService', () => {
 
     describe('requestJabraDevices resolves successfully', () => {
       const devices: DeviceInfo[] = [testDevice1, testDevice2, testDevice3];
-
-      beforeEach(() => {
-        jabraNativeService._connectionInProgress = {
-          resolve: () => {},
-          reject: () => {},
-        };
-      });
 
       it('should set isConnecting to false and isConnected to true', async () => {
         jest
