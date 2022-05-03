@@ -3,6 +3,90 @@ import { PlantronicsCallEventCodes } from "./plantronics-call-events";
 const responses = {
     CallServices: {
 
+        CallEvents: {
+            AnsweredCall: {
+                Result: [{
+                    Action: PlantronicsCallEventCodes.AcceptCall,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }, {
+                    Action: PlantronicsCallEventCodes.CallInProgress,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }]
+            },
+            MuteCall: {
+                Result: [{
+                    Action: PlantronicsCallEventCodes.Mute,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }]
+            },
+            UnmuteCall: {
+                Result: [{
+                    Action: PlantronicsCallEventCodes.Unmute,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }]
+            },
+            HoldCall: {
+                Result: [{
+                    Action: PlantronicsCallEventCodes.HoldCall,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }]
+            },
+            ResumeCall: {
+                Result: [{
+                    Action: PlantronicsCallEventCodes.ResumeCall,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }]
+            },
+            TerminateCall: {
+                Result: [{
+                    Action: PlantronicsCallEventCodes.TerminateCall,
+                    CallId: {
+                        ConferenceId: 8216,
+                        Id: 6497,
+                        InConference: false
+                    },
+                    CallSource: 'phone',
+                    DeviceEvent: '888888'
+                }]
+            }
+        },
+
         AnswerCall: {
             default: {
                 Description: 'Answered Call',
