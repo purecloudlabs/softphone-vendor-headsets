@@ -280,7 +280,7 @@ describe('HeadsetService', () => {
           offHook: false,
           muted: false,
           held: false,
-          ringing: false,
+          ringing: true,
           conversationId
         }
       };
@@ -292,7 +292,28 @@ describe('HeadsetService', () => {
       jest.advanceTimersByTime(3000);
 
       expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
-    }); 
+    });
+
+    it('should delete the headset state if there is removeTimer', async () => {
+      const conversationId = 'convoId12523';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          offHook: false,
+          muted: false,
+          held: false,
+          ringing: true,
+          conversationId
+        }
+      };
+
+      await headsetService.rejectCall(conversationId);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
+
+      jest.advanceTimersByTime(3000);
+
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeFalsy();
+    });
 
     it('should call rejectCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
@@ -441,8 +462,9 @@ describe('HeadsetService', () => {
       jest.useRealTimers();
       jest.resetAllMocks();
     });
-    it('shoudl do nothing if already in expected state', async () => {
+    it('should do nothing if already in expected state', async () => {
       const conversationId = 'myconvoId5';
+      plantronics.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           conversationId,
@@ -454,11 +476,47 @@ describe('HeadsetService', () => {
         }
       };
       const timeoutSpy = jest.spyOn(window, 'setTimeout');
-
       headsetService.endCall(conversationId, false);
-
       expect(timeoutSpy).not.toHaveBeenCalled();
+    });
+    it('should delete headset state after time', async () => {
+      const conversationId = 'myconvoId5';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          conversationId,
+          held: false,
+          muted: false,
+          offHook: true,
+          ringing: false,
+        }
+      };
 
+      await headsetService.endCall(conversationId, false);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
+
+      jest.advanceTimersByTime(3000);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeFalsy();
+
+    });
+    it('should not delete headset state after time if there is no removeTimer', async () => {
+      const conversationId = 'myconvoId5';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          conversationId,
+          held: false,
+          muted: false,
+          offHook: true,
+          ringing: false,
+        }
+      };
+      await headsetService.endCall(conversationId, false);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
+      delete headsetService['headsetConversationStates'][conversationId].removeTimer;
+
+      jest.advanceTimersByTime(3000);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
     });
     it('should call endCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
@@ -504,7 +562,7 @@ describe('HeadsetService', () => {
       jest.resetAllMocks();
     });
     it('should not setTimeout if there is already a remove timer', async () => {
-      plantronics.isConnected = false;
+      plantronics.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'myConvoId': {
           conversationId: 'myConvoId',
@@ -520,6 +578,41 @@ describe('HeadsetService', () => {
       await headsetService.endAllCalls();
       expect(timeoutSpy).not.toHaveBeenCalled();
       expect(plantronics.endAllCalls).not.toHaveBeenCalled();
+    });
+    it('should not delete if theres no remove timer', async () => {
+      plantronics.isConnected = true;
+      const conversationId = 'myConvoId15521';
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          conversationId,
+          held: false,
+          muted: false,
+          offHook: true,
+          ringing: false,
+        }
+      };
+
+      await headsetService.endAllCalls();
+      delete headsetService['headsetConversationStates'][conversationId].removeTimer;
+      jest.advanceTimersByTime(3000);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
+    });
+    it('should delete headset state', async () => {
+      plantronics.isConnected = true;
+      const conversationId = 'myConvoId151';
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          conversationId,
+          held: false,
+          muted: false,
+          offHook: true,
+          ringing: false,
+        }
+      };
+
+      await headsetService.endAllCalls();
+      jest.advanceTimersByTime(3000);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeFalsy();
     });
     it('should call endAllCalls on the selected implementation when the implementation is connected', () => {
       plantronics.isConnected = true;
