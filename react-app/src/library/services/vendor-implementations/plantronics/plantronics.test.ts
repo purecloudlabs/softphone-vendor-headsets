@@ -7,7 +7,6 @@ import browserama from 'browserama';
 import { mockLogger, eventValidation } from "../../../test-utils";
 import DeviceInfo from "../../../types/device-info";
 import PlantronicsService from "./plantronics";
-import { PlantronicsCallEventCodes } from "./plantronics-call-events";
 import fetchJsonp from "fetch-jsonp";
 
 jest.mock('broadcast-channel');

@@ -27,7 +27,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false --collectCoverage=true",
     "test:watch": "react-scripts test",
-    "test:coverage": "jest --collectCoverage=true --runInBand",
+    "test:coverage": "react-scripts test --coverage",
     "eject": "react-scripts eject"
   },
   "browserslist": {
