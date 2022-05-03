@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 export default class DeviceService {
     private hasPermissions = false;
     private static defaultMicrophone = {} as MediaDeviceInfo;

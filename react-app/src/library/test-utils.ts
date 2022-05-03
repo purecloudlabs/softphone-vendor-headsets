@@ -4,13 +4,15 @@
 import { VendorImplementation } from "./services/vendor-implementations/vendor-implementation";
 import { EmittedHeadsetEvents } from "./types/emitted-headset-events";
 
-export const mockWebSocket = {
-  readyState: 0,
-  send: () => {},
-  close: () => {},
-  onOpen: () => {},
-  onClose: () => {},
-};
+export function createMockWebSocket () {
+  return {
+    readyState: 0,
+    send: () => {},
+    close: () => {},
+    onOpen: () => {},
+    onClose: () => {},
+  };
+}
 
 export const mockLogger = {
   info: () => {},

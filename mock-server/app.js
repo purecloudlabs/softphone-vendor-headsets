@@ -3,7 +3,6 @@ const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
 const plantronics = require('./plantronics/router');
-const sennheiser = require('./sennheiser').router;
 
 const app = express();
 app.use(cors());
@@ -13,7 +12,6 @@ app.use(express.json());
 
 // app.options('*', cors());
 app.use('/plantronics', plantronics);
-app.use('/sennheiser', sennheiser);
 
 app.listen(3000);
 
