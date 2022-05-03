@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { v4 } from "uuid";
 
 const defaultContacts = [

@@ -200,6 +200,23 @@ describe('HeadsetService', () => {
     afterEach(() => {
       jest.resetAllMocks();
     });
+    it('should do nothing if already in the expected state', async () => {
+      const conversationId = 'convoId241123';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          offHook: true,
+          muted: false,
+          held: true,
+          ringing: false,
+          conversationId
+        }
+      };
+
+      await headsetService.answerCall(conversationId);
+
+      expect(plantronics.answerCall).not.toHaveBeenCalled();
+    })
     it('should call answerCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
       plantronics.isConnected = true;
@@ -237,6 +254,46 @@ describe('HeadsetService', () => {
       jest.resetAllMocks();
       jest.useRealTimers();
     });
+    it('should do nothing if already in expected state', async () => {
+      const conversationId = 'convoId12523';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          offHook: false,
+          muted: false,
+          held: false,
+          ringing: false,
+          conversationId
+        }
+      };
+
+      await headsetService.rejectCall(conversationId);
+
+      expect(plantronics.rejectCall).not.toHaveBeenCalled();
+    });
+
+    it('should not delete the headset state if there is no removeTimer', async () => {
+      const conversationId = 'convoId12523';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          offHook: false,
+          muted: false,
+          held: false,
+          ringing: false,
+          conversationId
+        }
+      };
+
+      await headsetService.rejectCall(conversationId);
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
+
+      delete headsetService['headsetConversationStates'][conversationId].removeTimer;
+      jest.advanceTimersByTime(3000);
+
+      expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
+    }); 
+
     it('should call rejectCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
       plantronics.isConnected = true;
@@ -276,6 +333,23 @@ describe('HeadsetService', () => {
     afterEach(() => {
       jest.resetAllMocks();
     });
+    it('should do nothing if all calls are muted', async () => {
+      const conversationId = 'convoId123';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          offHook: true,
+          muted: true,
+          held: true,
+          ringing: false,
+          conversationId
+        }
+      };
+
+      await headsetService.setMute(true);
+
+      expect(plantronics.setMute).not.toHaveBeenCalled();
+    });
     it('should call setMute on the selected implementation when the implementation is connected', () => {
       plantronics.isConnected = true;
       headsetService['headsetConversationStates'] = {
@@ -310,6 +384,23 @@ describe('HeadsetService', () => {
     });
     afterEach(() => {
       jest.resetAllMocks();
+    });
+    it('should do nothing if already in expected state', async () => {
+      const conversationId = 'convoId123';
+      plantronics.isConnected = true;
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          offHook: true,
+          muted: false,
+          held: true,
+          ringing: false,
+          conversationId
+        }
+      };
+
+      await headsetService.setHold(conversationId, true);
+
+      expect(plantronics.setHold).not.toHaveBeenCalled();
     });
     it('should call setHold on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
@@ -349,6 +440,25 @@ describe('HeadsetService', () => {
     afterEach(() => {
       jest.useRealTimers();
       jest.resetAllMocks();
+    });
+    it('shoudl do nothing if already in expected state', async () => {
+      const conversationId = 'myconvoId5';
+      headsetService['headsetConversationStates'] = {
+        [conversationId]: {
+          conversationId,
+          held: false,
+          muted: false,
+          offHook: false,
+          ringing: false,
+          removeTimer: 12525
+        }
+      };
+      const timeoutSpy = jest.spyOn(window, 'setTimeout');
+
+      headsetService.endCall(conversationId, false);
+
+      expect(timeoutSpy).not.toHaveBeenCalled();
+
     });
     it('should call endCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
@@ -392,6 +502,24 @@ describe('HeadsetService', () => {
     afterEach(() => {
       jest.useRealTimers();
       jest.resetAllMocks();
+    });
+    it('should not setTimeout if there is already a remove timer', async () => {
+      plantronics.isConnected = false;
+      headsetService['headsetConversationStates'] = {
+        'myConvoId': {
+          conversationId: 'myConvoId',
+          held: false,
+          muted: false,
+          offHook: true,
+          ringing: false,
+          removeTimer: 12525
+        }
+      };
+
+      const timeoutSpy = jest.spyOn(window, 'setTimeout');
+      await headsetService.endAllCalls();
+      expect(timeoutSpy).not.toHaveBeenCalled();
+      expect(plantronics.endAllCalls).not.toHaveBeenCalled();
     });
     it('should call endAllCalls on the selected implementation when the implementation is connected', () => {
       plantronics.isConnected = true;

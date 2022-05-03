@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import React, { useEffect } from 'react';
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */

@@ -244,7 +244,6 @@ export default class HeadsetService {
     }
     
     Object.values(this.headsetConversationStates).forEach((headsetState) => {
-      console.log(headsetState);
       if (!headsetState.removeTimer) {
         headsetState.removeTimer = setTimeout(() => {
           // we are using the removeTimer to make sure this is actually slated for removal.

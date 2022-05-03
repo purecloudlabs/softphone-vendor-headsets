@@ -1,10 +1,8 @@
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
-import { SennheiserEvents } from './sennheiser-events';
-import { SennheiserEventTypes } from './sennheiser-event-types';
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../..';
-import { SennheiserPayload } from './sennheiser-payload';
 import * as utils from '../../../utils';
+import { SennheiserPayload, SennheiserEvents, SennheiserEventTypes } from './types';
 
 const websocketUri = 'wss://127.0.0.1:41088';
 
@@ -23,7 +21,7 @@ export default class SennheiserService extends VendorImplementation {
   deviceInfo: DeviceInfo = null;
 
   static getInstance(config: ImplementationConfig): SennheiserService {
-    if (!SennheiserService.instance) {
+    if (!SennheiserService.instance || config.createNew) {
       SennheiserService.instance = new SennheiserService(config);
     }
 
