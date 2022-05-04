@@ -25,8 +25,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --watchAll=false --collectCoverage=true --resetMocks=false",
-    "test:watch": "react-scripts test --resetMocks=false",
+    "test": "react-scripts test --watchAll=false --collectCoverage=true",
+    "test:watch": "react-scripts test",
     "test:coverage": "react-scripts test --coverage",
     "test:clean": "react-scripts test --clearCache",
     "eject": "react-scripts eject"
@@ -44,6 +44,7 @@
     ]
   },
   "jest": {
+    "resetMocks": false,
     "transformIgnorePatterns": [
       "/node_modules/(?!@gnaudio/jabra-js).+\\.js$"
     ],

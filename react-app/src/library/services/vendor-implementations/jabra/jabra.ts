@@ -13,7 +13,7 @@ import {
 } from '@gnaudio/jabra-js';
 import { CallInfo } from "../../..";
 import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from "rxjs";
-import { defaultIfEmpty, filter, first, map, tap, timeout } from 'rxjs/operators';
+import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
 import { isCefHosted } from "../../../utils";
 
 export default class JabraService extends VendorImplementation {

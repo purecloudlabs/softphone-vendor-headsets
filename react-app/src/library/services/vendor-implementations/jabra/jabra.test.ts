@@ -1,9 +1,8 @@
 import JabraService from './jabra';
 import DeviceInfo from '../../../types/device-info';
-import { Observable, Subject, ReplaySubject, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import {
   ErrorType,
-  IApi,
   ICallControlSignal,
   IDevice,
 } from '@gnaudio/jabra-js';
@@ -64,9 +63,6 @@ const initializeSdk = async (subject?: Subject<IDevice[]>) => {
 
 describe('JabraService', () => {
   let jabraService: JabraService;
-  let origInitializeSdk: any;
-  let jabraSdk: IApi;
-  const subject = new ReplaySubject<IDevice[]>(1);
   Object.defineProperty(window.navigator, 'hid', {
     get: () => ({
       getDevices: () => {
@@ -79,7 +75,6 @@ describe('JabraService', () => {
   
   beforeEach(() => {
     jabraService = JabraService.getInstance({ logger: console, createNew: true });
-    origInitializeSdk = jabraService.initializeJabraSdk;
     jabraService.initializeJabraSdk = initializeSdk as any;
   });
 
