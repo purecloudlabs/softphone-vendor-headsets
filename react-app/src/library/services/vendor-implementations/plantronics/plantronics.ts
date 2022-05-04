@@ -110,7 +110,6 @@ export default class PlantronicsService extends VendorImplementation {
       this.logger.debug('**** POLLING FOR DEVICE STATUS ****');
       this.getDeviceStatus();
     }
-
     this.deviceStatusTimerId = setTimeout(() => {
         this.pollForDeviceStatus();
       }, this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval

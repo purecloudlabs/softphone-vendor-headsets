@@ -577,7 +577,6 @@ describe('HeadsetService', () => {
       const timeoutSpy = jest.spyOn(window, 'setTimeout');
       await headsetService.endAllCalls();
       expect(timeoutSpy).not.toHaveBeenCalled();
-      expect(plantronics.endAllCalls).not.toHaveBeenCalled();
     });
     it('should not delete if theres no remove timer', async () => {
       plantronics.isConnected = true;
@@ -712,6 +711,7 @@ describe('HeadsetService', () => {
   describe('triggerDeviceEndedCall', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
+      jest.resetAllMocks();
     });
     it(
       'should send a headset event of type DEVICE_ENDED_CALL', (done) => {

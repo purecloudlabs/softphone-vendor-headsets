@@ -356,6 +356,14 @@ const responses = {
                 isError: true,
                 // _triggerEvents: [PlantronicsCallEventCodes.CallIdle]
             }
+        },
+
+        UnRegister: {
+            default: {
+                Description: '',
+                Type: 1,
+                isError: false
+            }
         }
     },
 

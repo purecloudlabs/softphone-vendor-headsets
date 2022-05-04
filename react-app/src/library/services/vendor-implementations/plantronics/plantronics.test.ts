@@ -245,6 +245,21 @@ describe('PlantronicsService', () => {
       jest.advanceTimersByTime(plantronicsService.disconnectedDeviceInterval);
       expect(pollForDeviceStatusSpy).toHaveBeenCalled();
     })
+    it('will use connectedDeviceInterval if a device is attached', () => {
+      plantronicsService.isConnected = true;
+      plantronicsService.isConnecting = false;
+      const getDeviceStatusSpy = jest.spyOn(plantronicsService, 'getDeviceStatus');
+      const pollForDeviceStatusSpy = jest.spyOn(plantronicsService, 'pollForDeviceStatus');
+      Object.defineProperty(plantronicsService, 'isDeviceAttached', { get: () => { return true }});
+      jest.useFakeTimers();
+      plantronicsService.pollForDeviceStatus();
+      expect(getDeviceStatusSpy).toHaveBeenCalled();
+      jest.advanceTimersByTime(plantronicsService.connectedDeviceInterval);
+      expect(pollForDeviceStatusSpy).toHaveBeenCalled();
+      const timeoutSpy = jest.spyOn(window, 'setTimeout');
+      plantronicsService.pollForDeviceStatus();
+      expect(timeoutSpy).toHaveBeenCalledWith(expect.anything(), plantronicsService.connectedDeviceInterval)
+    })
   });
 
   describe('callCorrespondingFunction', () => {
@@ -681,6 +696,10 @@ describe('PlantronicsService', () => {
     })
   });
   describe('getCallEvents', () => {
+    beforeEach(() => {
+      jest.restoreAllMocks();
+      jest.clearAllMocks();
+    })
     it('should answer from headset', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
@@ -820,15 +839,27 @@ describe('PlantronicsService', () => {
       await deviceTerminated;
     });
     it('should log an error if something goes wrong during _makeRequestTask', async () => {
+      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/CallServices/IncomingCall')) {
+          return buildMockFetch(responses.CallServices.IncomingCall.default, true);
+        }
+
+        if (url.includes('/CallServices/CallEvents')) {
+          return buildMockFetch(responses.CallServices.CallEvents.TerminateCall, true);
+        }
+
+        if (url.includes('/DeviceServices/Info')) {
+          return buildMockFetch(responses.DeviceServices.Info.errorState, true);
+        }
+
+        return buildMockFetch({}, true);
+      })
       plantronicsService.isConnected = true;
       plantronicsService.isActive = true;
       PlantronicsService['instance'] = null;
       const loggerInfoSpy = jest.spyOn(plantronicsService.logger, 'info');
-      try {
-        plantronicsService.getCallEvents();
-      } catch (err) {
-        expect(loggerInfoSpy).toHaveBeenCalledWith('Error making request for all events', err);
-      }
+      await plantronicsService.getCallEvents();
+      expect(loggerInfoSpy).toHaveBeenCalledWith('Error making request for call events', expect.any(Error));
     })
     it('should log a message if an unexpected event is received', async () => {
       plantronicsService.isActive = true;
@@ -1016,8 +1047,13 @@ describe('PlantronicsService', () => {
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/SessionManager/UnRegister?name=${plantronicsService.pluginName}`);
     })
     it('sets the flags to the proper values after promise resolution', (done) => {
-      plantronicsService.isConnected = false;
+      plantronicsService.isConnected = true;
       const clearTimeoutsSpy = jest.spyOn(plantronicsService, 'clearTimeouts');
+      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/SessionManager/UnRegister')) {
+          return buildMockFetch(responses.SessionManager.UnRegister.default, true);
+        }
+      })
       plantronicsService.disconnect().then(() => {
         expect(plantronicsService.isConnected).toBe(false);
         expect(plantronicsService._deviceInfo).toBeNull();
