@@ -304,6 +304,17 @@ const responses = {
                 Type: 1,
                 Type_Name: 'Error',
                 isError: true,
+            },
+            noDeviceErrorState: {
+                Description: '',
+                Err: {
+                    Description: 'no supported devices',
+                    Error_Code: 0,
+                    Type: 5
+                },
+                Type: 1,
+                Type_Name: 'Error',
+                isError: true,
             }
         }
     },

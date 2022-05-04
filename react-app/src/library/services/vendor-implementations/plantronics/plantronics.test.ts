@@ -678,6 +678,18 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
+    it('if noDeviceError is true, do not log', async () => {
+      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/DeviceServices/Info')) {
+          return buildMockFetch(responses.DeviceServices.Info.noDeviceErrorState, true);
+        }
+
+        return buildMockFetch({}, true);
+      })
+      plantronicsService.logger.info = jest.fn();
+      await plantronicsService.getDeviceStatus();
+      expect(plantronicsService.logger.info).not.toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
+    });
     it('handles scenarios for getCallEvents function', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
