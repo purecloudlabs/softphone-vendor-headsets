@@ -2,7 +2,7 @@
 
 import browserama from 'browserama';
 
-export function isFirefox(): boolean {
+export function isFirefox (): boolean {
   return browserama.isFireFox;
 }
 
@@ -15,7 +15,7 @@ export function isFirefox(): boolean {
  * time elapses.  If the timeout elapses, then the returned promise rejects with a
  * message that the timeout time was exceeded.
  */
-export function timedPromise(
+export function timedPromise (
   promise: Promise<any>,
   timeoutInMillis: number,
   timeoutError?: Error
@@ -34,13 +34,13 @@ export function timedPromise(
   return Promise.race([promise, timeoutPromise]);
 }
 
-export function debounce(func: () => void, delay: number): any {
+export function debounce (func: () => void, delay: number): any {
   let timer = null;
 
-  return function() {
+  return function () {
     clearTimeout(timer);
 
-    timer = setTimeout(function() {
+    timer = setTimeout(function () {
       func();
     }, delay);
   };
@@ -70,7 +70,7 @@ export function requestCefPromise (cmd: any): Promise<any> {
         onFailure: response => {
           reject(response);
         }
-      })
+      });
     } catch (e) {
       console.error('Error requesting desktop promise', e);
       reject(e);

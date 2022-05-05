@@ -58,7 +58,7 @@ const initializeSdk = async (subject?: Subject<IDevice[]>) => {
     ] as IDevice[];
     subject = new BehaviorSubject(deviceList);
   }
-  return new MockJabraSdk(subject)
+  return new MockJabraSdk(subject);
 };
 
 describe('JabraService', () => {
@@ -192,7 +192,7 @@ describe('JabraService', () => {
         } as any);
 
       await jabraService.connect(mockDevice2.name);
-      expect(webhidSpy).toHaveBeenCalled()
+      expect(webhidSpy).toHaveBeenCalled();
       expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
     });
 
@@ -210,8 +210,8 @@ describe('JabraService', () => {
       const webhidSpy = jest.spyOn(jabraService, 'getDeviceFromWebhid').mockRejectedValue({});
 
       await jabraService.connect(mockDevice2.name);
-      expect(webhidSpy).toHaveBeenCalled()
-      expect(callControlSpy).not.toHaveBeenCalled()
+      expect(webhidSpy).toHaveBeenCalled();
+      expect(callControlSpy).not.toHaveBeenCalled();
       expect(statusChangeSpy).lastCalledWith({ isConnected: false, isConnecting: false });
     });
   });
@@ -425,7 +425,7 @@ describe('JabraService', () => {
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
       deviceSignalsSubject.next({ type: 65533, value: true } as any);
       expect(callControl.ring).toHaveBeenCalledWith(false);
-      expect(deviceRejectedCallSpy).toHaveBeenCalledWith({conversationId, name: 'REJECT_CALL'});
+      expect(deviceRejectedCallSpy).toHaveBeenCalledWith({ conversationId, name: 'REJECT_CALL' });
       expect(await callControl.releaseCallLock).toHaveBeenCalled();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Trying to release the call lock, but it is not held!'
@@ -708,7 +708,7 @@ describe('JabraService', () => {
 
       await jabraService.outgoingCall({ conversationId: 'myconvoid2' });
       expect(jabraService.callLock).toBe(false);
-      expect(jabraService.activeConversationId).toBeFalsy()
+      expect(jabraService.activeConversationId).toBeFalsy();
       expect(callControl.offHook).not.toHaveBeenCalled();
     });
 
@@ -1003,7 +1003,7 @@ describe('JabraService', () => {
         ProductName: 'myJabra',
         deviceId: '123',
         attached: true,
-      }
+      };
       jabraService._deviceInfo = device;
 
       expect(jabraService.deviceInfo).toBe(device);
@@ -1017,7 +1017,7 @@ describe('JabraService', () => {
         deviceName: 'myJabraName',
         deviceId: '123',
         attached: true,
-      }
+      };
       jabraService._deviceInfo = device;
 
       expect(jabraService.deviceName).toBe(device.deviceName);
@@ -1037,7 +1037,7 @@ describe('JabraService', () => {
         deviceName: 'myJabraName',
         deviceId: '123',
         attached: true,
-      }
+      };
       jabraService._deviceInfo = device;
       expect(jabraService.isDeviceAttached).toEqual(true);
     });
@@ -1158,10 +1158,10 @@ describe('JabraService', () => {
       await flushPromises();
       expect(requestSpy).toHaveBeenCalled();
       
-      sub.error(new Error('random error'))
+      sub.error(new Error('random error'));
 
-      await expect(devicePromise).rejects.toThrow('random error')
-    })
+      await expect(devicePromise).rejects.toThrow('random error');
+    });
   });
   
   describe('getPreviouslyConnectedDevice', () => {
@@ -1233,9 +1233,9 @@ describe('JabraService', () => {
 
       await flushPromises();
       
-      sub.error(new Error('random error'))
+      sub.error(new Error('random error'));
 
-      await expect(devicePromise).rejects.toThrow('random error')
+      await expect(devicePromise).rejects.toThrow('random error');
     });
   });
 });

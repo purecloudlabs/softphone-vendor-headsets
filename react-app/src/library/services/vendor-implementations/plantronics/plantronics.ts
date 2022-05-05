@@ -29,7 +29,7 @@ export default class PlantronicsService extends VendorImplementation {
   incomingConversationId: string;
   callMappings: {[callIdOrConversationId in string|number]: string|number} = {};
 
-  private constructor(config: ImplementationConfig) {
+  private constructor (config: ImplementationConfig) {
     super(config);
     this.config = config;
     this._deviceInfo = null;
@@ -38,7 +38,7 @@ export default class PlantronicsService extends VendorImplementation {
     this.incomingConversationId = null;
   }
 
-  private _createCallMapping(conversationId: string): number {
+  private _createCallMapping (conversationId: string): number {
     const ID_LENGTH = 8;
     const callId = Math.round(Math.random() * Math.pow(10, ID_LENGTH)); // Generate random number
 
@@ -58,33 +58,33 @@ export default class PlantronicsService extends VendorImplementation {
     clearTimeout(this.deviceStatusTimerId);
   }
 
-  deviceLabelMatchesVendor(label: string): boolean {
+  deviceLabelMatchesVendor (label: string): boolean {
     // includes vendor name or vendorId (chrome only)
     const lowerLabel = label.toLowerCase();
     return ['plantronics', 'plt', 'poly', '(047f:'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
-  static getInstance(config: ImplementationConfig): PlantronicsService {
-    if (!PlantronicsService.instance) {
+  static getInstance (config: ImplementationConfig): PlantronicsService {
+    if (!PlantronicsService.instance || config.createNew) {
       PlantronicsService.instance = new PlantronicsService(config);
     }
 
     return PlantronicsService.instance;
   }
 
-  get deviceName(): string | undefined {
+  get deviceName (): string | undefined {
     return this._deviceInfo?.ProductName;
   }
 
-  get deviceInfo(): DeviceInfo {
+  get deviceInfo (): DeviceInfo {
     return this._deviceInfo;
   }
 
-  get isDeviceAttached(): boolean {
+  get isDeviceAttached (): boolean {
     return !!this.deviceInfo;
   }
 
-  pollForCallEvents(): void {
+  pollForCallEvents (): void {
     if (this.callEventsTimerId) {
       clearTimeout(this.callEventsTimerId);
       this.callEventsTimerId = null;
@@ -100,7 +100,7 @@ export default class PlantronicsService extends VendorImplementation {
     }, this.activePollingInterval);
   }
 
-  pollForDeviceStatus(): void {
+  pollForDeviceStatus (): void {
     if (this.deviceStatusTimerId) {
       clearTimeout(this.deviceStatusTimerId);
       this.deviceStatusTimerId = null;
@@ -111,20 +111,20 @@ export default class PlantronicsService extends VendorImplementation {
       this.getDeviceStatus();
     }
     this.deviceStatusTimerId = setTimeout(() => {
-        this.pollForDeviceStatus();
-      }, this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval
-    )
+      this.pollForDeviceStatus();
+    }, this.isDeviceAttached ? this.connectedDeviceInterval : this.disconnectedDeviceInterval
+    );
   }
 
-  async _makeRequestTask(endpoint: string, isRetry?: boolean): Promise<any> {
+  async _makeRequestTask (endpoint: string, isRetry?: boolean): Promise<any> {
     return await this._makeRequest(endpoint, isRetry);
   }
 
-  _fetch(url: string): Promise<fetchJsonp.Response> {
+  _fetch (url: string): Promise<fetchJsonp.Response> {
     return fetchJsonp(url);
   }
 
-  async _makeRequest(endpoint: string, isRetry: boolean | undefined): Promise<any> {
+  async _makeRequest (endpoint: string, isRetry: boolean | undefined): Promise<any> {
     const plantronicsInstance = PlantronicsService.instance;
     return this._fetch(`${this.apiHost}${endpoint}`)
       .then(response => {
@@ -165,12 +165,12 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  async _checkIsActiveTask(): Promise<void> {
+  async _checkIsActiveTask (): Promise<void> {
     const calls = await this._getActiveCalls();
     this.isActive = !!calls.length;
   }
 
-  async _getActiveCalls(): Promise<any[]> {
+  async _getActiveCalls (): Promise<any[]> {
     let result;
     try {
       const request = await this._makeRequestTask(`/CallServices/CallManagerState?`);
@@ -187,7 +187,7 @@ export default class PlantronicsService extends VendorImplementation {
     // return result?.Result?.Calls.filter(call => call.Source === this.pluginName);
   }
 
-  async getCallEvents(): Promise<any> {
+  async getCallEvents (): Promise<any> {
     let response;
     try {
       response = await this._makeRequestTask(`/CallServices/CallEvents?name=${this.pluginName}`);
@@ -210,7 +210,7 @@ export default class PlantronicsService extends VendorImplementation {
     }
   }
 
-  async getDeviceStatus(): Promise<void> {
+  async getDeviceStatus (): Promise<void> {
     await this._makeRequestTask(`/DeviceServices/Info`)
       .then(response => {
         this._deviceInfo = response.Result;
@@ -223,44 +223,44 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  callCorrespondingFunction(eventInfo: {name: string, event?: PlantronicsCallEvent }): void {
+  callCorrespondingFunction (eventInfo: {name: string, event?: PlantronicsCallEvent }): void {
     const callId = eventInfo.event.CallId.Id;
     const conversationId = this.callMappings[callId] as string;
 
     switch (eventInfo.name) {
-      case 'AcceptCall':
-        this.deviceAnsweredCall({...eventInfo, conversationId});
-        break;
-      case 'RejectCall':
-        this.deviceRejectedCall({name: eventInfo.name, conversationId: this.incomingConversationId});
-        break;
-      case 'TerminateCall':
-        this.deviceEndedCall({...eventInfo, conversationId});
-        break;
-      case 'CallEnded':
-        delete this.callMappings[callId];
-        delete this.callMappings[conversationId];
-        this._checkIsActiveTask();
-        break;
-      case 'Mute':
-        this.deviceMuteChanged({isMuted: true, ...eventInfo, conversationId});
-        break;
-      case 'Unmute':
-        this.deviceMuteChanged({isMuted: false, ...eventInfo, conversationId});
-        break;
-      case 'HoldCall':
-        this.deviceHoldStatusChanged({holdRequested: true, ...eventInfo, conversationId});
-        break;
-      case 'ResumeCall':
-        this.deviceHoldStatusChanged({holdRequested: false, ...eventInfo, conversationId});
-        break;
-      default:
-        this.logger.info('A headset event has occurred', {...eventInfo, conversationId});
-        this.deviceEventLogs({...eventInfo, conversationId});
+    case 'AcceptCall':
+      this.deviceAnsweredCall({ ...eventInfo, conversationId });
+      break;
+    case 'RejectCall':
+      this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
+      break;
+    case 'TerminateCall':
+      this.deviceEndedCall({ ...eventInfo, conversationId });
+      break;
+    case 'CallEnded':
+      delete this.callMappings[callId];
+      delete this.callMappings[conversationId];
+      this._checkIsActiveTask();
+      break;
+    case 'Mute':
+      this.deviceMuteChanged({ isMuted: true, ...eventInfo, conversationId });
+      break;
+    case 'Unmute':
+      this.deviceMuteChanged({ isMuted: false, ...eventInfo, conversationId });
+      break;
+    case 'HoldCall':
+      this.deviceHoldStatusChanged({ holdRequested: true, ...eventInfo, conversationId });
+      break;
+    case 'ResumeCall':
+      this.deviceHoldStatusChanged({ holdRequested: false, ...eventInfo, conversationId });
+      break;
+    default:
+      this.logger.info('A headset event has occurred', { ...eventInfo, conversationId });
+      this.deviceEventLogs({ ...eventInfo, conversationId });
     }
   }
 
-  connect(): Promise<any> {
+  connect (): Promise<any> {
     !this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     this.pollForDeviceStatus();
     this.pollForCallEvents();
@@ -314,23 +314,18 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  disconnect(): Promise<any> {
-    let promise;
+  async disconnect (): Promise<any> {
     if (!this.isConnected) {
-      promise = Promise.resolve();
-    } else {
-      promise = this._makeRequestTask(`/SessionManager/UnRegister?name=${this.pluginName}`);
+      return;
     }
-
-    return promise.then(() => {
-      this.clearTimeouts();
-      this._deviceInfo = null;
-      this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });
-      this.isActive = false;
-    });
+    await this._makeRequestTask(`/SessionManager/UnRegister?name=${this.pluginName}`);
+    this.clearTimeouts();
+    this._deviceInfo = null;
+    this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });
+    this.isActive = false;
   }
 
-  incomingCall(callInfo: CallInfo): Promise<any> {
+  incomingCall (callInfo: CallInfo): Promise<any> {
     this.logger.info('Inside incomingCall of selected implementation (Plantronics/Poly)');
     const { conversationId, contactName } = callInfo;
     if (!conversationId) {
@@ -357,7 +352,7 @@ export default class PlantronicsService extends VendorImplementation {
     return this._makeRequestTask(`/CallServices/IncomingCall${params}`);
   }
 
-  outgoingCall({ conversationId, contactName }: CallInfo): Promise<any> {
+  outgoingCall ({ conversationId, contactName }: CallInfo): Promise<any> {
     if (!conversationId) {
       throw new Error('Must provide conversationId');
     }
@@ -379,7 +374,7 @@ export default class PlantronicsService extends VendorImplementation {
     return this._makeRequestTask(`/CallServices/OutgoingCall${params}`);
   }
 
-  answerCall(conversationId: string): Promise<any> {
+  answerCall (conversationId: string): Promise<any> {
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
@@ -389,12 +384,12 @@ export default class PlantronicsService extends VendorImplementation {
     return this._makeRequestTask(`/CallServices/AnswerCall${params}`);
   }
 
-  rejectCall(conversationId: string): Promise<any> {
+  rejectCall (conversationId: string): Promise<any> {
     this.incomingConversationId = null;
     return this.endCall(conversationId);
   }
 
-  async endCall(conversationId: string): Promise<any> {
+  async endCall (conversationId: string): Promise<any> {
     let params = `?name=${this.pluginName}`;
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
@@ -406,19 +401,19 @@ export default class PlantronicsService extends VendorImplementation {
     return response;
   }
 
-  async endAllCalls(): Promise<void> {
+  async endAllCalls (): Promise<void> {
     const calls = await this._getActiveCalls();
     calls.forEach(call => this.endCall(this.callMappings[call.CallId] as string));
   }
 
-  async setMute(value: boolean): Promise<any> {
+  async setMute (value: boolean): Promise<any> {
     const response = await this._makeRequestTask(
       `/CallServices/MuteCall?name=${this.pluginName}&muted=${value}`
     );
     return response;
   }
 
-  async setHold(conversationId: string, value: boolean): Promise<any> {
+  async setHold (conversationId: string, value: boolean): Promise<any> {
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;

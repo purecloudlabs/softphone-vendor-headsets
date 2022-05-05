@@ -18,7 +18,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-i18next": "^11.12.0",
-    "react-scripts": "4.0.3",
+    "react-scripts": "5.0.1",
     "typescript": "^4.1.2",
     "web-vitals": "^1.0.1"
   },
@@ -44,7 +44,6 @@
     ]
   },
   "jest": {
-    "resetMocks": false,
     "transformIgnorePatterns": [
       "/node_modules/(?!@gnaudio/jabra-js).+\\.js$"
     ],
@@ -58,6 +57,7 @@
     }
   },
   "devDependencies": {
+    "@babel/runtime": "^7.17.9",
     "broadcast-channel": "^4.11.0"
   }
 }
