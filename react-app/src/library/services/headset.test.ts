@@ -502,6 +502,7 @@ describe('HeadsetService', () => {
       const timeoutSpy = jest.spyOn(window, 'setTimeout');
       headsetService.endCall(conversationId, false);
       expect(timeoutSpy).not.toHaveBeenCalled();
+      timeoutSpy.mockRestore();
     });
 
     it('should delete headset state after time', async () => {
@@ -606,6 +607,7 @@ describe('HeadsetService', () => {
       const timeoutSpy = jest.spyOn(window, 'setTimeout');
       await headsetService.endAllCalls();
       expect(timeoutSpy).not.toHaveBeenCalled();
+      timeoutSpy.mockRestore();
     });
 
     it('should not delete if theres no remove timer', async () => {

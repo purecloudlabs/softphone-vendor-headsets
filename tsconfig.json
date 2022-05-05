@@ -26,9 +26,9 @@
     "baseUrl": "./src/types",
     "types": [
       "node",
-      "jest",
       "lodash",
-      "uuid"
+      "uuid",
+      "jest"
     ],
     "esModuleInterop": true,
     "allowJs": true,
