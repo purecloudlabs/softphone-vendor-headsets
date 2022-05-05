@@ -112,7 +112,7 @@ export default class HeadsetService {
     }
   }
 
-  incomingCall (callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
+  async incomingCall (callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -129,7 +129,7 @@ export default class HeadsetService {
     return implementation.incomingCall(callInfo, hasOtherActiveCalls);
   }
 
-  outgoingCall (callInfo: CallInfo): Promise<any> {
+  async outgoingCall (callInfo: CallInfo): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -146,7 +146,7 @@ export default class HeadsetService {
     return implementation.outgoingCall(callInfo);
   }
 
-  answerCall (conversationId: string): Promise<any> {
+  async answerCall (conversationId: string): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -162,7 +162,7 @@ export default class HeadsetService {
     }
   }
 
-  rejectCall (conversationId: string): Promise<any> {
+  async rejectCall (conversationId: string): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -186,7 +186,7 @@ export default class HeadsetService {
     }
   }
 
-  setMute (value: boolean): Promise<any> {
+  async setMute (value: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -198,7 +198,7 @@ export default class HeadsetService {
     }
   }
 
-  setHold (conversationId: string, value: boolean): Promise<any> {
+  async setHold (conversationId: string, value: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -213,7 +213,7 @@ export default class HeadsetService {
     }
   }
 
-  endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
+  async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -237,7 +237,7 @@ export default class HeadsetService {
     }
   }
 
-  endAllCalls (): Promise<any> {
+  async endAllCalls (): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
