@@ -258,6 +258,7 @@ describe('PlantronicsService', () => {
       const timeoutSpy = jest.spyOn(window, 'setTimeout');
       plantronicsService.pollForDeviceStatus();
       expect(timeoutSpy).toHaveBeenCalledWith(expect.anything(), plantronicsService.connectedDeviceInterval);
+      timeoutSpy.mockRestore();
     });
   });
 

@@ -66,9 +66,9 @@ VERSION      : ${env.VERSION}
 
       sh("""
         npm i -g npm@7
-        npm run install:all
+        npm install
         npm run lint
-        npm run test:coverage
+        npm run test
       """)
     }
 

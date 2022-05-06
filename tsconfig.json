@@ -27,7 +27,8 @@
     "types": [
       "node",
       "lodash",
-      "uuid"
+      "uuid",
+      "jest"
     ],
     "esModuleInterop": true,
     "allowJs": true,
