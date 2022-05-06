@@ -218,7 +218,7 @@ export default class HeadsetService {
 
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
-      headsetState.removeTimer = this.setRemoveTimer(conversationId)
+      headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.endCall(conversationId, hasOtherActiveCalls);
     }
   }
