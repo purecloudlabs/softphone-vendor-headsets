@@ -1,3 +1,18 @@
+export interface SennheiserPayload {
+  CallID?: string;
+  DNDOption?: 'Yes' | 'No';
+  Event?: SennheiserEvents;
+  EventType?: SennheiserEventTypes;
+  HeadsetName?: string;
+  HeadsetType?: string;
+  MuteSupport?: 'Yes' | 'No';
+  OffHookSupport?: 'Yes' | 'No';
+  RedialSupport?: 'Yes' | 'No';
+  ReturnCode?: number;
+  SPName?: string;
+  SPIconImage?: string;
+}
+
 export enum SennheiserEvents {
   SocketConnected = 'SocketConnected',
   EstablishConnection = 'EstablishConnection',
@@ -18,4 +33,10 @@ export enum SennheiserEvents {
   UnmuteFromApp = 'UnmuteHeadset',
   MuteFromHeadset = 'MuteSoftphone',
   UnmuteFromHeadset = 'UnmuteSoftphone',
+}
+
+export enum SennheiserEventTypes {
+  Request = 'Request', // outgoing actions
+  Notification = 'Notification', // typically actions from headset
+  Ack = 'Acknowledgement',
 }
