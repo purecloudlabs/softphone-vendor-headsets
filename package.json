@@ -19,7 +19,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "postinstall": "cd react-app && npm install && cd -",
+    "install:all": "npm ci; cd react-app; npm install; cd -",
     "build": "npm run build:react && npm run build:src && npm run build:es && npm run build:module",
     "build:react": "cd react-app; yarn build",
     "build:src": "tsc -p .",
