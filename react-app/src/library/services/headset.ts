@@ -24,7 +24,7 @@ export default class HeadsetService {
   sennheiser: VendorImplementation;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
-  
+
   private headsetConversationStates: { [conversationId: string]: HeadsetStateRecord } = {};
   private _headsetEvents$: Subject<ConsumedHeadsetEvents>;
   private logger: any;
@@ -174,14 +174,7 @@ export default class HeadsetService {
 
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
-      headsetState.removeTimer = setTimeout(() => {
-        // we are using the removeTimer to make sure this is actually slated for removal.
-        // if we get a new incoming call for example, it will replace the current state which is slated for
-        // removal and we don't want to remove it if it's a new/updated state
-        if (this.headsetConversationStates[conversationId].removeTimer) {
-          delete this.headsetConversationStates[conversationId];
-        }
-      }, REMOVE_WAIT);
+      headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.rejectCall(conversationId);
     }
   }
@@ -225,14 +218,7 @@ export default class HeadsetService {
 
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
-      headsetState.removeTimer = setTimeout(() => {
-        // we are using the removeTimer to make sure this is actually slated for removal.
-        // if we get a new incoming call for example, it will replace the current state which is slated for
-        // removal and we don't want to remove it if it's a new/updated state
-        if (this.headsetConversationStates[conversationId].removeTimer) {
-          delete this.headsetConversationStates[conversationId];
-        }
-      }, REMOVE_WAIT);
+      headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.endCall(conversationId, hasOtherActiveCalls);
     }
   }
@@ -245,21 +231,14 @@ export default class HeadsetService {
     
     Object.values(this.headsetConversationStates).forEach((headsetState) => {
       if (!headsetState.removeTimer) {
-        headsetState.removeTimer = setTimeout(() => {
-          // we are using the removeTimer to make sure this is actually slated for removal.
-          // if we get a new incoming call for example, it will replace the current state which is slated for
-          // removal and we don't want to remove it if it's a new/updated state
-          if (this.headsetConversationStates[headsetState.conversationId].removeTimer) {
-            delete this.headsetConversationStates[headsetState.conversationId];
-          }
-        }, REMOVE_WAIT);
+        headsetState.removeTimer = this.setRemoveTimer(headsetState.conversationId);
       }
     });
 
     return implementation.endAllCalls();
   }
 
-  retryConnection (micLabel: string): Promise<void> {
+  async retryConnection (micLabel: string): Promise<void> {
     if (!this.selectedImplementation) {
       return Promise.reject(new Error('No active headset implementation'));
     }
@@ -303,6 +282,17 @@ export default class HeadsetService {
     }
     this.selectedImplementation = null;
     this.handleDeviceConnectionStatusChanged();
+  }
+
+  private setRemoveTimer (conversationId) {
+    return setTimeout(() => {
+      // we are using the removeTimer to make sure this is actually slated for removal.
+      // if we get a new incoming call for example, it will replace the current state which is slated for
+      // removal and we don't want to remove it if it's a new/updated state
+      if (this.headsetConversationStates[conversationId].removeTimer) {
+        delete this.headsetConversationStates[conversationId];
+      }
+    }, REMOVE_WAIT);
   }
 
   private handleDeviceAnsweredCall (event: VendorEvent<EventInfoWithConversationId>): void {

@@ -701,7 +701,6 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
-
     it('if noDeviceError is true, do not log', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/DeviceServices/Info')) {
@@ -714,7 +713,6 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).not.toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
-
     it('handles scenarios for getCallEvents function', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
@@ -760,7 +758,6 @@ describe('PlantronicsService', () => {
       const deviceAnswered = eventValidation(plantronicsService, 'deviceAnsweredCall');
       await deviceAnswered;
     });
-
     it('should mute from headset', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
@@ -784,7 +781,6 @@ describe('PlantronicsService', () => {
       const deviceMuted = eventValidation(plantronicsService, 'deviceMuteChanged');
       await deviceMuted;
     });
-
     it('should unmute from headset', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
@@ -809,7 +805,6 @@ describe('PlantronicsService', () => {
       const deviceUnmuted = eventValidation(plantronicsService, 'deviceMuteChanged');
       await deviceUnmuted;
     });
-
     it('should hold from the headset', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
@@ -833,7 +828,6 @@ describe('PlantronicsService', () => {
       const deviceHeld = eventValidation(plantronicsService, 'deviceHoldStatusChanged');
       await deviceHeld;
     });
-
     it('should resume from the headset', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/IncomingCall')) {
