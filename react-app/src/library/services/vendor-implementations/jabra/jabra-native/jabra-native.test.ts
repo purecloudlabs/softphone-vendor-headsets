@@ -310,6 +310,17 @@ describe('JabraNativeService', () => {
         expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
         expect(setRingingSpy).toHaveBeenCalledWith(false);
       });
+
+      it('should not call deviceAnsweredCall() if outbound call', () => {
+        jabraNativeService.headsetState.ringing = true;
+        jabraNativeService.pendingConversationIsOutbound = true;
+
+        jabraNativeService['_handleOffhookEvent'](true);
+
+        expect(jabraNativeService.deviceAnsweredCall).not.toHaveBeenCalled();
+        expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
+        expect(setRingingSpy).toHaveBeenCalledWith(false);
+      });
     });
   });
 

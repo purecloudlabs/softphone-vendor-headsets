@@ -33,6 +33,7 @@ export default class JabraService extends VendorImplementation {
   ongoingCalls = 0;
   callLock = false;
   pendingConversationId: string;
+  pendingConversationIsOutbound: boolean;
   activeConversationId: string;
 
   private constructor (config: ImplementationConfig) {
@@ -92,11 +93,13 @@ export default class JabraService extends VendorImplementation {
           callControl.offHook(true);
           callControl.ring(false);
           this.activeConversationId = this.pendingConversationId;
-          this.deviceAnsweredCall({
-            name: 'CallOffHook',
-            code: signal.type,
-            conversationId: this.pendingConversationId,
-          });
+          if (!this.pendingConversationIsOutbound) {
+            this.deviceAnsweredCall({
+              name: 'CallOffHook',
+              code: signal.type,
+              conversationId: this.activeConversationId,
+            });
+          }
         } else {
           callControl.mute(false);
           callControl.hold(false);
@@ -181,6 +184,7 @@ export default class JabraService extends VendorImplementation {
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
     this.pendingConversationId = callInfo.conversationId;
+    this.pendingConversationIsOutbound = false;
     try {
       this.callLock = await this.callControl.takeCallLock();
       if (this.callLock) {
@@ -233,7 +237,8 @@ export default class JabraService extends VendorImplementation {
     try {
       this.callLock = await this.callControl.takeCallLock();
       if (this.callLock) {
-        this.activeConversationId = callInfo.conversationId;
+        this.pendingConversationId = callInfo.conversationId;
+        this.pendingConversationIsOutbound = true;
         this.callControl.offHook(true);
         return Promise.resolve();
       }

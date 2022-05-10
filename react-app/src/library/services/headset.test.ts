@@ -10,6 +10,7 @@ import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
 import { HeadsetEvents } from '../types/consumed-headset-events';
 import { WebHidPermissionRequest } from '..';
+import { filter } from 'rxjs';
 
 jest.mock('broadcast-channel');
 
@@ -866,6 +867,47 @@ describe('HeadsetService', () => {
 
       headsetService.activeMicChange('test test');
       expect(disconnectSpy).toHaveBeenCalled();
+    });
+
+    it('should not clear if there is no active vendor', () => {
+      const spy = headsetService['clearSelectedImplementation'] = jest.fn();
+      
+      headsetService.selectedImplementation = null;
+      // should not find a selectable vendor
+      headsetService.activeMicChange('bose');
+      
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should clear if no new vendor', () => {
+      const spy = headsetService['clearSelectedImplementation'] = jest.fn();
+      headsetService.selectedImplementation = {} as any;
+
+      // should not find a selectable vendor
+      headsetService.activeMicChange('bose');
+      
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('clearSelectedImplementation', () => {
+    it('should only emit an event if there is a selected implementation', () => {
+      headsetService.selectedImplementation = null;
+      
+      const spy = jest.fn();
+      headsetService.headsetEvents$
+        .pipe(
+          filter((event) => event.event === HeadsetEvents.implementationChanged)
+        ).subscribe(spy);
+
+      headsetService['clearSelectedImplementation']();
+
+      expect(spy).not.toHaveBeenCalled();
+
+      headsetService.selectedImplementation = { disconnect: jest.fn() } as any;
+      headsetService['clearSelectedImplementation']();
+      expect(spy).toHaveBeenCalled();
+      expect(headsetService.selectedImplementation).toBeNull();
     });
   });
 

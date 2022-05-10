@@ -5,6 +5,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.0.0...HEAD)
 # [v2.0.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v1.0.1...v2.0.0)
+## Breaking Changes
+* The `deviceMuteChanged` event has been removed. Please use the `deviceMuteStatusChanged` event.
+## Added
 * [PCM-1903](https://inindca.atlassian.net/browse/PCM-1903) - Add headset state management
 
 # [v1.0.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v1.0.0...v1.0.1)

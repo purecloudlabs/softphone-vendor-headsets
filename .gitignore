@@ -5,3 +5,4 @@ dist
 .vscode/
 coverage/
 tmp/
+softphone-vendor-headsets*.tgz

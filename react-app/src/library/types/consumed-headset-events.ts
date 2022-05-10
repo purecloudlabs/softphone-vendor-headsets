@@ -11,7 +11,6 @@ export enum HeadsetEvents {
     loggableEvent = 'loggableEvent',
     webHidPermissionRequested = 'webHidPermissionRequested',
     deviceConnectionStatusChanged = 'deviceConnectionStatusChanged',
-    deviceMuteChanged = 'deviceMuteChanged',
     deviceEventLogs = 'deviceEventLogs',
 }
 

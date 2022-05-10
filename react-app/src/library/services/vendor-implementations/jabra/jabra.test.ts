@@ -231,6 +231,21 @@ describe('JabraService', () => {
       expect(deviceAnsweredCallSpy).toHaveBeenCalled();
     });
 
+    it('offhook should not call deviceAnsweredCall if outboundCall', () => {
+      jabraService.pendingConversationIsOutbound = true;
+      jabraService.callLock = true;
+      const deviceAnsweredCallSpy = jest.spyOn(jabraService, 'deviceAnsweredCall');
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+      jabraService._processEvents(callControl as any);
+
+      deviceSignalsSubject.next({ type: 32, value: true } as any);
+      expect(callControl.offHook).toHaveBeenCalledWith(true);
+      expect(callControl.ring).toHaveBeenCalledWith(false);
+      expect(deviceAnsweredCallSpy).not.toHaveBeenCalled();
+    });
+
     it('properly handles end call events passed in from headset with a successful callLock release', async () => {
       jabraService.callLock = true;
       const deviceEndedCallSpy = jest.spyOn(jabraService, 'deviceEndedCall');

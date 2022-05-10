@@ -83,7 +83,7 @@ export default class HeadsetService {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
         this.changeImplementation(implementation, newMicLabel);
-      } else {
+      } else if (this.selectedImplementation) {
         this.clearSelectedImplementation();
       }
     } else {
@@ -290,7 +290,7 @@ export default class HeadsetService {
     implementation.on(HeadsetEvents.deviceAnsweredCall, this.handleDeviceAnsweredCall.bind(this));
     implementation.on(HeadsetEvents.deviceRejectedCall, this.handleDeviceRejectedCall.bind(this));
     implementation.on(HeadsetEvents.deviceEndedCall, this.handleDeviceEndedCall.bind(this));
-    implementation.on(HeadsetEvents.deviceMuteChanged, this.handleDeviceMuteStatusChanged.bind(this));
+    implementation.on(HeadsetEvents.deviceMuteStatusChanged, this.handleDeviceMuteStatusChanged.bind(this));
     implementation.on(HeadsetEvents.deviceHoldStatusChanged, this.handleDeviceHoldStatusChanged.bind(this));
     implementation.on(HeadsetEvents.deviceEventLogs, this.handleDeviceLogs.bind(this));
     implementation.on(HeadsetEvents.deviceConnectionStatusChanged, this.handleDeviceConnectionStatusChanged.bind(this));
@@ -298,9 +298,12 @@ export default class HeadsetService {
   }
 
   private clearSelectedImplementation (): void {
-    if (this.selectedImplementation) {
-      this.selectedImplementation.disconnect();
+    if (!this.selectedImplementation) {
+      return;
     }
+    
+    this.selectedImplementation.disconnect();
+    this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: null });
     this.selectedImplementation = null;
     this.handleDeviceConnectionStatusChanged();
   }
