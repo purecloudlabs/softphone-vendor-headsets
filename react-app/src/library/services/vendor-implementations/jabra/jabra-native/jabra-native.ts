@@ -106,7 +106,7 @@ export default class JabraNativeService extends VendorImplementation {
         if (!this.pendingConversationIsOutbound) {
           this.deviceAnsweredCall({name: 'CallOffHook', conversationId: this.activeConversationId});
         }
-        
+
         // jabra requires you to echo the event back in acknowledgement
         this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
         this._setRinging(false);
