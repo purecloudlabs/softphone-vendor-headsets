@@ -41,14 +41,7 @@ webappPipeline {
       ]
     }
 
-    deployConfig = [
-      dev : 'always',
-      test : 'always',
-      prod : 'always',
-      'fedramp-use2-core': 'always'
-    ]
-
-    autoSubmitCm = true
+    deployConfig = []
 
     testJob = 'no-tests' // see buildStep to spigot tests
 
