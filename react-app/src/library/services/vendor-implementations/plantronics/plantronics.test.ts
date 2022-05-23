@@ -778,7 +778,7 @@ describe('PlantronicsService', () => {
       plantronicsService.isActive = true;
       plantronicsService.isConnected = true;
       plantronicsService.getCallEvents();
-      const deviceMuted = eventValidation(plantronicsService, 'deviceMuteChanged');
+      const deviceMuted = eventValidation(plantronicsService, 'deviceMuteStatusChanged');
       await deviceMuted;
     });
     it('should unmute from headset', async () => {
@@ -802,7 +802,7 @@ describe('PlantronicsService', () => {
       plantronicsService.isConnected = true;
       plantronicsService.getCallEvents();
 
-      const deviceUnmuted = eventValidation(plantronicsService, 'deviceMuteChanged');
+      const deviceUnmuted = eventValidation(plantronicsService, 'deviceMuteStatusChanged');
       await deviceUnmuted;
     });
     it('should hold from the headset', async () => {

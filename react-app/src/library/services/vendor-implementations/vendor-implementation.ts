@@ -116,7 +116,7 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   }
 
   deviceMuteChanged (eventInfo: MutedEventInfo): void {
-    this.emitEvent('deviceMuteChanged', { ...eventInfo });
+    this.emitEvent('deviceMuteStatusChanged', { ...eventInfo });
   }
 
   deviceHoldStatusChanged (eventInfo: HoldEventInfo): void {

@@ -10,6 +10,7 @@ import 'regenerator-runtime';
 import { BroadcastChannel } from 'broadcast-channel';
 import { HeadsetEvents } from '../types/consumed-headset-events';
 import { WebHidPermissionRequest } from '..';
+import { filter } from 'rxjs';
 
 jest.mock('broadcast-channel');
 
@@ -695,7 +696,16 @@ describe('HeadsetService', () => {
 
     it(
       'should send a headset event of type DEVICE_ANSWERED_CALL', (done) => {
-        const testEvent = { vendor: plantronics, body: { name: 'AcceptCall', code: '1', event: {} } };
+        const testEvent = { vendor: plantronics, body: { name: 'AcceptCall', code: '1', conversationId: 'convoId123', event: {} } };
+        headsetService['headsetConversationStates'] = {
+          [testEvent.body.conversationId]: {
+            offHook: false,
+            muted: false,
+            held: false,
+            ringing: true,
+            conversationId: testEvent.body.conversationId
+          }
+        };
         headsetService.headsetEvents$.subscribe((event) => {
           expect(event.event).toBe('deviceAnsweredCall');
           expect(event.payload).toStrictEqual(testEvent.body);
@@ -704,13 +714,25 @@ describe('HeadsetService', () => {
 
         headsetService.selectedImplementation = plantronics;
         headsetService['handleDeviceAnsweredCall'](testEvent as VendorEvent<EventInfoWithConversationId>);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toStrictEqual({
+          offHook: true,
+          muted: false,
+          held: false,
+          ringing: false,
+          conversationId: testEvent.body.conversationId
+        });
       }
     );
   });
 
   describe('triggerDeviceRejectedCall', () => {
     beforeEach(() => {
+      jest.useFakeTimers();
       headsetService = HeadsetService.getInstance(config);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
     });
 
     it(
@@ -729,15 +751,56 @@ describe('HeadsetService', () => {
         });
         headsetService.selectedImplementation = plantronics;
         const testEvent = { vendor: plantronics, body: { name: 'callrejected', conversationId: 'a1b2c3' } };
+        headsetService['headsetConversationStates'] = {
+          [testEvent.body.conversationId]: {
+            offHook: false,
+            muted: false,
+            held: false,
+            ringing: true,
+            conversationId: testEvent.body.conversationId
+          }
+        };
         headsetService['handleDeviceRejectedCall'](testEvent);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toMatchObject({
+          offHook: false,
+          muted: false,
+          held: false,
+          ringing: false,
+          conversationId: testEvent.body.conversationId
+        });
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toHaveProperty('removeTimer');
+        jest.advanceTimersByTime(3100);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toBeFalsy();
       }
     );
+    it('should do nothing if already in expected state', () => {
+      headsetService.selectedImplementation = plantronics;
+      const testEvent = { vendor: plantronics, body: { name: 'callrejected', conversationId: 'a1b2c3' } };
+      headsetService['headsetConversationStates'] = {
+        [testEvent.body.conversationId]: {
+          offHook: false,
+          muted: false,
+          held: false,
+          ringing: false,
+          conversationId: testEvent.body.conversationId
+        }
+      };
+      const timeoutSpy = jest.spyOn(window, 'setTimeout');
+      headsetService['handleDeviceRejectedCall'](testEvent);
+      expect(timeoutSpy).not.toHaveBeenCalled();
+      timeoutSpy.mockRestore();
+    });
   });
 
   describe('triggerDeviceEndedCall', () => {
     beforeEach(() => {
+      jest.useFakeTimers();
       headsetService = HeadsetService.getInstance(config);
       jest.resetAllMocks();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
     });
 
     it(
@@ -746,14 +809,48 @@ describe('HeadsetService', () => {
           expect(event.event).toBe('deviceEndedCall');
           expect(event.payload).toStrictEqual(testEvent.body);
           done();
-          expect(event.event).toBe('loggableEvent');
-          expect(event.payload).toStrictEqual(testEvent.body);
-          done();
         });
         const testEvent = { vendor: {} as VendorImplementation, body: { name: 'TerminateCall', code: '2', event: {}, conversationId: 'convo421' } };
+        headsetService['headsetConversationStates'] = {
+          [testEvent.body.conversationId]: {
+            offHook: true,
+            muted: false,
+            held: false,
+            ringing: false,
+            conversationId: testEvent.body.conversationId
+          }
+        };
         headsetService['handleDeviceEndedCall'](testEvent);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toMatchObject({
+          offHook: false,
+          muted: false,
+          held: false,
+          ringing: false,
+          conversationId: testEvent.body.conversationId
+        });
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toHaveProperty('removeTimer');
+        jest.advanceTimersByTime(3100);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toBeFalsy();
       }
     );
+
+    it('should do nothing if already in expected state', async () => {
+      const testEvent = { vendor: {} as VendorImplementation, body: { name: 'TerminateCall', code: '2', event: {}, conversationId: 'convo421' } };
+      headsetService['headsetConversationStates'] = {
+        [testEvent.body.conversationId]: {
+          conversationId: testEvent.body.conversationId,
+          held: false,
+          muted: false,
+          offHook: false,
+          ringing: false,
+          removeTimer: 12525
+        }
+      };
+      const timeoutSpy = jest.spyOn(window, 'setTimeout');
+      headsetService['handleDeviceEndedCall'](testEvent);
+      expect(timeoutSpy).not.toHaveBeenCalled();
+      timeoutSpy.mockRestore();
+    });
   });
 
   describe('triggerDeviceMuteStatusChanged', () => {
@@ -768,10 +865,41 @@ describe('HeadsetService', () => {
           expect(event.payload).toStrictEqual(testEvent.body);
           done();
         });
-        const testEvent = { vendor: {} as VendorImplementation, body: { name: 'Unmute', code: '12', event: {}, isMuted: false } };
+        const testEvent = { vendor: {} as VendorImplementation, body: { name: 'Mute', code: '12', event: {}, isMuted: true, conversationId: 'crazy88' } };
+        headsetService['headsetConversationStates'] = {
+          [testEvent.body.conversationId]: {
+            offHook: true,
+            muted: false,
+            held: false,
+            ringing: false,
+            conversationId: testEvent.body.conversationId
+          }
+        };
         headsetService['handleDeviceMuteStatusChanged'](testEvent);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toStrictEqual({
+          offHook: true,
+          muted: true,
+          held: false,
+          ringing: false,
+          conversationId: testEvent.body.conversationId
+        });
       }
     );
+    it('should do nothing if already in expected state', () => {
+      const testEvent = { vendor: {} as VendorImplementation, body: { name: 'Mute', code: '12', event: {}, isMuted: true, conversationId: 'crazy88' } };
+      const testObject = {
+        offHook: true,
+        muted: true,
+        held: false,
+        ringing: false,
+        conversationId: testEvent.body.conversationId
+      };
+      headsetService['headsetConversationStates'] = {
+        [testEvent.body.conversationId]: testObject
+      };
+      headsetService['handleDeviceMuteStatusChanged'](testEvent);
+      expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toStrictEqual(testObject);
+    });
   });
 
   describe('triggerDeviceHoldStatusChanged', () => {
@@ -787,7 +915,23 @@ describe('HeadsetService', () => {
           done();
         });
         const testEvent = { vendor: {} as VendorImplementation, body: { name: 'HoldCall', code: '3', event: {}, holdRequested: true, toggle: false, conversationId: 'convo41556' } };
+        headsetService['headsetConversationStates'] = {
+          [testEvent.body.conversationId]: {
+            offHook: true,
+            muted: false,
+            held: false,
+            ringing: false,
+            conversationId: testEvent.body.conversationId
+          }
+        };
         headsetService['handleDeviceHoldStatusChanged'](testEvent);
+        expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toStrictEqual({
+          offHook: true,
+          muted: false,
+          held: true,
+          ringing: false,
+          conversationId: testEvent.body.conversationId
+        });
       }
     );
   });
@@ -866,6 +1010,47 @@ describe('HeadsetService', () => {
 
       headsetService.activeMicChange('test test');
       expect(disconnectSpy).toHaveBeenCalled();
+    });
+
+    it('should not clear if there is no active vendor', () => {
+      const spy = headsetService['clearSelectedImplementation'] = jest.fn();
+      
+      headsetService.selectedImplementation = null;
+      // should not find a selectable vendor
+      headsetService.activeMicChange('bose');
+      
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should clear if no new vendor', () => {
+      const spy = headsetService['clearSelectedImplementation'] = jest.fn();
+      headsetService.selectedImplementation = {} as any;
+
+      // should not find a selectable vendor
+      headsetService.activeMicChange('bose');
+      
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('clearSelectedImplementation', () => {
+    it('should only emit an event if there is a selected implementation', () => {
+      headsetService.selectedImplementation = null;
+      
+      const spy = jest.fn();
+      headsetService.headsetEvents$
+        .pipe(
+          filter((event) => event.event === HeadsetEvents.implementationChanged)
+        ).subscribe(spy);
+
+      headsetService['clearSelectedImplementation']();
+
+      expect(spy).not.toHaveBeenCalled();
+
+      headsetService.selectedImplementation = { disconnect: jest.fn() } as any;
+      headsetService['clearSelectedImplementation']();
+      expect(spy).toHaveBeenCalled();
+      expect(headsetService.selectedImplementation).toBeNull();
     });
   });
 

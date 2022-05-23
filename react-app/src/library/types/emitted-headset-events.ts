@@ -4,7 +4,7 @@ export interface EmittedHeadsetEvents {
   deviceAnsweredCall: VendorEvent<EventInfoWithConversationId>;
   deviceRejectedCall: VendorEvent<EventInfoWithConversationId>;
   deviceEndedCall: VendorEvent<EventInfoWithConversationId>;
-  deviceMuteChanged: VendorEvent<MutedEventInfo>;
+  deviceMuteStatusChanged: VendorEvent<MutedEventInfo>;
   deviceHoldStatusChanged: VendorEvent<HoldEventInfo>;
   deviceEventLogs: VendorEvent<any>;
   webHidPermissionRequested: VendorEvent<WebHidPermissionRequest>;

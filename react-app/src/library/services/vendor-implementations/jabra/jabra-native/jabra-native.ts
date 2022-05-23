@@ -18,6 +18,7 @@ export default class JabraNativeService extends VendorImplementation {
   cefSupportsJabra = true;
   pendingConversationId: string;
   activeConversationId: string;
+  pendingConversationIsOutbound: boolean;
 
   private constructor(config: ImplementationConfig) {
     super(config);
@@ -99,12 +100,16 @@ export default class JabraNativeService extends VendorImplementation {
     // if is incoming
     if (isOffhook) {
       if (this.headsetState.ringing) {
-        this.deviceAnsweredCall({name: 'CallOffHook', conversationId: this.pendingConversationId});
         this.activeConversationId = this.pendingConversationId;
+        this.pendingConversationId = null;
+
+        if (!this.pendingConversationIsOutbound) {
+          this.deviceAnsweredCall({name: 'CallOffHook', conversationId: this.activeConversationId});
+        }
+
         // jabra requires you to echo the event back in acknowledgement
         this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
         this._setRinging(false);
-        this.pendingConversationId = null;
       }
 
       return;
@@ -179,6 +184,7 @@ export default class JabraNativeService extends VendorImplementation {
 
   async incomingCall(callInfo: CallInfo): Promise<void> {
     this.pendingConversationId = callInfo.conversationId;
+    this.pendingConversationIsOutbound = false;
     this._setRinging(true);
   }
 
@@ -196,8 +202,8 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   async outgoingCall(callInfo: CallInfo): Promise<void> {
-    // this.pendingConversationId = callInfo.conversationId;
-    this.activeConversationId = callInfo.conversationId;
+    this.pendingConversationId = callInfo.conversationId;
+    this.pendingConversationIsOutbound = true;
     this._sendCmd(JabraNativeCommands.Offhook, true);
   }
 
