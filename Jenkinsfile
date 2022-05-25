@@ -41,7 +41,7 @@ webappPipeline {
       ]
     }
 
-    deployConfig = []
+    List deployConfig = []
 
     testJob = 'no-tests' // see buildStep to spigot tests
 
