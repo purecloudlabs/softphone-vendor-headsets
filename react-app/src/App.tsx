@@ -44,34 +44,34 @@ const App = () => {
       console.debug('new headset event', value);
 
       switch(value.event) {
-        case 'implementationChanged':
-          logImplementationChange(value?.payload?.vendorName);
-          break;
-        case 'deviceHoldStatusChanged':
-          handleHeadsetEvent(value.payload);
-          toggleSoftwareHold(value.payload.holdRequested, true);
-          break;
-        case 'deviceMuteStatusChanged':
-          handleHeadsetEvent(value.payload);
-          toggleSoftwareMute(value.payload.isMuted, true);
-          break;
-        case 'deviceAnsweredCall':
-          handleHeadsetEvent(value.payload);
-          answerIncomingCall(true);
-          break;
-        case 'deviceRejectedCall':
-          handleHeadsetEvent(value.payload);
-          rejectIncomingCall(true);
-          break;
-        case 'deviceEndedCall':
-          handleHeadsetEvent(value.payload);
-          endCurrentCall(true);
-          break;
-        case 'deviceConnectionStatusChanged':
-          setConnectionStatus(value.payload);
-          break;
-        default:
-          handleHeadsetEvent(value.payload);
+      case 'implementationChanged':
+        logImplementationChange(value?.payload?.vendorName);
+        break;
+      case 'deviceHoldStatusChanged':
+        handleHeadsetEvent(value.payload);
+        toggleSoftwareHold(value.payload.holdRequested, true);
+        break;
+      case 'deviceMuteStatusChanged':
+        handleHeadsetEvent(value.payload);
+        toggleSoftwareMute(value.payload.isMuted, true);
+        break;
+      case 'deviceAnsweredCall':
+        handleHeadsetEvent(value.payload);
+        answerIncomingCall(true);
+        break;
+      case 'deviceRejectedCall':
+        handleHeadsetEvent(value.payload);
+        rejectIncomingCall(true);
+        break;
+      case 'deviceEndedCall':
+        handleHeadsetEvent(value.payload);
+        endCurrentCall(true);
+        break;
+      case 'deviceConnectionStatusChanged':
+        setConnectionStatus(value.payload);
+        break;
+      default:
+        handleHeadsetEvent(value.payload);
       }
 
       if (value.event === 'webHidPermissionRequested') {
