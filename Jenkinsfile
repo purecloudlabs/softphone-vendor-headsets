@@ -41,14 +41,7 @@ webappPipeline {
       ]
     }
 
-    deployConfig = [
-      dev : 'always',
-      test : 'always',
-      prod : 'always',
-      'fedramp-use2-core': 'always'
-    ]
-
-    autoSubmitCm = true
+    deployConfig = []
 
     testJob = 'no-tests' // see buildStep to spigot tests
 
@@ -68,7 +61,7 @@ VERSION      : ${env.VERSION}
         npm i -g npm@7
         npm run install:all
         npm run lint
-        npm run test:coverage
+        npm run test
       """)
     }
 

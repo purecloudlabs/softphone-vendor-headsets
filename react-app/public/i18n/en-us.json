@@ -9,6 +9,7 @@
         },
         "button": {
             "simulateCall": "Simulate Incoming Call",
+            "simulateOutgoingCall": "Simulate Outgoing Call",
             "answer": "Answer",
             "reject": "Reject",
             "mute": "Mute",
