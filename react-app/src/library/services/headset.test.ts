@@ -1132,7 +1132,7 @@ describe('HeadsetService', () => {
       headsetService.selectedImplementation.isConnected = true;
       expect(headsetService.connectionStatus()).toBe('running');
 
-      headsetService.selectedImplementation.isConnecting = true
+      headsetService.selectedImplementation.isConnecting = true;
       headsetService.selectedImplementation.isConnected = false;
       expect(headsetService.connectionStatus()).toBe('checking');
 
@@ -1141,6 +1141,6 @@ describe('HeadsetService', () => {
 
       headsetService.selectedImplementation = null;
       expect(headsetService.connectionStatus()).toBe('noVendor');
-    })
-  })
+    });
+  });
 });
