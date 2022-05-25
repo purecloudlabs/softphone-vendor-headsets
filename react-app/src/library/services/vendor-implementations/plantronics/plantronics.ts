@@ -228,36 +228,36 @@ export default class PlantronicsService extends VendorImplementation {
     const conversationId = this.callMappings[callId] as string;
 
     switch (eventInfo.name) {
-    case 'AcceptCall':
-      this.deviceAnsweredCall({ ...eventInfo, conversationId });
-      break;
-    case 'RejectCall':
-      this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
-      break;
-    case 'TerminateCall':
-      this.deviceEndedCall({ ...eventInfo, conversationId });
-      break;
-    case 'CallEnded':
-      delete this.callMappings[callId];
-      delete this.callMappings[conversationId];
-      this._checkIsActiveTask();
-      break;
-    case 'Mute':
-      this.deviceMuteChanged({ isMuted: true, ...eventInfo, conversationId });
-      break;
-    case 'Unmute':
-      this.deviceMuteChanged({ isMuted: false, ...eventInfo, conversationId });
-      break;
-    case 'HoldCall':
-      this.deviceHoldStatusChanged({ holdRequested: true, ...eventInfo, conversationId });
-      break;
-    case 'ResumeCall':
-      this.deviceHoldStatusChanged({ holdRequested: false, ...eventInfo, conversationId });
-      break;
-    default:
-      this.logger.info('A headset event has occurred', { ...eventInfo, conversationId });
-      this.deviceEventLogs({ ...eventInfo, conversationId });
-    }
+      case 'AcceptCall':
+        this.deviceAnsweredCall({ ...eventInfo, conversationId });
+        break;
+      case 'RejectCall':
+        this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
+        break;
+      case 'TerminateCall':
+        this.deviceEndedCall({ ...eventInfo, conversationId });
+        break;
+      case 'CallEnded':
+        delete this.callMappings[callId];
+        delete this.callMappings[conversationId];
+        this._checkIsActiveTask();
+        break;
+      case 'Mute':
+        this.deviceMuteChanged({ isMuted: true, ...eventInfo, conversationId });
+        break;
+      case 'Unmute':
+        this.deviceMuteChanged({ isMuted: false, ...eventInfo, conversationId });
+        break;
+      case 'HoldCall':
+        this.deviceHoldStatusChanged({ holdRequested: true, ...eventInfo, conversationId });
+        break;
+      case 'ResumeCall':
+        this.deviceHoldStatusChanged({ holdRequested: false, ...eventInfo, conversationId });
+        break;
+      default:
+        this.logger.info('A headset event has occurred', { ...eventInfo, conversationId });
+        this.deviceEventLogs({ ...eventInfo, conversationId });
+      }
   }
 
   connect (): Promise<any> {

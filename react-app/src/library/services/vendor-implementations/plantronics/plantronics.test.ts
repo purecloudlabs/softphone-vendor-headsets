@@ -276,7 +276,6 @@ describe('PlantronicsService', () => {
       } as any);
       expect(deviceAnsweredCallSpy).toHaveBeenCalled();
     });
-
     it('will call deviceRejectedCall', () => {
       plantronicsService.incomingConversationId = 'convoId1234';
       const deviceRejectedCallSpy = jest.spyOn(plantronicsService, 'deviceRejectedCall');
@@ -609,7 +608,6 @@ describe('PlantronicsService', () => {
       await plantronicsService.endAllCalls();
       expect(endCallSpy).toHaveBeenCalledTimes(2);
     });
-
     it('properly calls endCall in the case of call rejection', () => {
       plantronicsService.incomingConversationId = 'convoId1234';
       const plantronicsEndCallSpy = jest.spyOn(plantronicsService, 'endCall');
