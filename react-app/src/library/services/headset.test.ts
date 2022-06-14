@@ -98,13 +98,11 @@ describe('HeadsetService', () => {
 
       expect(sennheiser.disconnect).not.toHaveBeenCalled();
     });
-
     it('should change the selected implementation to what was passed in', async () => {
       headsetService.selectedImplementation = sennheiser;
       await headsetService.changeImplementation(plantronics, 'test label');
       expect(headsetService.selectedImplementation).toBe(plantronics);
     });
-
     it('should call disconnect on the old implementation, and connect on the new implementation', async () => {
       jest.spyOn(sennheiser, 'disconnect');
       jest.spyOn(plantronics, 'connect');
@@ -979,7 +977,6 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
     });
-
     it('should check a values label to determine which microphone is selected', async () => {
       const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
       const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
@@ -1126,6 +1123,24 @@ describe('HeadsetService', () => {
     it('should return false if the isDifferentState returns false, meaning the states are the same', () => {
       headsetService['isDifferentState'] = jest.fn().mockReturnValueOnce(false);
       expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} })).toBe(false);
+    });
+  });
+
+  describe('connectionStatus', () => {
+    it('should return proper connection status', () => {
+      headsetService.selectedImplementation = plantronics;
+      headsetService.selectedImplementation.isConnected = true;
+      expect(headsetService.connectionStatus()).toBe('running');
+
+      headsetService.selectedImplementation.isConnecting = true;
+      headsetService.selectedImplementation.isConnected = false;
+      expect(headsetService.connectionStatus()).toBe('checking');
+
+      headsetService.selectedImplementation.isConnecting = false;
+      expect(headsetService.connectionStatus()).toBe('notRunning');
+
+      headsetService.selectedImplementation = null;
+      expect(headsetService.connectionStatus()).toBe('noVendor');
     });
   });
 });

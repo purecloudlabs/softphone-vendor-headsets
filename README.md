@@ -353,7 +353,6 @@ Value of event:
 - This is then received by the vendor instance (for example sennheiser.ts)
 - This event is then sent to `headset.ts` which in turn lets the consuming app know so that the screen can properly reflect the state of the headset
 
-
 #### WebHID
 One of our supported vendors has began working with a technology known as [WebHID][1].  This is a relatively newer technology with a lot of promise but with its own caveats as well - https://wicg.github.io/webhid/
 - At this moment, WebHID only works with Chromium browsers (Google Chrome/Microsoft Edge).  Keep this in mind when developing and using the vendors we currently support
