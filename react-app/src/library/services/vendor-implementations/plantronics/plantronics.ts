@@ -224,6 +224,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   callCorrespondingFunction (eventInfo: {name: string, event?: PlantronicsCallEvent }): void {
+    console.log('hello? Jesus?', eventInfo);
     const callId = eventInfo.event.CallId.Id;
     const conversationId = this.callMappings[callId] as string;
 
@@ -232,6 +233,7 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceAnsweredCall({ ...eventInfo, conversationId });
       break;
     case 'RejectCall':
+      this.endCall(conversationId);
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;
     case 'TerminateCall':
@@ -249,6 +251,7 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceMuteChanged({ isMuted: false, ...eventInfo, conversationId });
       break;
     case 'HoldCall':
+      this.logger('inside holdCall from device event', eventInfo);
       this.deviceHoldStatusChanged({ holdRequested: true, ...eventInfo, conversationId });
       break;
     case 'ResumeCall':
@@ -390,12 +393,15 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async endCall (conversationId: string): Promise<any> {
+    this.logger('inside Plantronics EndCall')
     let params = `?name=${this.pluginName}`;
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
+    this.logger('endpoint', params)
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
+    this.logger('endpoint response', response);
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;
@@ -414,6 +420,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async setHold (conversationId: string, value: boolean): Promise<any> {
+    this.logger('at some point... we get to setHold of Plantronics?');
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
