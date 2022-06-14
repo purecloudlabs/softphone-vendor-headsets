@@ -224,7 +224,6 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   callCorrespondingFunction (eventInfo: {name: string, event?: PlantronicsCallEvent }): void {
-    console.log('hello? Jesus?', eventInfo);
     const callId = eventInfo.event.CallId.Id;
     const conversationId = this.callMappings[callId] as string;
 
@@ -393,12 +392,12 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async endCall (conversationId: string): Promise<any> {
-    this.logger('inside Plantronics EndCall')
+    this.logger('inside Plantronics EndCall');
     let params = `?name=${this.pluginName}`;
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
-    this.logger('endpoint', params)
+    this.logger('endpoint', params);
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
     this.logger('endpoint response', response);
