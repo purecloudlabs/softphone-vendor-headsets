@@ -232,6 +232,7 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceAnsweredCall({ ...eventInfo, conversationId });
       break;
     case 'RejectCall':
+      this.endCall(conversationId);
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;
     case 'TerminateCall':
