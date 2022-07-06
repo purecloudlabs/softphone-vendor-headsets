@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.0.1...HEAD)
+## Fixed
+* Fixed issue with Jabra conversation IDs
 
 # [v2.0.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.0.0...v2.0.1)
 ## Fixed
