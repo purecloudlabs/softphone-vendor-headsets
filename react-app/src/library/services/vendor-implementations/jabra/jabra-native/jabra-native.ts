@@ -99,9 +99,9 @@ export default class JabraNativeService extends VendorImplementation {
   private _handleOffhookEvent(isOffhook: boolean): void {
     // if is incoming
     if (isOffhook) {
+      this.activeConversationId = this.pendingConversationId;
+      this.pendingConversationId = null;
       if (this.headsetState.ringing) {
-        this.activeConversationId = this.pendingConversationId;
-        this.pendingConversationId = null;
 
         if (!this.pendingConversationIsOutbound) {
           this.deviceAnsweredCall({name: 'CallOffHook', conversationId: this.activeConversationId});
@@ -191,8 +191,6 @@ export default class JabraNativeService extends VendorImplementation {
   async answerCall(): Promise<void> {
     // HACK: for some reason the headset echos an offhook event even though it was the app that answered the call rather than the headset
     this.ignoreNextOffhookEvent = true;
-    this.activeConversationId = this.pendingConversationId;
-    this.pendingConversationId = null;
     this._sendCmd(JabraNativeCommands.Offhook, true);
   }
 
