@@ -51,11 +51,11 @@ export default class YealinkService extends VendorImplementation {
     return ['yealink', '(6993:'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
-  async connect (deviceLabel: string): Promise<void> {
-    deviceLabel.toLowerCase();
+  async connect (originalDeviceLabel: string): Promise<void> {
     if (!this.isConnecting) {
       this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     }
+    const deviceLabel = originalDeviceLabel.toLowerCase();
 
     const deviceList = await (window.navigator as any).hid.getDevices();
     deviceList.forEach(device => {
@@ -86,23 +86,21 @@ export default class YealinkService extends VendorImplementation {
             const deviceLists = await (window.navigator as any).hid.getDevices();
             let bFind = false;
             deviceLists.forEach(device => {
-              if (!bFind) {
-                if (deviceLabel.includes(device?.productName?.toLowerCase())) {
-                  for (const collection of device.collections) {
-                    if (collection.usage === 0x0005
-                      && collection.usagePage === 0x000B) {
-                      bFind = true;
-                      if (collection.inputReports.length !== 0) {
-                        this.inputReportReportId = collection.inputReports[0].reportId;
-                      }
-                      resolve(device);
-                      break;
+              if (deviceLabel.includes(device?.productName?.toLowerCase())) {
+                for (const collection of device.collections) {
+                  if (collection.usage === 0x0005
+                    && collection.usagePage === 0x000B) {
+                    bFind = true;
+                    if (collection.inputReports.length !== 0) {
+                      this.inputReportReportId = collection.inputReports[0].reportId;
                     }
+                    resolve(device);
+                    break;
                   }
                 }
               }
             });
-            if (bFind) {
+            if (!bFind) {
               reject();
             }
           });
