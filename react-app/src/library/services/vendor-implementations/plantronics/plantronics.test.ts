@@ -568,6 +568,7 @@ describe('PlantronicsService', () => {
       const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
       const getCallEventsSpy = jest.spyOn(plantronicsService, 'getCallEvents');
       const _checkIsActiveTaskSpy = jest.spyOn(plantronicsService, '_checkIsActiveTask');
+      plantronicsService.isConnected = true;
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/TerminateCall')) {
           return buildMockFetch(responses.CallServices.TerminateCall.default, true);
@@ -598,6 +599,7 @@ describe('PlantronicsService', () => {
 
     it('calls endCall an appropriate number of times for endAllCalls', async () => {
       const endCallSpy = jest.spyOn(plantronicsService, 'endCall');
+      plantronicsService.isConnected = true;
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/CallManagerState')) {
           return buildMockFetch(responses.CallServices.CallManagerState.callsInProgress, true);
@@ -660,6 +662,7 @@ describe('PlantronicsService', () => {
     });
 
     it('checkIsActiveTask', async () => {
+      plantronicsService.isConnected = true;
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/CallManagerState')) {
           return buildMockFetch(responses.CallServices.CallManagerState.callsInProgress, true);
@@ -673,6 +676,7 @@ describe('PlantronicsService', () => {
     });
 
     it('catches the error during _getActiveCalls', async () => {
+      plantronicsService.isConnected = true;
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/CallServices/CallManagerState')) {
           return buildMockFetch(responses.CallServices.CallManagerState.errorState, true);
@@ -688,6 +692,7 @@ describe('PlantronicsService', () => {
     });
 
     it('catches the error during getDeviceStatus', async () => {
+      plantronicsService.isConnected = true;
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/DeviceServices/Info')) {
           return buildMockFetch(responses.DeviceServices.Info.errorState, true);
@@ -699,6 +704,19 @@ describe('PlantronicsService', () => {
       await plantronicsService.getDeviceStatus();
       expect(plantronicsService.logger.info).toHaveBeenCalledWith('Error making request for device status', responses.DeviceServices.Info.errorState);
     });
+
+    it('should not set deviceInfo if err', async () => {
+      jest.spyOn(plantronicsService, '_makeRequestTask').mockRejectedValue({ Err: {
+        Description: 'no supported devices'
+      } });
+
+      try {
+        await plantronicsService.getDeviceStatus();
+      } catch (e) {
+        expect(plantronicsService.deviceInfo).toBeFalsy();
+      }
+    });
+
     it('if noDeviceError is true, do not log', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
         if (url.includes('/DeviceServices/Info')) {
@@ -994,6 +1012,32 @@ describe('PlantronicsService', () => {
   describe('_makeRequest function', () => {
     beforeEach(() => {
       Object.defineProperty(browserama, 'isFirefox', { get: () => true });
+    });
+
+    it('should bail out if not connected and not connecting', async () => {
+      plantronicsService.isConnected = false;
+      plantronicsService.isActive = true;
+      const disconnectSpy = jest.spyOn(plantronicsService, 'disconnect');
+      plantronicsService.logger.info = jest.fn();
+      const isActiveResponseWithStatus = {
+        ...responses.SessionManager.IsActive.default,
+        status: 404,
+        'Type_Name': 'Error'
+      };
+
+      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/SessionManager/IsActive')) {
+          return buildMockFetch(isActiveResponseWithStatus, true);
+        }
+      });
+
+      try {
+        await plantronicsService._makeRequest(`/SessionManager/IsActive?name=${plantronicsService.pluginName}&active=true`, true);
+      } catch (err) {
+        expect(plantronicsService.isConnected).toBe(false);
+        expect(disconnectSpy).not.toHaveBeenCalled();
+        expect(plantronicsService.logger.info).toHaveBeenCalledWith(err);
+      }
     });
 
     it('handles error from endpoint with 404 status and isRetry', async () => {

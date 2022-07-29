@@ -5,6 +5,8 @@ import browserama from 'browserama';
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../../types/call-info';
 
+const defaultAppName = 'genesys-cloud-headset-library';
+
 /**
  * TODO:  This looks like a feasible way to implement the polling we need
  *        https://makeitnew.io/polling-using-rxjs-8347d05e9104
@@ -16,7 +18,7 @@ export default class PlantronicsService extends VendorImplementation {
   disconnectedDeviceInterval = 2000;
   deviceIdRetryInterval = 2000;
   vendorName = 'Plantronics';
-  pluginName = 'genesys-cloud-headset-library';
+  pluginName: string;
   apiHost = 'https://127.0.0.1:32018/Spokes';
   isActive = false;
   disableEventPolling = false;
@@ -32,6 +34,7 @@ export default class PlantronicsService extends VendorImplementation {
   private constructor (config: ImplementationConfig) {
     super(config);
     this.config = config;
+    this.pluginName = config.appName || defaultAppName;
     this._deviceInfo = null;
     this.callEventsTimerId = null;
     this.deviceStatusTimerId = null;
@@ -131,6 +134,11 @@ export default class PlantronicsService extends VendorImplementation {
         return response.json();
       })
       .then(response => {
+        // we should just eat the response if we are not connected and not trying to connect
+        if (!this.isConnected && !this.isConnecting) {
+          return;
+        }
+
         if (response.ok === false || response.Type_Name === 'Error') {
           if (response.status === 404) {
             if (isRetry) {
@@ -232,6 +240,7 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceAnsweredCall({ ...eventInfo, conversationId });
       break;
     case 'RejectCall':
+      this.endCall(conversationId);
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;
     case 'TerminateCall':

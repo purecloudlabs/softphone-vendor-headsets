@@ -36,7 +36,7 @@ export default class HeadsetService {
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.logger = config.logger || console;
-    this.plantronics = PlantronicsService.getInstance({ logger: this.logger });
+    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
