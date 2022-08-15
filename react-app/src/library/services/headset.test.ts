@@ -221,7 +221,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.answerCall(conversationId);
+      await headsetService.answerCall(conversationId, false);
 
       expect(plantronics.answerCall).not.toHaveBeenCalled();
     });
@@ -238,7 +238,7 @@ describe('HeadsetService', () => {
           conversationId: 'convoId123'
         }
       };
-      headsetService.answerCall(conversationId);
+      headsetService.answerCall(conversationId, false);
 
       expect(plantronics.answerCall).toHaveBeenCalledWith(conversationId);
     });
@@ -246,9 +246,25 @@ describe('HeadsetService', () => {
       const conversationId = '1234';
       plantronics.isConnected = false;
 
-      headsetService.answerCall(conversationId);
+      headsetService.answerCall(conversationId, false);
 
       expect(plantronics.answerCall).not.toHaveBeenCalled();
+    });
+    it('should set a headsetConversationStates value if auto answer', () => {
+      const conversationId = '1234';
+      plantronics.isConnected = true;
+
+      headsetService.answerCall(conversationId, true);
+
+      expect(headsetService["headsetConversationStates"][conversationId]).toStrictEqual({
+        conversationId,
+        held: false,
+        muted: false,
+        offHook: true,
+        ringing: false
+      });
+
+      expect(plantronics.answerCall).toHaveBeenCalledWith(conversationId);
     });
   });
 
