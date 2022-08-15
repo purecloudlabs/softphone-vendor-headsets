@@ -82,7 +82,7 @@ const App = () => {
     return () => {
       sub.unsubscribe();
     };
-  }, [ currentCall ]);
+  }, [ currentCall, audioStream ]);
 
   const _updateDeviceList = async () => {
     await webrtc.ensureAudioPermissions();

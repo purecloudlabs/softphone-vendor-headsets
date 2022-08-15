@@ -93,6 +93,7 @@ export default class JabraService extends VendorImplementation {
           callControl.offHook(true);
           callControl.ring(false);
           this.activeConversationId = this.pendingConversationId;
+          this.pendingConversationId = null;
           if (!this.pendingConversationIsOutbound) {
             this.deviceAnsweredCall({
               name: 'CallOffHook',
@@ -207,8 +208,6 @@ export default class JabraService extends VendorImplementation {
 
     this.callControl.ring(false);
     this.callControl.offHook(true);
-    this.activeConversationId = this.pendingConversationId;
-    this.pendingConversationId = null;
   }
 
   async rejectCall (): Promise<void> {
