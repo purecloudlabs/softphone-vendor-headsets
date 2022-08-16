@@ -302,7 +302,7 @@ describe('SennheiserService', () => {
       expect(incomingCallSpy).toHaveBeenCalledWith({ conversationId });
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
-    })
+    });
   });
 
   describe('rejectCall', () => {

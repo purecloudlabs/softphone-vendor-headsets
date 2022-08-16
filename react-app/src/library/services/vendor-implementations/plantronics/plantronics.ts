@@ -258,7 +258,6 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceMuteChanged({ isMuted: false, ...eventInfo, conversationId });
       break;
     case 'HoldCall':
-      this.logger.info('inside holdCall from device event', eventInfo);
       this.deviceHoldStatusChanged({ holdRequested: true, ...eventInfo, conversationId });
       break;
     case 'ResumeCall':
@@ -403,15 +402,12 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async endCall (conversationId: string): Promise<any> {
-    this.logger.info('inside Plantronics EndCall');
     let params = `?name=${this.pluginName}`;
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
-    this.logger.info('endpoint', params);
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
-    this.logger.info('endpoint response', response);
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;
@@ -430,7 +426,6 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async setHold (conversationId: string, value: boolean): Promise<any> {
-    this.logger.info('at some point... we get to setHold of Plantronics?');
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
