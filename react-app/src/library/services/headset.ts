@@ -219,9 +219,7 @@ export default class HeadsetService {
   }
 
   async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
-    this.logger.info('Inside headset lib endCall', conversationId);
     const implementation = this.getConnectedImpl();
-    this.logger.info('Implementation', implementation);
     if (!implementation) {
       return;
     }
@@ -230,11 +228,8 @@ export default class HeadsetService {
       offHook: false
     };
 
-    this.logger.info('expectedStatePostAction', expectedStatePostAction);
-
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
-      this.logger.info('we should have updated the state', headsetState);
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.endCall(conversationId, hasOtherActiveCalls);
     }
