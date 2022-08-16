@@ -146,7 +146,11 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  answerCall (conversationId: string): Promise<void> {
+  answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
+    if (autoAnswer) {
+      this.incomingCall({ conversationId });
+    }
+
     this._sendMessage({
       Event: SennheiserEvents.IncomingCallAccepted,
       EventType: SennheiserEventTypes.Request,

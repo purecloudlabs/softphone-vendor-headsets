@@ -264,7 +264,7 @@ describe('HeadsetService', () => {
         ringing: false
       });
 
-      expect(plantronics.answerCall).toHaveBeenCalledWith(conversationId);
+      expect(plantronics.answerCall).toHaveBeenCalledWith(conversationId, true);
     });
   });
 

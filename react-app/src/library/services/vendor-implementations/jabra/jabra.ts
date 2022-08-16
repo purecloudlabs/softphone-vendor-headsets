@@ -201,7 +201,22 @@ export default class JabraService extends VendorImplementation {
     }
   }
 
-  async answerCall (): Promise<void> {
+  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
+    if (autoAnswer) {
+      this.pendingConversationId = conversationId;
+      try {
+        this.callLock = await this.callControl.takeCallLock();
+      } catch ({ message, type }) {
+        if (this.checkForCallLockError(message, type)) {
+          this.logger.info(message);
+          this.callControl.ring(false);
+          this.callControl.offHook(true);
+        } else {
+          this.logger.error(type, message);
+        }
+      }
+    }
+
     if (!this.callLock) {
       return;
     }

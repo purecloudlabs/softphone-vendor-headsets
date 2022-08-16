@@ -146,13 +146,13 @@ export default class HeadsetService {
     return implementation.outgoingCall(callInfo);
   }
 
-  async answerCall (conversationId: string, isAutoAnswer: boolean): Promise<any> {
+  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
     }
 
-    if (!isAutoAnswer) {
+    if (!autoAnswer) {
       const expectedStatePostAction: Partial<HeadsetState> = {
         ringing: false,
         offHook: true
@@ -170,7 +170,7 @@ export default class HeadsetService {
         ringing: false
       };
 
-      return implementation.answerCall(conversationId);
+      return implementation.answerCall(conversationId, autoAnswer);
     }
   }
 
