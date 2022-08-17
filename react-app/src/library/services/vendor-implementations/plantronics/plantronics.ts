@@ -383,7 +383,10 @@ export default class PlantronicsService extends VendorImplementation {
     return this._makeRequestTask(`/CallServices/OutgoingCall${params}`);
   }
 
-  answerCall (conversationId: string): Promise<any> {
+  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
+    if (autoAnswer) {
+      await this.incomingCall({ conversationId });
+    }
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     const params = `?name=${this.pluginName}&callID={${encodeURI(halfEncodedCallIdString)}}`;
