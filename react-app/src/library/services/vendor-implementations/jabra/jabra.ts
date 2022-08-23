@@ -263,7 +263,6 @@ export default class JabraService extends VendorImplementation {
       this.pendingConversationId = callInfo.conversationId;
       this.pendingConversationIsOutbound = true;
       this.callControl.offHook(true);
-      return Promise.resolve();
     }
   }
 

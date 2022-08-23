@@ -1,7 +1,5 @@
 .toggle-switch {
-    height: 0;
-    width: 0;
-    visibility: hidden;
+    display: none;
 }
 
 .toggle-label {
