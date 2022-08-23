@@ -188,16 +188,17 @@ export default class JabraService extends VendorImplementation {
     this.pendingConversationIsOutbound = false;
     try {
       this.callLock = await this.callControl.takeCallLock();
-      if (this.callLock) {
-        this.callControl.ring(true);
-      }
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
-        this.callControl.ring(true);
+        this.callLock = true;
       } else {
         this.logger.error(type, message);
       }
+    }
+
+    if (this.callLock) {
+      this.callControl.ring(true);
     }
   }
 
@@ -209,8 +210,7 @@ export default class JabraService extends VendorImplementation {
       } catch ({ message, type }) {
         if (this.checkForCallLockError(message, type)) {
           this.logger.info(message);
-          this.callControl.ring(false);
-          this.callControl.offHook(true);
+          this.callLock = true;
         } else {
           this.logger.error(type, message);
         }
@@ -250,19 +250,20 @@ export default class JabraService extends VendorImplementation {
   async outgoingCall (callInfo: CallInfo): Promise<void> {
     try {
       this.callLock = await this.callControl.takeCallLock();
-      if (this.callLock) {
-        this.pendingConversationId = callInfo.conversationId;
-        this.pendingConversationIsOutbound = true;
-        this.callControl.offHook(true);
-        return Promise.resolve();
-      }
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
-        this.callControl.offHook(true);
+        this.callLock = true;
       } else {
         this.logger.error(type, message);
       }
+    }
+
+    if (this.callLock) {
+      this.pendingConversationId = callInfo.conversationId;
+      this.pendingConversationIsOutbound = true;
+      this.callControl.offHook(true);
+      return Promise.resolve();
     }
   }
 
