@@ -452,15 +452,22 @@ describe('JabraNativeService', () => {
     it('should set ignoreNextOffhookEvent to true', async () => {
       jabraNativeService.ignoreNextOffhookEvent = false;
       jabraNativeService['_sendCmd'] = jest.fn();
-      await jabraNativeService.answerCall();
+      await jabraNativeService.answerCall('1234', false);
       expect(jabraNativeService.ignoreNextOffhookEvent).toBe(true);
     });
 
     it(`should call _sendCmd() with the '${JabraNativeCommands.Offhook}' command and true`, async () => {
       const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
-      await jabraNativeService.answerCall();
+      await jabraNativeService.answerCall('1234', false);
       expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
     });
+
+    it('should set pendingConversationId if autoAnswer is true', async () => {
+      const sendCmdSpy = jabraNativeService['_sendCmd'] = jest.fn();
+      await jabraNativeService.answerCall('1234', true);
+      expect(jabraNativeService.pendingConversationId).toBe('1234');
+      expect(sendCmdSpy).toHaveBeenCalledWith(JabraNativeCommands.Offhook, true);
+    })
   });
 
   describe('rejectCall', () => {

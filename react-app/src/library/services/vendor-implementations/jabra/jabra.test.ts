@@ -603,7 +603,7 @@ describe('JabraService', () => {
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
 
       jabraService.callControl = callControl as any;
-      jabraService.answerCall();
+      jabraService.answerCall('1234');
       expect(callControl.offHook).toHaveBeenCalledWith(true);
     });
 
@@ -614,9 +614,62 @@ describe('JabraService', () => {
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
 
       jabraService.callControl = callControl as any;
-      const answerCallResult = jabraService.answerCall();
+      const answerCallResult = jabraService.answerCall('1234');
       expect(callControl.offHook).not.toHaveBeenCalled();
       expect(answerCallResult).resolves.toBe(undefined);
+    });
+
+    it ('answerCall, autoAnswer on', async () => {
+      jabraService.callLock = false;
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+      callControl.takeCallLock.mockResolvedValue(true);
+
+      jabraService.callControl = callControl as any;
+      await jabraService.answerCall('1234', true);
+      expect(jabraService.pendingConversationId).toBe('1234');
+      expect(jabraService.callLock).toBe(true);
+      expect(callControl.offHook).toHaveBeenCalledWith(true);
+    });
+
+    it('sends answer call event based on flags after already having callLock', async () => {
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+
+      jabraService.callControl = callControl as any;
+
+      callControl.takeCallLock.mockImplementation(() => {
+        throw exceptionWithType(
+          'Trying to take the call lock, but it is already held!',
+          ErrorType.SDK_USAGE_ERROR
+        );
+      });
+      const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
+      await jabraService.answerCall('456', true);
+      expect(infoLoggerSpy).toHaveBeenCalledWith(
+        'Trying to take the call lock, but it is already held!'
+      );
+      expect(callControl.ring).toHaveBeenCalledWith(false);
+      expect(callControl.offHook).toHaveBeenCalledWith(true);
+    });
+
+    it('handles unexpected error, unrelated to callLock', async () => {
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+
+      jabraService.callControl = callControl as any;
+
+      callControl.takeCallLock.mockImplementation(() => {
+        throw exceptionWithType('An actual error', ErrorType.UNEXPECTED_ERROR);
+      });
+      const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
+      await jabraService.answerCall('789', true);
+      expect(errorLoggerSpy).toHaveBeenCalledWith(ErrorType.UNEXPECTED_ERROR, 'An actual error');
+      expect(callControl.ring).not.toHaveBeenCalled();
+      expect(callControl.offHook).not.toHaveBeenCalled();
     });
   });
 

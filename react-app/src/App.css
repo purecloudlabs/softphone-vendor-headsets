@@ -102,3 +102,13 @@ button {
   border: none;
   cursor: pointer;
 }
+
+.auto-answer-warning {
+  color: red;
+  visibility: visible;
+  margin-left: 10px;
+}
+
+.hidden {
+  visibility: hidden;
+}
