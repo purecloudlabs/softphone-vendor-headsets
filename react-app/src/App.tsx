@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
 import AudioVisualizer from './components/audio-visualizer';
+import ToggleSwitch from './components/toggle-switch/toggle-switch';
 import MockCall from './mocks/call';
 import { isCefHosted } from './library/utils';
 
@@ -21,6 +22,7 @@ const App = () => {
   const [eventLogsJson, setEventLogsJson] = useState<any>([]);
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('');
   const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
+  const [autoAnswer, setAutoAnswer] = useState<boolean>(false);
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
@@ -142,7 +144,13 @@ const App = () => {
     console.log('**** SIMULATING CALL ****');
     const call = new MockCall();
     setCurrentCall(call);
-    headset.incomingCall({ conversationId: call.id, contactName: call.contactName });
+    if (!autoAnswer) {
+      headset.incomingCall({ conversationId: call.id, contactName: call.contactName });
+    } else {
+      call.answer();
+      headset.answerCall(call.id, autoAnswer);
+      startHeadsetAudio();
+    }
   };
 
   const simulateOutgoingCall = () => {
@@ -157,7 +165,7 @@ const App = () => {
   const answerIncomingCall = (fromHeadset?) => {
     console.log('**** ANSWERING SIMULATED CALL ****', { currentCall });
     currentCall.answer();
-    !fromHeadset && headset.answerCall(currentCall.id);
+    !fromHeadset && headset.answerCall(currentCall.id, autoAnswer);
     startHeadsetAudio();
   };
 
@@ -239,6 +247,16 @@ const App = () => {
       <div className="entry-row">
         <div className="entry-values">
           <div className="entry-value">{t('dummy.controlInstructions')}</div>
+          <div style={{ display: 'inline-flex', marginBottom: '10px' }}>
+            <label style={{ marginRight: '5px' }}>Auto Answer</label>
+            <ToggleSwitch
+              name="autoAnswer"
+              checked={autoAnswer}
+              onChange={() => setAutoAnswer(!autoAnswer)}
+              disabled={!!currentCall}
+            />
+            <span className={ !currentCall ? 'hidden' : 'auto-answer-warning' }>Cannot toggle Auto Answer at this time</span>
+          </div>
           <div className="entry-value">
             <button type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button>
             <button type="button" onClick={() => simulateOutgoingCall()}>{t('dummy.button.simulateOutgoingCall')}</button>
