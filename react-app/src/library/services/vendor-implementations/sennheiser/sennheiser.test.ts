@@ -286,6 +286,23 @@ describe('SennheiserService', () => {
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
+
+    it('should first establish an "incoming call" if auto answer is on', async () => {
+      jest.spyOn(sennheiserService, '_sendMessage');
+      const incomingCallSpy = jest.spyOn(sennheiserService, 'incomingCall');
+      const conversationId = '23f897b';
+      const expectedPayload: SennheiserPayload = {
+        Event: SennheiserEvents.IncomingCallAccepted,
+        EventType: SennheiserEventTypes.Request,
+        CallID: conversationId
+      };
+
+      await sennheiserService.answerCall(conversationId, true);
+
+      expect(incomingCallSpy).toHaveBeenCalledWith({ conversationId });
+
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
+    });
   });
 
   describe('rejectCall', () => {

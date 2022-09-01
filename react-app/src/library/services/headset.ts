@@ -146,19 +146,31 @@ export default class HeadsetService {
     return implementation.outgoingCall(callInfo);
   }
 
-  async answerCall (conversationId: string): Promise<any> {
+  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
     }
 
-    const expectedStatePostAction: Partial<HeadsetState> = {
-      ringing: false,
-      offHook: true
-    };
+    if (!autoAnswer) {
+      const expectedStatePostAction: Partial<HeadsetState> = {
+        ringing: false,
+        offHook: true
+      };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
-      return implementation.answerCall(conversationId);
+      if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+        return implementation.answerCall(conversationId);
+      }
+    } else {
+      this.headsetConversationStates[conversationId] = {
+        conversationId: conversationId,
+        held: false,
+        muted: false,
+        offHook: true,
+        ringing: false
+      };
+
+      return implementation.answerCall(conversationId, autoAnswer);
     }
   }
 
