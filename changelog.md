@@ -3,7 +3,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.0...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.1...HEAD)
+## Fixed
+* [PCM-2007](https://inindca.atlassian.net/browse/PCM-2007) - Fixed issue with switching devices during active call
+
+# [v2.2.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.0...v2.1.0)
 ## Fixed
 * [PCM-1974](https://inindca.atlassian.net/browse/PCM-1974) - Added in logic to properly handle auto answer scenarios
 * [PCM-1975](https://inindca.atlassian.net/browse/PCM-1975) - Added in logic to properly handle auto answer scenarios
