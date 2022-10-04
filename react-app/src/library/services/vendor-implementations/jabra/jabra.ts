@@ -434,8 +434,24 @@ export default class JabraService extends VendorImplementation {
   }
 
   async disconnect (): Promise<void> {
-    this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
-    (this.isConnected || this.isConnecting) &&
-      this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+    try {
+      if (!this.callLock) {
+        return this.logger.info(
+          'Currently not in possession of the Call Lock; Cannot react to Device Actions'
+        );
+      }
+      this.callControl.releaseCallLock();
+    } catch ({ message, type }) {
+      if (this.checkForCallLockError(message, type)) {
+        this.logger.info(message);
+      } else {
+        this.logger.error(type, message);
+      }
+    } finally {
+      this.callLock = false;
+      this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
+      (this.isConnected || this.isConnecting) &&
+        this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+    }
   }
 }
