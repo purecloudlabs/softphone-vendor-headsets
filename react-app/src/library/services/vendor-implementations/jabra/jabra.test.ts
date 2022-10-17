@@ -593,6 +593,74 @@ describe('JabraService', () => {
       await jabraService.disconnect();
       expect(connectionSpy).toHaveBeenCalled();
     });
+
+    it('should release the callLock if it is currently held before properly disconnecting', async () => {
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+      const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
+      jabraService['headsetEventSubscription'] = {
+        unsubscribe: jest.fn()
+      } as any;
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+
+      jabraService.callControl = callControl as any;
+      jabraService.callLock = true;
+      jabraService.isConnected = true;
+      await jabraService.disconnect();
+
+      expect(callControl.releaseCallLock).toHaveBeenCalled();
+      expect(jabraService.callLock).toBe(false);
+      expect(connectionSpy).toHaveBeenCalled();
+    });
+
+    it('should properly handle errors while attempting to release callLock', () => {
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+      const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+
+      jabraService.callControl = callControl as any;
+      jabraService.callLock = true;
+      jabraService.isConnected = true;
+
+      callControl.releaseCallLock.mockImplementation(() => {
+        throw exceptionWithType(
+          'Trying to release the call lock, but it is not held!',
+          ErrorType.SDK_USAGE_ERROR
+        );
+      });
+      const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
+      jabraService.disconnect();
+      expect(infoLoggerSpy).toHaveBeenCalledWith(
+        'Trying to release the call lock, but it is not held!'
+      );
+      expect(callControl.releaseCallLock).toHaveBeenCalled();
+      expect(jabraService.callLock).toBe(false);
+      expect(connectionSpy).toHaveBeenCalled();
+    });
+
+    it('should properly handle errors while attempting to release callLock', () => {
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+      const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+
+      jabraService.callControl = callControl as any;
+      jabraService.callLock = true;
+      jabraService.isConnected = true;
+
+      callControl.releaseCallLock.mockImplementation(() => {
+        throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
+      });
+      const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
+      jabraService.disconnect();
+      expect(errorLoggerSpy).toHaveBeenCalledWith(
+        ErrorType.UNEXPECTED_ERROR,
+        'Something much worse'
+      );
+      expect(callControl.releaseCallLock).toHaveBeenCalled();
+      expect(jabraService.callLock).toBe(false);
+      expect(connectionSpy).toHaveBeenCalled();
+    });
   });
 
   describe('answerCall', () => {
