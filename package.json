@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@gnaudio/jabra-js": "^4.0.1",
-    "bootstrap": "^4.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
     "rxjs": "^7.4.0",
