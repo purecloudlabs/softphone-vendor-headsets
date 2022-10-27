@@ -1,7 +1,17 @@
 import { VendorImplementation, ImplementationConfig } from "../vendor-implementation";
 import { CallInfo } from '../../..';
-import DeviceInfo from "../../../types/device-info";
+import DeviceInfo, { PartialHIDDevice } from "../../../types/device-info";
+import { PartialInputReportEvent } from '../../../types/consumed-headset-events';
 import { isCefHosted } from "../../../utils";
+
+const offhookFlag = 0b1;
+const muteFlag = 0b10;
+const ringFlag = 0b100;
+const holdFlag = 0b1000;
+const recMuteFlag = 0b100;
+const recReject = 0x40;
+const HEADSET_USAGE = 0x0005;
+const HEADSET_USAGE_PAGE = 0x000B;
 
 export default class YealinkService extends VendorImplementation {
   private static instance: YealinkService;
@@ -11,24 +21,14 @@ export default class YealinkService extends VendorImplementation {
 
   private _deviceInfo: DeviceInfo = null;
   private activeDevice: any;
-  private offhookFlag = 0b1;
-  private muteFlag = 0b10;
-  private ringFlag = 0b100;
-  private holdFlag = 0b1000;
 
   private callState = 0;
   private recCallState = 0;
-  private recMuteFlag = 0b100;
-  private recReject = 0x40;
 
   private isHold = false;
 
-  private inputReportReportId = 0;
-
-  private constructor (config: ImplementationConfig) {
-    super(config);
-    this.vendorName = 'Yealink';
-  }
+  private inputReportReportId: null|number = null;
+  vendorName = 'Yealink';
 
   static getInstance (config: ImplementationConfig): YealinkService {
     if (!YealinkService.instance) {
@@ -57,13 +57,13 @@ export default class YealinkService extends VendorImplementation {
     }
     const deviceLabel = originalDeviceLabel.toLowerCase();
 
-    const deviceList = await (window.navigator as any).hid.getDevices();
+    const deviceList: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices();
     deviceList.forEach(device => {
       if (!this.activeDevice) {
-        if (deviceLabel.includes(device ?.productName ?.toLowerCase())) {
+        if (deviceLabel.includes(device?.productName?.toLowerCase())) {
           for (const collection of device.collections) {
-            if (collection.usage === 0x0005 &&
-              collection.usagePage === 0x000B) {
+            if (collection.usage === HEADSET_USAGE &&
+              collection.usagePage === HEADSET_USAGE_PAGE) {
               this.activeDevice = device;
               if (collection.inputReports.length !== 0) {
                 this.inputReportReportId = collection.inputReports[0].reportId;
@@ -80,16 +80,16 @@ export default class YealinkService extends VendorImplementation {
         this.activeDevice = await new Promise((resolve, reject) => {
           const waiter = setTimeout(reject, 30000);
           this.requestWebHidPermissions(async () => {
-            const filters = [{ usage: 0x0005, usagePage: 0x000B }];
+            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE }];
             await (window.navigator as any).hid.requestDevice({ filters });
             clearTimeout(waiter);
-            const deviceLists = await (window.navigator as any).hid.getDevices();
+            const deviceLists: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices();
             let bFind = false;
             deviceLists.forEach(device => {
               if (deviceLabel.includes(device?.productName?.toLowerCase())) {
                 for (const collection of device.collections) {
-                  if (collection.usage === 0x0005
-                    && collection.usagePage === 0x000B) {
+                  if (collection.usage === HEADSET_USAGE
+                    && collection.usagePage === HEADSET_USAGE_PAGE) {
                     bFind = true;
                     if (collection.inputReports.length !== 0) {
                       this.inputReportReportId = collection.inputReports[0].reportId;
@@ -116,8 +116,8 @@ export default class YealinkService extends VendorImplementation {
       await this.activeDevice.open();
     }
 
-    console.log(`get device reportId ${this.inputReportReportId}`);
-    this.activeDevice.addEventListener("inputreport", event => {
+    this.logger.debug(`get device reportId ${this.inputReportReportId}`);
+    this.activeDevice.addEventListener('inputreport', (event: PartialInputReportEvent) => {
       if (event.reportId !== this.inputReportReportId) {
         return;
       }
@@ -137,7 +137,7 @@ export default class YealinkService extends VendorImplementation {
   async disconnect (): Promise<void> {
     if (this.isConnected || this.isConnecting) {
       this.changeConnectionStatus({ isConnected: false, isConnecting: false });
-    }  
+    }
     if (this.activeDevice) {
       this.activeDevice.close();
       this.activeDevice = null;
@@ -150,20 +150,20 @@ export default class YealinkService extends VendorImplementation {
     if (!this.activeDevice) {
       this.logger.error('do not have active device');
       return;
-    }  
-    console.log(`User pressed button ${value}. local ${this.recCallState}`);
+    }
+    this.logger.debug(`User pressed button ${value}. local ${this.recCallState}`);
     const changeFlag = value ^ this.recCallState;
     if (changeFlag === 0) {
       return;
     }
     if (value !== 0
-      && (this.callState & (~this.muteFlag)) === 0) {
-      console.log(`Not talking, ignore key`);
+      && (this.callState & (~muteFlag)) === 0) {
+      this.logger.debug(`Not talking, ignore key`);
       return;
     }
-    this.recCallState = value;  
-    if (changeFlag & this.offhookFlag) {
-      if (value & this.offhookFlag) {
+    this.recCallState = value;
+    if (changeFlag & offhookFlag) {
+      if (value & offhookFlag) {
         this.answerCall();
         if (this.activeConversationId) {
           this.deviceAnsweredCall({
@@ -172,10 +172,10 @@ export default class YealinkService extends VendorImplementation {
           });
         }
         else {
-          console.log(`activeConversationId is empty`);
+          this.logger.debug(`activeConversationId is empty`);
         }
       } else if (!this.isHold) {
-        this.sendOpToDevice(this.isMuted ? this.muteFlag : 0);
+        this.sendOpToDevice(this.isMuted ? muteFlag : 0);
         if (this.activeConversationId) {
           this.deviceEndedCall({
             name: 'OnHook',
@@ -183,12 +183,12 @@ export default class YealinkService extends VendorImplementation {
           });
         }
         else {
-          console.log(`activeConversationId is empty`);
+          this.logger.debug(`activeConversationId is empty`);
         }
         this.activeConversationId = null;
       }
-    } else if (changeFlag & this.recMuteFlag) {
-      if (value & this.recMuteFlag) {
+    } else if (changeFlag & recMuteFlag) {
+      if (value & recMuteFlag) {
         this.setMute(!this.isMuted);
         this.deviceMuteChanged({
           isMuted: this.isMuted,
@@ -196,8 +196,8 @@ export default class YealinkService extends VendorImplementation {
           conversationId: this.activeConversationId,
         });
       }
-    } else if (changeFlag & this.holdFlag) {
-      if (value & this.holdFlag) {
+    } else if (changeFlag & holdFlag) {
+      if (value & holdFlag) {
         this.setHold(null, !this.isHold);
         this.deviceHoldStatusChanged({
           holdRequested: this.isHold,
@@ -205,8 +205,8 @@ export default class YealinkService extends VendorImplementation {
           conversationId: this.activeConversationId,
         });
       }
-    } else if (changeFlag & this.recReject) {
-      if (value & this.recReject) {
+    } else if (changeFlag & recReject) {
+      if (value & recReject) {
         this.deviceRejectedCall({
           name: 'Reject',
           conversationId: this.pendingConversationId,
@@ -219,14 +219,14 @@ export default class YealinkService extends VendorImplementation {
   async incomingCall (callInfo: CallInfo): Promise<void> {
     if (callInfo) {
       this.pendingConversationId = callInfo.conversationId;
-      const val = this.isMuted ? this.muteFlag : 0;
-      this.sendOpToDevice(val | this.ringFlag);
+      const val = this.isMuted ? muteFlag : 0;
+      this.sendOpToDevice(val | ringFlag);
     }
   }
 
   async outgoingCall (callInfo: CallInfo): Promise<void> {
     this.pendingConversationId = callInfo.conversationId;
-    this.sendOpToDevice(this.offhookFlag);
+    this.sendOpToDevice(offhookFlag);
   }
 
   async answerCall (): Promise<void> {
@@ -234,13 +234,13 @@ export default class YealinkService extends VendorImplementation {
       this.activeConversationId = this.pendingConversationId;
       this.pendingConversationId = null;
     }
-    const val = this.isMuted ? this.muteFlag : 0;
-    this.sendOpToDevice(val | this.offhookFlag);
+    const val = this.isMuted ? muteFlag : 0;
+    this.sendOpToDevice(val | offhookFlag);
   }
 
   async rejectCall (): Promise<void> {
     this.pendingConversationId = null;
-    this.sendOpToDevice(this.isMuted ? this.muteFlag : 0);
+    this.sendOpToDevice(this.isMuted ? muteFlag : 0);
   }
 
   async endCall (conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
@@ -252,29 +252,29 @@ export default class YealinkService extends VendorImplementation {
       this.activeConversationId = null;
     }
     // keep mute state
-    this.sendOpToDevice(this.isMuted ? this.muteFlag : 0);
+    this.sendOpToDevice(this.isMuted ? muteFlag : 0);
   }
 
   async endAllCalls (): Promise<void> {
     this.activeConversationId = null;
-    this.sendOpToDevice(this.isMuted ? this.muteFlag : 0);
+    this.sendOpToDevice(this.isMuted ? muteFlag : 0);
   }
 
   async setMute (value: boolean): Promise<void> {
     if (value) {
-      this.sendOpToDevice(this.callState | this.muteFlag);
+      this.sendOpToDevice(this.callState | muteFlag);
     } else {
-      this.sendOpToDevice(this.callState & (~this.muteFlag));
+      this.sendOpToDevice(this.callState & (~muteFlag));
     }
   }
 
   async setHold (conversationId: string, value: boolean): Promise<void> {
     if (value) {
-      const setValue = this.callState & (~this.offhookFlag);
-      this.sendOpToDevice(setValue | this.holdFlag);
+      const setValue = this.callState & (~offhookFlag);
+      this.sendOpToDevice(setValue | holdFlag);
     } else {
-      const setValue = this.callState & (~this.holdFlag);
-      this.sendOpToDevice(setValue | this.offhookFlag);
+      const setValue = this.callState & (~holdFlag);
+      this.sendOpToDevice(setValue | offhookFlag);
     }
   }
 
@@ -284,19 +284,19 @@ export default class YealinkService extends VendorImplementation {
       return;
     }
 
-    if (value & this.holdFlag) {
+    if (value & holdFlag) {
       this.isHold = true;
     } else {
       this.isHold = false;
     }
 
-    if (value & this.muteFlag) {
+    if (value & muteFlag) {
       this.isMuted = true;
     } else {
       this.isMuted = false;
     }
 
-    this.logger.info(`send to dev ${value}`);
+    this.logger.debug(`send to dev ${value}`);
     this.callState = value;
     await this.activeDevice.sendReport(this.inputReportReportId, new Uint8Array([value]));
   }

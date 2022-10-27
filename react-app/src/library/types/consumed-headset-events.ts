@@ -31,3 +31,8 @@ export type DeviceConnectionStatus = 'checking' | 'running' | 'notRunning' | 'no
 export type ConsumedHeadsetEvents<T = keyof Events> = T extends keyof Events
     ? { event: T, payload: Events[T] }
     : never;
+
+export interface PartialInputReportEvent {
+    reportId: number;
+    data: DataView;
+}
