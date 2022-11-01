@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.0...HEAD)
 ## Fixed
 * [PCM-2007](https://inindca.atlassian.net/browse/PCM-2007) - Fixed issue with switching devices during active call
+* [PCM-2016](https://inindca.atlassian.net/browse/PCM-2016) - Remove boostrap/jquery dependency
 
 # [v2.2.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.1.0...v2.2.0)
 ## Fixed
