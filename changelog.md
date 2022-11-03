@@ -3,16 +3,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.0...HEAD)
 
 # [v2.3.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.1...v2.3.0)
 ## Added
 * Functionality for new Vendor: Yealink
+=======
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.1...HEAD)
+>>>>>>> fc4017fe90eaa78f364f02240545d5c4e1e1e92d
 
 # [v2.2.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.0...v2.2.1)
 ## Fixed
 * [PCM-2007](https://inindca.atlassian.net/browse/PCM-2007) - Fixed issue with switching devices during active call
+<<<<<<< HEAD
 * [PCM-2016](https://inindca.atlassian.net/browse/PCM-2016) - Remove boostrap/jquery dependency
+=======
+>>>>>>> fc4017fe90eaa78f364f02240545d5c4e1e1e92d
 
 # [v2.2.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.1.0...v2.2.0)
 ## Fixed
