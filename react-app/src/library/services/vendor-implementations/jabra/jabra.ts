@@ -42,7 +42,8 @@ export default class JabraService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return (window.navigator as any).hid && !isCefHosted();
+    // return (window.navigator as any).hid && !isCefHosted();
+    return true;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
