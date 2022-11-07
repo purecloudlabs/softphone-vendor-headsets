@@ -248,7 +248,7 @@ const App = () => {
         <div className="entry-values">
           <div className="entry-value">{t('dummy.controlInstructions')}</div>
           <div style={{ display: 'inline-flex', marginBottom: '10px' }}>
-            <label>Auto Answer</label>
+            <label style={{ marginRight: '5px' }}>Auto Answer</label>
             <ToggleSwitch
               name="autoAnswer"
               checked={autoAnswer}

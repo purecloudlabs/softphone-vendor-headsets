@@ -134,4 +134,3 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.emitEvent('deviceConnectionStatusChanged', { currentVendor: this, ...headsetState });
   }
 }
-
