@@ -7,3 +7,18 @@ export default interface DeviceInfo {
     headsetType?: string;
     attached?: boolean;
 }
+
+export interface PartialHIDDevice {
+    productName: string;
+    collections: PartialDeviceCollections[];
+}
+
+interface PartialDeviceCollections {
+    usage: number;
+    usagePage: number;
+    inputReports: PartialInputReports[];
+}
+
+interface PartialInputReports {
+    reportId: number;
+}

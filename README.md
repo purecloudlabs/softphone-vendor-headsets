@@ -10,6 +10,9 @@ At this moment (12/10/2021) there are three supported vendors already handled wi
 - Sennheiser/EPOS
 - Jabra
 
+As of 11/3/2022 we now support:
+- Yealink
+
 ## Installation
 
 ``` sh
