@@ -6,78 +6,86 @@ let mackEventReportId = mackReportId;
 
 const mackDeviceList0 = [];
 const mackDeviceList1 = [{
-  open : jest.fn(),
-  close : jest.fn(),
-  sendReport : jest.fn(),
-  addEventListener : jest.fn((name, callback) => {callback({
-    reportId : mackEventReportId,
-    data : {
-      getUint8 : jest.fn()
-    }
-  });}),
+  open: jest.fn(),
+  close: jest.fn(),
+  sendReport: jest.fn(),
+  addEventListener: jest.fn((name, callback) => {callback(
+    {
+      reportId: mackEventReportId,
+      data: {
+        getUint8: jest.fn()
+      }
+    });
+  }),
 
-  productName : mackTestDevName,
-  collections : [{
-    usage : 0x0005,
-    usagePage : 0x000B,
-    inputReports : [{
-      reportId : mackReportId
+  productName: mackTestDevName,
+  collections: [{
+    usage: 0x0005,
+    usagePage: 0x000B,
+    inputReports: [{
+      reportId: mackReportId
     }]
   }]
 }];
 
 const mackDeviceList2 = [{
-  open : jest.fn(),
-  close : jest.fn(),
-  addEventListener : jest.fn((name, callback) => {callback({
-    reportId : mackEventReportId,
-    data : {
-      getUint8 : jest.fn()
-    }
-  });}),
+  open: jest.fn(),
+  close: jest.fn(),
+  addEventListener: jest.fn((name, callback) => {callback(
+    {
+      reportId: mackEventReportId,
+      data: {
+        getUint8: jest.fn()
+      }
+    });
+  }),
 
-  productName : mackTestDevName,
-  collections : [{
-    usage : 0,
-    usagePage : 0,
+  productName: mackTestDevName,
+  collections: [{
+    usage: 0,
+    usagePage: 0,
   }]
 }];
 
 const mackDeviceList3 = [{
-  open : jest.fn(),
-  close : jest.fn(),
-  addEventListener : jest.fn((name, callback) => {callback({
-    reportId : mackEventReportId,
-    data : {
-      getUint8 : jest.fn()
-    }
-  });}),
+  open: jest.fn(),
+  close: jest.fn(),
+  addEventListener: jest.fn((name, callback) => {callback(
+    {
+      reportId: mackEventReportId,
+      data: {
+        getUint8: jest.fn()
+      }
+    });
+  }),
 
-  productName : mackTestDevName,
-  collections : [{
-    usage : 0x0005,
-    usagePage : 0x000B,
-    inputReports : []
+  productName: mackTestDevName,
+  collections: [{
+    usage: 0x0005,
+    usagePage: 0x000B,
+    inputReports: []
   }]
 }];
 
 const mackDeviceList4 = [{
-  open : jest.fn(),
-  close : jest.fn(),
-  addEventListener : jest.fn((name, callback) => {callback({
-    reportId : mackEventReportId,
-    data : {
-      getUint8 : jest.fn()
-    }
-  });}),
+  open: jest.fn(),
+  close: jest.fn(),
+  addEventListener: jest.fn((name, callback) => {callback(
+    {
+      reportId: mackEventReportId,
+      data: {
+        getUint8: jest.fn()
+      }
+    });
+  }),
 
   opened: true,
 
-  productName : mackTestDevName,
-  collections : [{
-    usage : 0x0005,
-    usagePage : 0x000B,
-    inputReports : []
+  productName: mackTestDevName,
+  collections: [{
+    usage: 0x0005,
+    usagePage: 0x000B,
+    inputReports: []
   }]
 }];
 
@@ -115,11 +123,11 @@ describe('YealinkService', () => {
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-    const yealinkService2 = YealinkService.getInstance({ logger: console });
+      const yealinkService2 = YealinkService.getInstance({ logger: console });
 
-    expect(yealinkService).not.toBeFalsy();
-    expect(yealinkService2).not.toBeFalsy();
-    expect(yealinkService).toBe(yealinkService2);
+      expect(yealinkService).not.toBeFalsy();
+      expect(yealinkService2).not.toBeFalsy();
+      expect(yealinkService).toBe(yealinkService2);
     });
 
     it('should have the correct vendorName', () => {
@@ -156,7 +164,7 @@ describe('YealinkService', () => {
 
     afterEach(() => {
       yealinkService.disconnect();
-    })
+    });
 
     it('should connect with previouslyConnectedDevice', async () => {
       const statusChangeSpy = jest.spyOn(yealinkService, 'changeConnectionStatus');
@@ -240,7 +248,7 @@ describe('YealinkService', () => {
     it('webhidRequest, 30s timeout, failed to connect', async () => {
       const statusChangeSpy = jest.spyOn(yealinkService, 'changeConnectionStatus');
       jest.useFakeTimers();
-      const requestSpy = yealinkService.requestWebHidPermissions = jest.fn((callback)=>{
+      const requestSpy = yealinkService.requestWebHidPermissions = jest.fn(() => {
         jest.advanceTimersByTime(30100);
       });
         
@@ -331,7 +339,7 @@ describe('YealinkService', () => {
       yealinkService.processBtnPress(0);
       await yealinkService.endAllCalls();
       await yealinkService.disconnect();
-    })
+    });
 
     it('activeDevice is null', async () => {
       await yealinkService.disconnect();
@@ -361,7 +369,7 @@ describe('YealinkService', () => {
       const ansFun = jest.spyOn(yealinkService, 'answerCall');
       const devAnsFun = jest.spyOn(yealinkService, 'deviceAnsweredCall');
 
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
       expect(ansFun).toHaveBeenCalled();
       expect(devAnsFun).toHaveBeenCalled();
@@ -370,7 +378,7 @@ describe('YealinkService', () => {
     it('test offhook, mute mode', async () => {
       const devEndFun = jest.spyOn(yealinkService, 'deviceEndedCall');
 
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
       await yealinkService.setMute(true);
       yealinkService.processBtnPress(0);
@@ -382,64 +390,64 @@ describe('YealinkService', () => {
       const setMuteFun = jest.spyOn(yealinkService, 'setMute');
       const devMuteFun = jest.spyOn(yealinkService, 'deviceMuteChanged');
 
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
 
       yealinkService.processBtnPress(mackRecMuteFlag | mackRecOffhookFlag);
       yealinkService.processBtnPress(mackRecOffhookFlag);
       expect(setMuteFun).toHaveBeenCalledWith(true);
-      expect(devMuteFun).toHaveBeenCalledWith({isMuted: true, name: 'CallMuted', conversationId: 'id'});
+      expect(devMuteFun).toHaveBeenCalledWith({ isMuted: true, name: 'CallMuted', conversationId: 'id' });
     });
 
     it('test unmute', async () => {
       const devMuteFun = jest.spyOn(yealinkService, 'deviceMuteChanged');
 
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
       await yealinkService.setMute(true);
 
       yealinkService.processBtnPress(mackRecMuteFlag | mackRecOffhookFlag);
-      expect(devMuteFun).toHaveBeenCalledWith({isMuted: false, name: 'CallUnmuted', conversationId: 'id'});
+      expect(devMuteFun).toHaveBeenCalledWith({ isMuted: false, name: 'CallUnmuted', conversationId: 'id' });
     });
 
     it('test hold', async () => {
       const setHoldFun = jest.spyOn(yealinkService, 'setHold');
       const devHoldFun = jest.spyOn(yealinkService, 'deviceHoldStatusChanged');
 
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
       
       yealinkService.processBtnPress(mackRecHoldFlag | mackRecOffhookFlag);
       yealinkService.processBtnPress(mackRecOffhookFlag);
       expect(setHoldFun).toHaveBeenCalledWith(null, true);
-      expect(devHoldFun).toHaveBeenCalledWith({holdRequested: true, name: 'OnHold', conversationId: 'id'});
+      expect(devHoldFun).toHaveBeenCalledWith({ holdRequested: true, name: 'OnHold', conversationId: 'id' });
     });
 
     it('test resume', async () => {
       const devHoldFun = jest.spyOn(yealinkService, 'deviceHoldStatusChanged');
 
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
       await yealinkService.setHold(null, true);
 
       yealinkService.processBtnPress(mackRecHoldFlag | mackRecOffhookFlag);
-      expect(devHoldFun).toHaveBeenCalledWith({holdRequested: false, name: 'ResumeCall', conversationId: 'id'});
+      expect(devHoldFun).toHaveBeenCalledWith({ holdRequested: false, name: 'ResumeCall', conversationId: 'id' });
     });
 
     it('test rejectCall', async () => {
       const devRejectFun = jest.spyOn(yealinkService, 'deviceRejectedCall');
       const setRejectFun = jest.spyOn(yealinkService, 'rejectCall');
 
-      await yealinkService.incomingCall({conversationId : 'id'});
+      await yealinkService.incomingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecReject);
 
-      expect(devRejectFun).toHaveBeenCalledWith({name: 'Reject', conversationId: 'id'});
+      expect(devRejectFun).toHaveBeenCalledWith({ name: 'Reject', conversationId: 'id' });
       expect(setRejectFun).toHaveBeenCalled();
     });
 
     it('ignore illegal key', async () => {
       const ansFun = jest.spyOn(yealinkService, 'answerCall');
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(0x100);
       expect(ansFun).not.toHaveBeenCalled();
     });
@@ -454,18 +462,18 @@ describe('YealinkService', () => {
     afterEach(async () => {
       yealinkService.isMuted = false;
       await yealinkService.endAllCalls();
-    })
+    });
 
     it('incomingCall with mute', async () => {
       const devSendFun = yealinkService.sendOpToDevice = jest.fn();
 
-      await yealinkService.incomingCall({conversationId : 'id'});
+      await yealinkService.incomingCall({ conversationId: 'id' });
 
       expect(devSendFun).toHaveBeenCalledWith(0b10 | 0b100);
     });
 
     it('answerCall with mute', async () => {
-      const devSendFun = yealinkService.sendOpToDevice = jest.fn((value: number): any => {});
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
 
       await yealinkService.answerCall();
 
@@ -473,7 +481,7 @@ describe('YealinkService', () => {
     });
 
     it('rejectCall with mute', async () => {
-      const devSendFun = yealinkService.sendOpToDevice = jest.fn((value: number): any => {});
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
 
       await yealinkService.rejectCall();
 
@@ -481,7 +489,7 @@ describe('YealinkService', () => {
     });
 
     it('endcall with mute', async () => {
-      const devSendFun = yealinkService.sendOpToDevice = jest.fn((value: number): any => {});
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
 
       await yealinkService.endCall(null, false);
 
@@ -501,7 +509,7 @@ describe('YealinkService', () => {
 
   describe('end call', () => {
     it('endcall with hasOtherActiveCalls', async () => {
-      const devSendFun = yealinkService.sendOpToDevice = jest.fn((value: number): any => {});
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
 
       await yealinkService.endCall(null, true);
 
@@ -509,7 +517,7 @@ describe('YealinkService', () => {
     });
 
     it('test endcall', async () => {
-      const devSendFun = yealinkService.sendOpToDevice = jest.fn((value: number): any => {});
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
 
       await yealinkService.endCall(null, false);
 
@@ -517,10 +525,10 @@ describe('YealinkService', () => {
     });
 
     it('test endcall with conversationId', async () => {
-      const devSendFun = yealinkService.sendOpToDevice = jest.fn((value: number): any => {});
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
       mackDeviceList = mackDeviceList1;
       await yealinkService.connect(mackTestDevName);
-      await yealinkService.outgoingCall({conversationId : 'id'});
+      await yealinkService.outgoingCall({ conversationId: 'id' });
       yealinkService.processBtnPress(mackRecOffhookFlag);
       await yealinkService.endCall('id', false);
       await yealinkService.disconnect();
