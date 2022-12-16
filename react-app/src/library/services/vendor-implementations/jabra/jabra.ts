@@ -14,7 +14,7 @@ import {
 import { CallInfo } from '../../..';
 import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from 'rxjs';
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
-import { isCefHosted } from '../../../utils';
+// import { isCefHosted } from '../../../utils';
 
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
@@ -42,7 +42,8 @@ export default class JabraService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return (window.navigator as any).hid && !isCefHosted();
+    // return (window.navigator as any).hid && !isCefHosted();
+    return true;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

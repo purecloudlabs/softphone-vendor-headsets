@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { debounce, isCefHosted, requestCefPromise, timedPromise } from '../../../../utils';
 import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
 import DeviceInfo from '../../../../types/device-info';

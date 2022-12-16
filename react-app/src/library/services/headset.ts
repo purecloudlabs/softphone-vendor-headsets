@@ -3,7 +3,7 @@ import { VendorImplementation, ImplementationConfig } from './vendor-implementat
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
-import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
+// import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
 import { CallInfo } from '../types/call-info';
 import { VendorEvent, HoldEventInfo, MutedEventInfo, EventInfoWithConversationId } from '../types/emitted-headset-events';
@@ -20,7 +20,7 @@ export default class HeadsetService {
   private static instance: HeadsetService;
 
   plantronics: VendorImplementation;
-  jabraNative: VendorImplementation;
+  // jabraNative: VendorImplementation;
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
   yealink: VendorImplementation;
@@ -37,12 +37,13 @@ export default class HeadsetService {
 
     this.logger = config.logger || console;
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
-    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
+    // this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    // [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.jabra, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -58,7 +59,7 @@ export default class HeadsetService {
       this.sennheiser,
       this.plantronics,
       this.jabra,
-      this.jabraNative,
+      // this.jabraNative,
       this.yealink
     ].filter((impl) => impl.isSupported());
 

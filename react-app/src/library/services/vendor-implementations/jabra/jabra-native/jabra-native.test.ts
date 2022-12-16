@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import JabraNativeService from './jabra-native';
 import DeviceInfo from '../../../../types/device-info';
 import { mockLogger } from '../../../../test-utils';
