@@ -38,8 +38,8 @@ export default class JabraNativeService extends VendorImplementation {
     // const data = (window as any)._HostedContextFunctions?.register(initData);
     // this.cefSupportsJabra = data?.supportsJabra;
     this.cefSupportsJabra = (window as any).Orgspan.serviceFor('application').get('hostedContext._supportsJabra');
-    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraEvent', this.handleJabraEvent);
-    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraDeviceAttached', this.handleJabraDeviceAttached);
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraEvent', this.handleJabraEvent.bind(this));
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraDeviceAttached', this.handleJabraDeviceAttached.bind(this));
   }
 
   static getInstance(config: ImplementationConfig): JabraNativeService {
