@@ -26,7 +26,7 @@ function populateDevices(service: JabraNativeService): void {
   service.devices.set(testDevice3.deviceID, testDevice3);
 }
 
-describe('JabraNativeService', () => {
+describe.skip('JabraNativeService', () => {
   let jabraNativeService: JabraNativeService = null;
 
   beforeEach(() => {

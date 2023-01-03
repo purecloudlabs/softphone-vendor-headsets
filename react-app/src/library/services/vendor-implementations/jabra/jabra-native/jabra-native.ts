@@ -28,15 +28,18 @@ export default class JabraNativeService extends VendorImplementation {
     this.devices = new Map<string, DeviceInfo>();
 
     // register CEF
-    const assetURL = window.location.origin + window.location.pathname;
-    const initData = {
-      assetURL,
-      callback: this.handleCefEvent.bind(this),
-      supportsTerminationRequest: true,
-      supportsUnifiedPreferences: true
-    };
-    const data = (window as any)._HostedContextFunctions?.register(initData);
-    this.cefSupportsJabra = data?.supportsJabra;
+    // const assetURL = window.location.origin + window.location.pathname;
+    // const initData = {
+    //   assetURL,
+    //   callback: this.handleCefEvent.bind(this),
+    //   supportsTerminationRequest: true,
+    //   supportsUnifiedPreferences: true
+    // };
+    // const data = (window as any)._HostedContextFunctions?.register(initData);
+    // this.cefSupportsJabra = data?.supportsJabra;
+    this.cefSupportsJabra = (window as any).Orgspan.serviceFor('application').get('hostedContext._supportsJabra');
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraEvent', this.handleJabraEvent);
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraDeviceAttached', this.handleJabraDeviceAttached);
   }
 
   static getInstance(config: ImplementationConfig): JabraNativeService {
