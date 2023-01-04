@@ -154,21 +154,28 @@ export default class JabraNativeService extends VendorImplementation {
     const deviceId = this.activeDeviceId;
     this.logger.debug('Sending command to headset', { deviceId, cmd, value });
 
-    // (window as any).Orgspan.serviceFor('application').get('hostedContext').sendJabraEventToDesktop(
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').sendJabraEventToDesktop(
+        deviceId,
+        cmd,
+        value
+    );
+
+    // (window as any).Orgspan.serviceFor('application').get('hostedContext').sendEventToDesktop(
+    //   'jabraEvent',
     //   {
     //     deviceID: deviceId,
     //     event: cmd,
     //     value
     //   }
     // );
-    (window as any)._HostedContextFunctions.sendEventToDesktop(
-      'jabraEvent',
-      {
-        deviceID: deviceId,
-        event: cmd,
-        value
-      }
-    );
+    // (window as any)._HostedContextFunctions.sendEventToDesktop(
+    //   'jabraEvent',
+    //   {
+    //     deviceID: deviceId,
+    //     event: cmd,
+    //     value
+    //   }
+    // );
   }
 
   private _setRinging(value: boolean): void {
