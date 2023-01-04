@@ -38,6 +38,8 @@ export default class JabraNativeService extends VendorImplementation {
     // const data = (window as any)._HostedContextFunctions?.register(initData);
     // this.cefSupportsJabra = data?.supportsJabra;
     this.cefSupportsJabra = (window as any).Orgspan.serviceFor('application').get('hostedContext._supportsJabra');
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraEvent', this.handleJabraEvent.bind(this));
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').on('JabraDeviceAttached', this.handleJabraDeviceAttached.bind(this));
   }
 
   static getInstance(config: ImplementationConfig): JabraNativeService {
@@ -152,14 +154,21 @@ export default class JabraNativeService extends VendorImplementation {
     const deviceId = this.activeDeviceId;
     this.logger.debug('Sending command to headset', { deviceId, cmd, value });
 
-    (window as any)._HostedContextFunctions.sendEventToDesktop(
-      'jabraEvent',
+    (window as any).Orgspan.serviceFor('application').get('hostedContext').sendJabraEventToDesktop(
       {
         deviceID: deviceId,
         event: cmd,
         value
       }
     );
+    // (window as any)._HostedContextFunctions.sendEventToDesktop(
+    //   'jabraEvent',
+    //   {
+    //     deviceID: deviceId,
+    //     event: cmd,
+    //     value
+    //   }
+    // );
   }
 
   private _setRinging(value: boolean): void {
@@ -274,10 +283,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   connect(): Promise<void> {
-    const context = (window as any).Orgspan.serviceFor('application').get('hostedContext');
     this.changeConnectionStatus({ isConnected: false, isConnecting: true });
-    context.on('JabraEvent', this.handleJabraEvent.bind(this));
-    context.on('JabraDeviceAttached', this.handleJabraDeviceAttached.bind(this));
 
     return timedPromise(this.updateDevices(), connectTimeout).catch(err => {
       this.logger.error('Failed to connect to Jabra', err);
