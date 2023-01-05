@@ -18,7 +18,7 @@ type DeviceEvent = typeof DeviceEvent;
 
 export interface JabraHeadsetEvent {
   msg: HeadsetEvent;
-  event: JabraNativeEventNames;
+  eventName: JabraNativeEventNames;
   value?: any;
   hidInput: string;
 }
