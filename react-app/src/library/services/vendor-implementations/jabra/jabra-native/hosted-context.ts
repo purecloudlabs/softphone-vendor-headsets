@@ -77,25 +77,24 @@ export default class HostedContext extends (EventEmitter as { new(): StrictEvent
       Object.keys((eventEmitter as any).__proto__).forEach((name) => {
         this[name] = eventEmitter[name];
       });
-
-      if ((window as any)?.Orgspan) {
-        this.source = (window as any).Orgspan.serviceFor('application').get('hostedContext');
-      } else {
-        const assertURL = window.location.origin + window.location.pathname;
-        const initData = {
-          assertURL,
-          callback: this.hostedContext.callback.bind(this.hostedContext),
-          supportsTerminationRequest: true,
-          supportsUnifiedPreferences: true
-        };
-        (window as any)._HostedContextFunctions.register(initData);
-        // this.source = (window as any)._HostedContextFunctions?.register(initData);
-        this.source = this.hostedContext;
+      this.source = this.hostedContext;
+      if ((window as any)._HostedContextFunctions) {
+        if ((window as any)?.Orgspan) {
+          this.source = (window as any).Orgspan.serviceFor('application').get('hostedContext');
+        } else {
+          const assertURL = window.location.origin + window.location.pathname;
+          const initData = {
+            assertURL,
+            callback: this.hostedContext.callback.bind(this.hostedContext),
+            supportsTerminationRequest: true,
+            supportsUnifiedPreferences: true
+          };
+          (window as any)._HostedContextFunctions.register(initData);
+        }
       }
     }
 
     private emitEvent (eventName, eventBody) {
-      console.log('emitEvent', { eventName, eventBody });
       this.emit(eventName, eventBody);
     }
 }
