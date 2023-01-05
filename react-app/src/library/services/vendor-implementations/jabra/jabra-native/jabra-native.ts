@@ -26,16 +26,34 @@ export default class JabraNativeService extends VendorImplementation {
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
 
-    // register CEF
-    const assetURL = window.location.origin + window.location.pathname;
-    const initData = {
-      assetURL,
-      callback: this.handleCefEvent.bind(this),
-      supportsTerminationRequest: true,
-      supportsUnifiedPreferences: true
-    };
-    const data = (window as any)._HostedContextFunctions?.register(initData);
-    this.cefSupportsJabra = data?.supportsJabra;
+    if (isCefHosted) {
+      if (this.isHostedContextInitialized) {
+        this.setupNativeHandlers();
+      } else {
+        this.waitForHostedContext();
+      }
+    }
+  }
+
+  private isHostedContextInitialized (): boolean {
+    return (window as any).Orgspan?.serviceFor('application').get('hostedContext').isHosted();
+  }
+
+  private waitForHostedContext () {
+    setTimeout(() => {
+      if (this.isHostedContextInitialized()) {
+        this.setupNativeHandlers
+      } else {
+        this.waitForHostedContext();
+      }
+    }, 500);
+  }
+
+  private setupNativeHandlers () {
+    const hostedContext = (window as any).Orgspan?.serviceFor('application').get('hostedContext');
+    this.cefSupportsJabra = hostedContext.supportsJabra();
+    hostedContext.on('JabraEvent', this.handleJabraEvent.bind(this));
+    hostedContext.on('JabraDeviceAttached', this.handleJabraDeviceAttached.bind(this));
   }
 
   static getInstance(config: ImplementationConfig): JabraNativeService {
