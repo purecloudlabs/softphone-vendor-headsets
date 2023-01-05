@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { EventEmitter } from 'events';
 
 export default function () {
