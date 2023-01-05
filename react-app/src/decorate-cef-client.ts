@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 import { EventEmitter } from 'events';
 
-export default function () {
+export default function (): void {
   if (!(window as any)._HostedContextFunctions) {
     return;
   }
