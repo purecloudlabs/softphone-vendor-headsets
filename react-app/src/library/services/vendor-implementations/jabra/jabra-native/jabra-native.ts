@@ -26,8 +26,8 @@ export default class JabraNativeService extends VendorImplementation {
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
 
-    if (isCefHosted) {
-      if (this.isHostedContextInitialized) {
+    if (isCefHosted()) {
+      if (this.isHostedContextInitialized()) {
         this.setupNativeHandlers();
       } else {
         this.waitForHostedContext();
@@ -42,7 +42,7 @@ export default class JabraNativeService extends VendorImplementation {
   private waitForHostedContext () {
     setTimeout(() => {
       if (this.isHostedContextInitialized()) {
-        this.setupNativeHandlers
+        this.setupNativeHandlers()
       } else {
         this.waitForHostedContext();
       }
@@ -111,7 +111,7 @@ export default class JabraNativeService extends VendorImplementation {
 
   private handleJabraEvent(event: JabraHeadsetEvent): void {
     this.logger.debug(`Jabra event received`, event);
-    this._processEvent(event.event, event.value);
+    this._processEvent(event.eventName, event.value);
   }
 
   private _handleOffhookEvent(isOffhook: boolean): void {
