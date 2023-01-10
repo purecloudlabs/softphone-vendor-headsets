@@ -5,6 +5,10 @@ import './index.css';
 import App from './App';
 import './config/i18n';
 
+import decorateCefClient from './decorate-cef-client';
+
+decorateCefClient();
+
 ReactDOM.render(
   <React.StrictMode>
     <Suspense fallback={<div>Loading i18n</div>}>
