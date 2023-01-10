@@ -3,7 +3,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.0...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.1...HEAD)
+
+# [v2.3.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.0...v2.3.1)
+## Fixed
+* [SERVOPS-33064](https://inindca.atlassian.net/browse/SERVOPS-33064) - Fixed issue where Jabra Native overwrites CEF registration, preventing the use of external links to place call
 
 # [v2.3.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.1...v2.3.0)
 ## Added
