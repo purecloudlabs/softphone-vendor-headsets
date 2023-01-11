@@ -74,7 +74,6 @@ describe('HeadsetService', () => {
     it ('should only include implementations that are supported', () => {
       headsetService = HeadsetService.getInstance(config);
       [headsetService['plantronics'], headsetService['sennheiser'], headsetService['jabra'], headsetService['jabraNative'], headsetService['yealink']]
-      // [headsetService['plantronics'], headsetService['sennheiser'], headsetService['jabra'], headsetService['yealink']]
         .forEach((impl) => {
           impl.isSupported = jest.fn().mockReturnValue(true);
         });
@@ -86,7 +85,7 @@ describe('HeadsetService', () => {
       [headsetService['jabra'], headsetService['jabraNative']].forEach((impl) => (impl.isSupported as jest.Mock).mockReturnValue(false));
       headsetService['_implementations'] = [];
 
-      expect(headsetService.implementations.length).toBe(4);
+      expect(headsetService.implementations.length).toBe(3);
     });
   });
 

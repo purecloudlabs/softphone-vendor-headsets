@@ -43,7 +43,6 @@ export default class JabraService extends VendorImplementation {
 
   isSupported (): boolean {
     return (window.navigator as any).hid && !isCefHosted();
-    // return true;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
@@ -324,31 +323,22 @@ export default class JabraService extends VendorImplementation {
 
   async connect (originalDeviceLabel: string): Promise<void> {
     if (this.isConnecting) {
-      console.log('SVH: Connection Status - isConnecting');
       return;
     }
 
     this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
-    console.log('SVH: Connection Status has been updated', { isConnected: this.isConnected, isConnecting: true });
     if (!this.jabraSdk) {
-      console.log('SVH: No Jabra SDK was present');
       this.jabraSdk = await this.initializeJabraSdk();
       this.callControlFactory = this.createCallControlFactory(this.jabraSdk);
     }
 
-    console.log('SVH: JabraSdk', this.jabraSdk);
-    console.log('SVH: CallControlFactory', this.callControlFactory);
-
     const deviceLabel = originalDeviceLabel.toLocaleLowerCase();
-    console.log('SVH: Device Label in question', deviceLabel);
 
     this._deviceInfo = null;
 
     let selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
     if (!selectedDevice) {
-      console.log('SVH: No device selected');
       try {
-        console.log('SVH: Attempting to pull device from WebHID');
         selectedDevice = await this.getDeviceFromWebhid(deviceLabel);
       } catch (e) {
         this.isConnecting &&
@@ -392,8 +382,6 @@ export default class JabraService extends VendorImplementation {
 
   async getDeviceFromWebhid (deviceLabel: string): Promise<IDevice> {
     this.requestWebHidPermissions(webHidPairing);
-
-    console.log('SVH: List of devices provided through WebHID', this.jabraSdk.deviceList);
 
     return firstValueFrom(
       this.jabraSdk.deviceList.pipe(

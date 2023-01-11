@@ -1,10 +1,8 @@
-/* istanbul ignore file */
 import { debounce, isCefHosted, requestCefPromise, timedPromise } from '../../../../utils';
 import { VendorImplementation, ImplementationConfig } from '../../vendor-implementation';
 import DeviceInfo from '../../../../types/device-info';
 import { CallInfo } from '../../../../types/call-info';
 import { JabraNativeHeadsetState, JabraHeadsetEvent, HeadsetEvent, JabraDeviceEvent, DeviceEvent, JabraNativeCommands, JabraNativeEventNames } from './types';
-import HostedContext from './hosted-context';
 
 const connectTimeout = 5000;
 const offHookThrottleTime = 500;
@@ -21,14 +19,12 @@ export default class JabraNativeService extends VendorImplementation {
   pendingConversationId: string;
   activeConversationId: string;
   pendingConversationIsOutbound: boolean;
-  hostedContext: HostedContext;
 
   private constructor(config: ImplementationConfig) {
     super(config);
     this.vendorName = 'Jabra';
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
-    this.hostedContext = new HostedContext();
 
     if (isCefHosted()) {
       if (this.isHostedContextInitialized()) {
@@ -86,6 +82,26 @@ export default class JabraNativeService extends VendorImplementation {
 
   get isDeviceAttached(): boolean {
     return !!this.deviceInfo;
+  }
+
+  private isHeadsetEvent (event: any): event is JabraHeadsetEvent {
+    return event.msg === HeadsetEvent;
+  }
+
+  private isDeviceEvent (event: any): event is JabraDeviceEvent {
+    return event.msg === DeviceEvent;
+  }
+
+  private handleCefEvent(event: any): void {
+    if (!this.isConnected) {
+      return;
+    }
+
+    if (this.isDeviceEvent(event)) {
+      this.handleJabraDeviceAttached(event)
+    } else if (this.isHeadsetEvent(event)) {
+      this.handleJabraEvent(event);
+    }
   }
 
   private handleJabraDeviceAttached(event: JabraDeviceEvent): void {
@@ -152,10 +168,13 @@ export default class JabraNativeService extends VendorImplementation {
     const deviceId = this.activeDeviceId;
     this.logger.debug('Sending command to headset', { deviceId, cmd, value });
 
-    this.hostedContext.source.sendJabraEventToDesktop(
-        deviceId,
-        cmd,
+    (window as any)._HostedContextFunctions.sendEventToDesktop(
+      'jabraEvent',
+      {
+        deviceID: deviceId,
+        event: cmd,
         value
+      }
     );
   }
 

@@ -43,7 +43,6 @@ export default class HeadsetService {
     this.yealink = YealinkService.getInstance({ logger: this.logger });
 
     [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
-    // [this.plantronics, this.jabra, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -84,9 +83,12 @@ export default class HeadsetService {
   }
 
   activeMicChange (newMicLabel: string): void {
+    console.log('inside activeMicChange', newMicLabel);
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
+      console.log('implementation', implementation);
       if (implementation) {
+        console.log('about to call changeImplementation');
         this.changeImplementation(implementation, newMicLabel);
       } else if (this.selectedImplementation) {
         this.clearSelectedImplementation();
@@ -97,11 +99,15 @@ export default class HeadsetService {
   }
 
   async changeImplementation (implementation: VendorImplementation | null, deviceLabel: string): Promise<void> {
+    console.log('inside changeImplementation', implementation, deviceLabel);
+    console.log('selectedImplementation', this.selectedImplementation);
     if (implementation === this.selectedImplementation) {
+      console.log('selected implementation matched new implementation');
       return;
     }
 
     if (this.selectedImplementation) {
+      console.log('about to disconnect the currently selected implementation');
       // remove headsetStates associated with implementation
       this.headsetConversationStates = {};
 
@@ -111,8 +117,10 @@ export default class HeadsetService {
     this.selectedImplementation = implementation;
 
     this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: implementation });
+    console.log('emitted event');
 
     if (implementation) {
+      console.log('attempting to connect implementation');
       await implementation.connect(deviceLabel);
     }
   }

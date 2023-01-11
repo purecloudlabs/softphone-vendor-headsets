@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 import JabraNativeService from './jabra-native';
 import DeviceInfo from '../../../../types/device-info';
 import { mockLogger } from '../../../../test-utils';
@@ -29,7 +28,7 @@ function populateDevices(service: JabraNativeService): void {
   service.devices.set(testDevice3.deviceID, testDevice3);
 }
 
-describe.skip('JabraNativeService', () => {
+describe('JabraNativeService', () => {
   let jabraNativeService: JabraNativeService = null;
 
   beforeEach(() => {
