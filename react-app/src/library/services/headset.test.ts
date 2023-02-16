@@ -1,6 +1,6 @@
 import HeadsetService from './headset';
 import { VendorImplementation } from './vendor-implementations/vendor-implementation';
-import PlantronicsService from './vendor-implementations/plantronics/plantronics';
+import PlantronicsService from './vendor-implementations/polyhp/polyhp';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
@@ -16,7 +16,7 @@ import { filter } from 'rxjs';
 jest.mock('broadcast-channel');
 
 describe('HeadsetService', () => {
-  let plantronics: VendorImplementation;
+  let polyhp: VendorImplementation;
   let sennheiser: VendorImplementation;
   /* eslint-disable @typescript-eslint/no-unused-vars */
   let jabraNative: VendorImplementation;
@@ -27,7 +27,7 @@ describe('HeadsetService', () => {
 
   beforeEach(() => {
     headsetService = HeadsetService.getInstance({ ...config, createNew: true });
-    plantronics = PlantronicsService.getInstance({ ...config, vendorName: 'Plantronics' });
+    polyhp = PlantronicsService.getInstance({ ...config, vendorName: 'PolyHP' });
     sennheiser = SennheiserService.getInstance({ ...config, vendorName: 'Sennheiser' });
     jabraNative = JabraNativeService.getInstance({ ...config, vendorName: 'JabraNative' });
     yealink = YealinkService.getInstance({ ...config, vendorName: 'Yealink' });
@@ -35,14 +35,14 @@ describe('HeadsetService', () => {
     jabra = JabraService.getInstance({ ...config, vendorName: 'Jabra' });
 
     jest.spyOn(sennheiser, 'connect').mockResolvedValue(true);
-    jest.spyOn(plantronics, 'connect').mockResolvedValue(true);
+    jest.spyOn(polyhp, 'connect').mockResolvedValue(true);
     jest.spyOn(sennheiser, 'disconnect').mockResolvedValue(true);
-    jest.spyOn(plantronics, 'disconnect').mockResolvedValue(true);
+    jest.spyOn(polyhp, 'disconnect').mockResolvedValue(true);
   });
 
   afterEach(() => {
     headsetService = null;
-    plantronics = null;
+    polyhp = null;
     sennheiser = null;
     /* eslint-disable @typescript-eslint/no-unused-vars */
     jabraNative = null;
@@ -73,7 +73,7 @@ describe('HeadsetService', () => {
   describe('implementations', () => {
     it ('should only include implementations that are supported', () => {
       headsetService = HeadsetService.getInstance(config);
-      [headsetService['plantronics'], headsetService['sennheiser'], headsetService['jabra'], headsetService['jabraNative'], headsetService['yealink']]
+      [headsetService['polyhp'], headsetService['sennheiser'], headsetService['jabra'], headsetService['jabraNative'], headsetService['yealink']]
         .forEach((impl) => {
           impl.isSupported = jest.fn().mockReturnValue(true);
         });
@@ -104,29 +104,29 @@ describe('HeadsetService', () => {
     });
     it('should change the selected implementation to what was passed in', async () => {
       headsetService.selectedImplementation = sennheiser;
-      await headsetService.changeImplementation(plantronics, 'test label');
-      expect(headsetService.selectedImplementation).toBe(plantronics);
+      await headsetService.changeImplementation(polyhp, 'test label');
+      expect(headsetService.selectedImplementation).toBe(polyhp);
     });
     it('should call disconnect on the old implementation, and connect on the new implementation', async () => {
       jest.spyOn(sennheiser, 'disconnect');
-      jest.spyOn(plantronics, 'connect');
+      jest.spyOn(polyhp, 'connect');
       headsetService.selectedImplementation = sennheiser;
 
-      await headsetService.changeImplementation(plantronics, 'test label');
+      await headsetService.changeImplementation(polyhp, 'test label');
 
       expect(sennheiser.disconnect).toHaveBeenCalled();
-      expect(plantronics.connect).toHaveBeenCalled();
+      expect(polyhp.connect).toHaveBeenCalled();
     });
 
     it('should trigger implementationChanged event for new implementation', (done) => {
       headsetService.headsetEvents$.subscribe((event) => {
         expect(event.event).toBe('implementationChanged');
-        expect(event.payload).toStrictEqual(plantronics);
+        expect(event.payload).toStrictEqual(polyhp);
         expect(event.payload instanceof VendorImplementation).toBe(true);
         done();
       });
       headsetService.selectedImplementation = sennheiser;
-      headsetService.changeImplementation(plantronics, 'test label');
+      headsetService.changeImplementation(polyhp, 'test label');
     });
 
     it('should trigger implementationChanged event when clearing the implementation', done => {
@@ -135,7 +135,7 @@ describe('HeadsetService', () => {
         expect(value.payload).toBeNull();
         done();
       });
-      headsetService.selectedImplementation = plantronics;
+      headsetService.selectedImplementation = polyhp;
       headsetService.changeImplementation(null, '');
     });
   });
@@ -143,8 +143,8 @@ describe('HeadsetService', () => {
   describe('incomingCall', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'incomingCall').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'incomingCall').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -154,29 +154,29 @@ describe('HeadsetService', () => {
     it('should call incomingCall on the selected implementation when the implementation is connected', () => {
       const callInfo: CallInfo = { conversationId: '1234', contactName: 'CM Punk' };
       const hasOtherActiveCalls = false;
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
 
       headsetService.incomingCall(callInfo, hasOtherActiveCalls);
 
-      expect(plantronics.incomingCall).toHaveBeenCalledWith(callInfo, hasOtherActiveCalls);
+      expect(polyhp.incomingCall).toHaveBeenCalledWith(callInfo, hasOtherActiveCalls);
     });
 
     it('shouldnot call incomingCall on the selected implmenetation when the implementation is not connected', () => {
       const callInfo: CallInfo = { conversationId: '4321', contactName: 'Bryan Danielson' };
       const hasOtherActiveCalls = false;
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.incomingCall(callInfo, hasOtherActiveCalls);
 
-      expect(plantronics.incomingCall).not.toHaveBeenCalled();
+      expect(polyhp.incomingCall).not.toHaveBeenCalled();
     });
   });
 
   describe('outgoingCall', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'outgoingCall').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'outgoingCall').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -185,28 +185,28 @@ describe('HeadsetService', () => {
 
     it('should call outgoingCall on the selected implementation when the implementation is connected', () => {
       const callInfo: CallInfo = { conversationId: '4567', contactName: 'Adam Cole' };
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
 
       headsetService.outgoingCall(callInfo);
 
-      expect(plantronics.outgoingCall).toHaveBeenCalledWith(callInfo);
+      expect(polyhp.outgoingCall).toHaveBeenCalledWith(callInfo);
     });
 
     it('shouldnot call outgoingCall on the selected implmenetation when the implementation is not connected', () => {
       const callInfo: CallInfo = { conversationId: '7654', contactName: 'Marc Spector' };
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.outgoingCall(callInfo);
 
-      expect(plantronics.outgoingCall).not.toHaveBeenCalled();
+      expect(polyhp.outgoingCall).not.toHaveBeenCalled();
     });
   });
 
   describe('answerCall', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'answerCall').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'answerCall').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -214,7 +214,7 @@ describe('HeadsetService', () => {
     });
     it('should do nothing if already in the expected state', async () => {
       const conversationId = 'convoId241123';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           offHook: true,
@@ -227,12 +227,12 @@ describe('HeadsetService', () => {
 
       await headsetService.answerCall(conversationId, false);
 
-      expect(plantronics.answerCall).not.toHaveBeenCalled();
+      expect(polyhp.answerCall).not.toHaveBeenCalled();
     });
 
     it('should call answerCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'convoId123': {
           offHook: false,
@@ -244,19 +244,19 @@ describe('HeadsetService', () => {
       };
       headsetService.answerCall(conversationId, false);
 
-      expect(plantronics.answerCall).toHaveBeenCalledWith(conversationId);
+      expect(polyhp.answerCall).toHaveBeenCalledWith(conversationId);
     });
     it('should not call answerCall on the selected implmenetation when the implementation is not connected', () => {
       const conversationId = '1234';
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.answerCall(conversationId, false);
 
-      expect(plantronics.answerCall).not.toHaveBeenCalled();
+      expect(polyhp.answerCall).not.toHaveBeenCalled();
     });
     it('should set a headsetConversationStates value if auto answer', () => {
       const conversationId = '1234';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
 
       headsetService.answerCall(conversationId, true);
 
@@ -268,7 +268,7 @@ describe('HeadsetService', () => {
         ringing: false
       });
 
-      expect(plantronics.answerCall).toHaveBeenCalledWith(conversationId, true);
+      expect(polyhp.answerCall).toHaveBeenCalledWith(conversationId, true);
     });
   });
 
@@ -276,8 +276,8 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'rejectCall').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'rejectCall').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -286,7 +286,7 @@ describe('HeadsetService', () => {
     });
     it('should do nothing if already in expected state', async () => {
       const conversationId = 'convoId12523';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           offHook: false,
@@ -299,12 +299,12 @@ describe('HeadsetService', () => {
 
       await headsetService.rejectCall(conversationId);
 
-      expect(plantronics.rejectCall).not.toHaveBeenCalled();
+      expect(polyhp.rejectCall).not.toHaveBeenCalled();
     });
 
     it('should not delete the headset state if there is no removeTimer', async () => {
       const conversationId = 'convoId12523';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           offHook: false,
@@ -326,7 +326,7 @@ describe('HeadsetService', () => {
 
     it('should delete the headset state if there is removeTimer', async () => {
       const conversationId = 'convoId12523';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           offHook: false,
@@ -347,7 +347,7 @@ describe('HeadsetService', () => {
 
     it('should call rejectCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'convoId123': {
           offHook: false,
@@ -360,26 +360,26 @@ describe('HeadsetService', () => {
 
       headsetService.rejectCall(conversationId);
 
-      expect(plantronics.rejectCall).toHaveBeenCalledWith(conversationId);
+      expect(polyhp.rejectCall).toHaveBeenCalledWith(conversationId);
       expect(headsetService['headsetConversationStates']['convoId123'].removeTimer).toBeDefined();
       jest.advanceTimersByTime(2500);
       expect(headsetService['headsetConversationStates']).toStrictEqual({});
     });
     it('should not call rejectCall on the selected implmenetation when the implementation is not connected', () => {
       const conversationId = '1234';
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.rejectCall(conversationId);
 
-      expect(plantronics.rejectCall).not.toHaveBeenCalled();
+      expect(polyhp.rejectCall).not.toHaveBeenCalled();
     });
   });
 
   describe('setMute', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'setMute').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'setMute').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -387,7 +387,7 @@ describe('HeadsetService', () => {
     });
     it('should do nothing if all calls are muted', async () => {
       const conversationId = 'convoId123';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           offHook: true,
@@ -400,10 +400,10 @@ describe('HeadsetService', () => {
 
       await headsetService.setMute(true);
 
-      expect(plantronics.setMute).not.toHaveBeenCalled();
+      expect(polyhp.setMute).not.toHaveBeenCalled();
     });
     it('should call setMute on the selected implementation when the implementation is connected', () => {
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'convoId123': {
           offHook: false,
@@ -416,24 +416,24 @@ describe('HeadsetService', () => {
 
       headsetService.setMute(true);
 
-      expect(plantronics.setMute).toHaveBeenCalledWith(true);
+      expect(polyhp.setMute).toHaveBeenCalledWith(true);
       expect(headsetService['headsetConversationStates']['convoId123'].muted).toBe(true);
     });
 
     it('shouldnot call setMute on the selected implmenetation when the implementation is not connected', () => {
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.setMute(true);
 
-      expect(plantronics.setMute).not.toHaveBeenCalled();
+      expect(polyhp.setMute).not.toHaveBeenCalled();
     });
   });
 
   describe('setHold', () => {
     beforeEach(() => {
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'setHold').mockResolvedValue(null);
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'setHold').mockResolvedValue(null);
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -441,7 +441,7 @@ describe('HeadsetService', () => {
     });
     it('should do nothing if already in expected state', async () => {
       const conversationId = 'convoId123';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           offHook: true,
@@ -454,11 +454,11 @@ describe('HeadsetService', () => {
 
       await headsetService.setHold(conversationId, true);
 
-      expect(plantronics.setHold).not.toHaveBeenCalled();
+      expect(polyhp.setHold).not.toHaveBeenCalled();
     });
     it('should call setHold on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'convoId123': {
           offHook: true,
@@ -471,16 +471,16 @@ describe('HeadsetService', () => {
 
       headsetService.setHold(conversationId, true);
 
-      expect(plantronics.setHold).toHaveBeenCalledWith(conversationId, true);
+      expect(polyhp.setHold).toHaveBeenCalledWith(conversationId, true);
     });
 
     it('should not call setHold on the selected implmenetation when the implementation is not connected', () => {
       const conversationId = '1234';
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.setHold(conversationId, true);
 
-      expect(plantronics.setHold).not.toHaveBeenCalled();
+      expect(polyhp.setHold).not.toHaveBeenCalled();
     });
   });
 
@@ -488,8 +488,8 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'endCall').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'endCall').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -498,7 +498,7 @@ describe('HeadsetService', () => {
     });
     it('should do nothing if already in expected state', async () => {
       const conversationId = 'myconvoId5';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           conversationId,
@@ -517,7 +517,7 @@ describe('HeadsetService', () => {
 
     it('should delete headset state after time', async () => {
       const conversationId = 'myconvoId5';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           conversationId,
@@ -537,7 +537,7 @@ describe('HeadsetService', () => {
 
     it('should not delete headset state after time if there is no removeTimer', async () => {
       const conversationId = 'myconvoId5';
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
           conversationId,
@@ -557,7 +557,7 @@ describe('HeadsetService', () => {
     it('should call endCall on the selected implementation when the implementation is connected', () => {
       const conversationId = 'convoId123';
       const hasOtherActiveCalls = false;
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'convoId123': {
           offHook: true,
@@ -570,7 +570,7 @@ describe('HeadsetService', () => {
 
       headsetService.endCall(conversationId, hasOtherActiveCalls);
 
-      expect(plantronics.endCall).toHaveBeenCalledWith(conversationId, hasOtherActiveCalls);
+      expect(polyhp.endCall).toHaveBeenCalledWith(conversationId, hasOtherActiveCalls);
       expect(headsetService['headsetConversationStates']['convoId123'].removeTimer).toBeDefined();
       jest.advanceTimersByTime(2500);
       expect(headsetService['headsetConversationStates']).toStrictEqual({});
@@ -579,11 +579,11 @@ describe('HeadsetService', () => {
     it('shouldnot call endCall on the selected implmenetation when the implementation is not connected', () => {
       const conversationId = '1234';
       const hasOtherActiveCalls = false;
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
 
       headsetService.endCall(conversationId, hasOtherActiveCalls);
 
-      expect(plantronics.endCall).not.toHaveBeenCalled();
+      expect(polyhp.endCall).not.toHaveBeenCalled();
     });
   });
 
@@ -591,8 +591,8 @@ describe('HeadsetService', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       headsetService = HeadsetService.getInstance(config);
-      jest.spyOn(plantronics, 'endAllCalls').mockResolvedValue({});
-      headsetService.selectedImplementation = plantronics;
+      jest.spyOn(polyhp, 'endAllCalls').mockResolvedValue({});
+      headsetService.selectedImplementation = polyhp;
     });
 
     afterEach(() => {
@@ -600,7 +600,7 @@ describe('HeadsetService', () => {
       jest.resetAllMocks();
     });
     it('should not setTimeout if there is already a remove timer', async () => {
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'myConvoId': {
           conversationId: 'myConvoId',
@@ -619,7 +619,7 @@ describe('HeadsetService', () => {
     });
 
     it('should not delete if theres no remove timer', async () => {
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       const conversationId = 'myConvoId15521';
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
@@ -637,7 +637,7 @@ describe('HeadsetService', () => {
       expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
     });
     it('should delete headset state', async () => {
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       const conversationId = 'myConvoId151';
       headsetService['headsetConversationStates'] = {
         [conversationId]: {
@@ -654,7 +654,7 @@ describe('HeadsetService', () => {
       expect(headsetService['headsetConversationStates'][conversationId]).toBeFalsy();
     });
     it('should call endAllCalls on the selected implementation when the implementation is connected', () => {
-      plantronics.isConnected = true;
+      polyhp.isConnected = true;
       headsetService['headsetConversationStates'] = {
         'convoId123': {
           offHook: true,
@@ -682,15 +682,15 @@ describe('HeadsetService', () => {
       Object.keys(headsetService['headsetConversationStates']).forEach((key) => {
         expect(headsetService['headsetConversationStates'][key].removeTimer).toBeDefined();
       });
-      expect(plantronics.endAllCalls).toHaveBeenCalled();
+      expect(polyhp.endAllCalls).toHaveBeenCalled();
       jest.advanceTimersByTime(2500);
       expect(headsetService['headsetConversationStates']).toStrictEqual({});
     });
 
     it('shouldnot call endAllCalls on the selected implmenetation when the implementation is not connected', () => {
-      plantronics.isConnected = false;
+      polyhp.isConnected = false;
       headsetService.endAllCalls();
-      expect(plantronics.endAllCalls).not.toHaveBeenCalled();
+      expect(polyhp.endAllCalls).not.toHaveBeenCalled();
     });
   });
 
@@ -714,7 +714,7 @@ describe('HeadsetService', () => {
 
     it(
       'should send a headset event of type DEVICE_ANSWERED_CALL', (done) => {
-        const testEvent = { vendor: plantronics, body: { name: 'AcceptCall', code: '1', conversationId: 'convoId123', event: {} } };
+        const testEvent = { vendor: polyhp, body: { name: 'AcceptCall', code: '1', conversationId: 'convoId123', event: {} } };
         headsetService['headsetConversationStates'] = {
           [testEvent.body.conversationId]: {
             offHook: false,
@@ -730,7 +730,7 @@ describe('HeadsetService', () => {
           done();
         });
 
-        headsetService.selectedImplementation = plantronics;
+        headsetService.selectedImplementation = polyhp;
         headsetService['handleDeviceAnsweredCall'](testEvent as VendorEvent<EventInfoWithConversationId>);
         expect(headsetService['headsetConversationStates'][testEvent.body.conversationId]).toStrictEqual({
           offHook: true,
@@ -767,8 +767,8 @@ describe('HeadsetService', () => {
           expect(event.payload).toStrictEqual({ conversationId: 'a1b2c3', name: 'callrejected' });
           done();
         });
-        headsetService.selectedImplementation = plantronics;
-        const testEvent = { vendor: plantronics, body: { name: 'callrejected', conversationId: 'a1b2c3' } };
+        headsetService.selectedImplementation = polyhp;
+        const testEvent = { vendor: polyhp, body: { name: 'callrejected', conversationId: 'a1b2c3' } };
         headsetService['headsetConversationStates'] = {
           [testEvent.body.conversationId]: {
             offHook: false,
@@ -792,8 +792,8 @@ describe('HeadsetService', () => {
       }
     );
     it('should do nothing if already in expected state', () => {
-      headsetService.selectedImplementation = plantronics;
-      const testEvent = { vendor: plantronics, body: { name: 'callrejected', conversationId: 'a1b2c3' } };
+      headsetService.selectedImplementation = polyhp;
+      const testEvent = { vendor: polyhp, body: { name: 'callrejected', conversationId: 'a1b2c3' } };
       headsetService['headsetConversationStates'] = {
         [testEvent.body.conversationId]: {
           offHook: false,
@@ -988,7 +988,7 @@ describe('HeadsetService', () => {
         expect(event.payload).toStrictEqual(testEvent.body);
         done();
       });
-      const testEvent = { vendor: plantronics, body: { name: 'CallRinging', code: 7, event: {} } };
+      const testEvent = { vendor: polyhp, body: { name: 'CallRinging', code: 7, event: {} } };
       headsetService['handleDeviceLogs'](testEvent);
     });
   });
@@ -1001,16 +1001,16 @@ describe('HeadsetService', () => {
       const changeImplementationSpy = jest.spyOn(headsetService, 'changeImplementation');
       const disconnectSpy = jest.spyOn(sennheiser, 'disconnect');
       headsetService['jabra'].isSupported = jest.fn().mockReturnValue(true);
-      headsetService['plantronics'].isSupported = jest.fn().mockReturnValue(true);
+      headsetService['polyhp'].isSupported = jest.fn().mockReturnValue(true);
       headsetService['sennheiser'].isSupported = jest.fn().mockReturnValue(true);
 
       headsetService.activeMicChange('jabra');
       expect(changeImplementationSpy).toHaveBeenCalledWith(jabra, 'jabra');
 
       headsetService.activeMicChange('plantronics test');
-      expect(changeImplementationSpy).toHaveBeenCalledWith(plantronics, 'plantronics test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(polyhp, 'plantronics test');
       headsetService.activeMicChange('plt test');
-      expect(changeImplementationSpy).toHaveBeenCalledWith(plantronics, 'plt test');
+      expect(changeImplementationSpy).toHaveBeenCalledWith(polyhp, 'plt test');
 
       headsetService.activeMicChange('sennheiser test');
       expect(changeImplementationSpy).toHaveBeenCalledWith(sennheiser, 'sennheiser test');
@@ -1096,7 +1096,7 @@ describe('HeadsetService', () => {
 
   describe('connectionStatus', () => {
     it('should return proper connection status', () => {
-      headsetService.selectedImplementation = plantronics;
+      headsetService.selectedImplementation = polyhp;
       headsetService.selectedImplementation.isConnected = true;
       expect(headsetService.connectionStatus()).toBe('running');
 
@@ -1148,7 +1148,7 @@ describe('HeadsetService', () => {
 
   describe('connectionStatus', () => {
     it('should return proper connection status', () => {
-      headsetService.selectedImplementation = plantronics;
+      headsetService.selectedImplementation = polyhp;
       headsetService.selectedImplementation.isConnected = true;
       expect(headsetService.connectionStatus()).toBe('running');
 

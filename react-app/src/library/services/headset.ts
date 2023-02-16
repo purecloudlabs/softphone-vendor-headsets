@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
-import PlantronicsService from './vendor-implementations/plantronics/plantronics';
+import PolyHPService from './vendor-implementations/polyhp/polyhp';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
@@ -19,7 +19,7 @@ const REMOVE_WAIT = 2000;
 export default class HeadsetService {
   private static instance: HeadsetService;
 
-  plantronics: VendorImplementation;
+  polyhp: VendorImplementation;
   jabraNative: VendorImplementation;
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
@@ -36,13 +36,13 @@ export default class HeadsetService {
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.logger = config.logger || console;
-    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
+    this.polyhp = PolyHPService.getInstance({ logger: this.logger, appName: config.appName });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.polyhp, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -56,7 +56,7 @@ export default class HeadsetService {
   get implementations (): VendorImplementation[] {
     const implementations = [
       this.sennheiser,
-      this.plantronics,
+      this.polyhp,
       this.jabra,
       this.jabraNative,
       this.yealink
