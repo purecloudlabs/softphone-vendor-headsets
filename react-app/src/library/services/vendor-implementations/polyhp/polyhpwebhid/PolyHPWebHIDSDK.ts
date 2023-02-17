@@ -54,7 +54,9 @@ export class PolyHPWebHIDSDK {
 	public ledhook = false;
 	public ledring = false;
 	public ledhold = false;
-	
+	// headset momentary input flags
+	private flashmomentaryon = false;
+
 	private HEADSET_USAGE_PAGE = 0x000B; // note, initially match any device with usage page 0xb which is the Telephony input usage page
 
 	public constructor() {
@@ -132,11 +134,11 @@ export class PolyHPWebHIDSDK {
 			return;
 		}
 		this.ledmute = false;
-		this.ledhook = false;
-		this.ledring = false;
-		this.sendOpToDevice('oLEDRing', this.ledring);
-		this.sendOpToDevice('oLEDHook', this.ledhook);
 		this.sendOpToDevice('oLEDMute', this.ledmute);
+		this.ledhook = false;
+		this.sendOpToDevice('oLEDHook', this.ledhook);
+		this.ledhold = false;
+		this.sendOpToDevice('oLEDHold', this.ledhold);		
 	}
 
 	/**
@@ -365,6 +367,7 @@ export class PolyHPWebHIDSDK {
 
 		if (phoneFlash) { // this is the value 1 of a Tel Flash=1/0 one shot
 			buf += ' flash to hold or resume';
+			this.flashmomentaryon = true;
 			// note, held bit toggle will be done once held state is toggled in softphone
 			// toggle the held state in softphone:
 			//this.ledhold=!this.ledhold; // toggle the hold state
@@ -384,10 +387,11 @@ export class PolyHPWebHIDSDK {
 		}
 		else if (hookSwitch==false) {
 			// adding case for call was held
-			if (this.ledhold) {
+			if (this.ledhold || this.flashmomentaryon) {
 				/* USE CASE: call was held, so hook becomes false, but don't hangup call */
 				buf += ' on-hook call held, no action to take';
 				// no action
+				this.flashmomentaryon = false;
 			}
 			else if (this.ledring) { // are we ringing, then this is a call reject
 				/* USE CASE: call end */

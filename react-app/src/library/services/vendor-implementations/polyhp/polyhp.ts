@@ -96,22 +96,22 @@ export default class PolyHPService extends VendorImplementation {
     this.poly$.event().on('OnHold', () => {
       //this.isHold = this.poly$.ledhold;
       this.isHold = true;
+      this.poly$.setHold(this.isHold);
       this.deviceHoldStatusChanged({ // then tell the app about it
         holdRequested: this.isHold,
         name: this.isHold ? 'OnHold' : 'ResumeCall',
         conversationId: this.activeConversationId,
       });
-      this.poly$.setHold(this.isHold);
     })
     this.poly$.event().on('ResumeCall', () => {
       //this.isHold = this.poly$.ledhold;
       this.isHold = false;
+      this.poly$.setHold(this.isHold);
       this.deviceHoldStatusChanged({ // then tell the app about it
         holdRequested: this.isHold,
         name: this.isHold ? 'OnHold' : 'ResumeCall',
         conversationId: this.activeConversationId,
       });      
-      this.poly$.setHold(this.isHold);
     })
     this.poly$.event().on('OffHook', () => {
       /* USE CASE: call answer */
