@@ -117,14 +117,14 @@ export class PolyHPWebHIDSDK {
         }
         else {
             // test: try just setting hook to 1
-            this.ledhook = true;
-            this.ledmute = false;
-            this.ledring = false;
             this.ledhold = false;
-            this.sendOpToDevice('oLEDRing', this.ledring);
-            this.sendOpToDevice('oLEDHook', this.ledhook);
-            this.sendOpToDevice('oLEDMute', this.ledmute);
             this.sendOpToDevice('oLEDHold', this.ledhold);
+            this.ledring = false;
+            this.sendOpToDevice('oLEDRing', this.ledring);
+            this.ledhook = true;
+            this.sendOpToDevice('oLEDHook', this.ledhook);
+            this.ledmute = false;
+            this.sendOpToDevice('oLEDMute', this.ledmute);
         }
     }
 
