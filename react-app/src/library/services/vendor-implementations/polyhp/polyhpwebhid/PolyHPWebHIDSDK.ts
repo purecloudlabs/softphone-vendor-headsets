@@ -395,6 +395,7 @@ export class PolyHPWebHIDSDK {
             else if (this.ledring) { // are we ringing, then this is a call reject
                 /* USE CASE: call end */
                 buf += ' on-hook to reject incoming';
+                this.rejectCall();
                 this.event().emit("Reject");
             }
             else {
