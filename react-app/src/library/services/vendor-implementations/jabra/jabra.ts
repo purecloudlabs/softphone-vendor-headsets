@@ -14,7 +14,7 @@ import {
 import { CallInfo } from '../../..';
 import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from 'rxjs';
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
-import { isCefHosted } from '../../../utils';
+// import { isCefHosted } from '../../../utils';
 
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
