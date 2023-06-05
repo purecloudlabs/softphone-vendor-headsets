@@ -269,10 +269,23 @@ export default class PlantronicsService extends VendorImplementation {
     }
   }
 
-  connect (): Promise<any> {
+  async unregisterPlugin (): Promise<any> {
+    try {
+      return await this._makeRequestTask(`/SessionManager/UnRegister?name=${this.pluginName}`);
+    } catch (response: any) {
+      if (response?.Err?.Description === 'Invalid plugin name') {
+        return;
+      }
+
+      this.logger.error(response);
+    }
+  }
+
+  async connect (): Promise<any> {
     !this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     this.pollForDeviceStatus();
     this.pollForCallEvents();
+    await this.unregisterPlugin();
     return this._makeRequestTask(`/SessionManager/Register?name=${this.pluginName}`)
       .catch(response => {
         if (response.Err && response.Err.Description === 'Plugin exists') {
@@ -307,7 +320,7 @@ export default class PlantronicsService extends VendorImplementation {
       .then(calls => {
         if (calls.length) {
           this.isActive = true;
-          return this.logger.info('Currently active calls in the session');
+          this.logger.warn('Plantronics headset should be in vanilla state but is reporting active call state.');
         } else {
           return this.getCallEvents();
         }
@@ -327,7 +340,7 @@ export default class PlantronicsService extends VendorImplementation {
     if (!this.isConnected) {
       return;
     }
-    await this._makeRequestTask(`/SessionManager/UnRegister?name=${this.pluginName}`);
+    await this.unregisterPlugin();
     this.clearTimeouts();
     this._deviceInfo = null;
     this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });
@@ -361,7 +374,7 @@ export default class PlantronicsService extends VendorImplementation {
     return this._makeRequestTask(`/CallServices/IncomingCall${params}`);
   }
 
-  outgoingCall ({ conversationId, contactName }: CallInfo): Promise<any> {
+  async outgoingCall ({ conversationId, contactName }: CallInfo): Promise<any> {
     if (!conversationId) {
       throw new Error('Must provide conversationId');
     }
@@ -380,7 +393,7 @@ export default class PlantronicsService extends VendorImplementation {
     }
 
     this.isActive = true;
-    return this._makeRequestTask(`/CallServices/OutgoingCall${params}`);
+    await this._makeRequestTask(`/CallServices/OutgoingCall${params}`);
   }
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {

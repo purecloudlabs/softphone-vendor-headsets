@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.1...HEAD)
 ## Fixed
+* [PCM-2159](https://inindca.atlassian.net/browse/PCM-2159) - Fixed various issues around state, primarily with plantronics headsets
+
+# [v2.3.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.0...v2.3.1)
+## Fixed
 * [SERVOPS-33064](https://inindca.atlassian.net/browse/SERVOPS-33064) - Fixed issue where Jabra Native overwrites CEF registration, preventing the use of external links to place call
 
 # [v2.3.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.2.1...v2.3.0)
