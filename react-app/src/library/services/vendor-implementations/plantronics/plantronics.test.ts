@@ -953,6 +953,21 @@ describe('PlantronicsService', () => {
     });
   });
 
+  describe('unregister function', () => {
+    it('should not blow up if unregister fails', async () => {
+      const logSpy = plantronicsService.logger.error = jest.fn();
+      plantronicsService.isConnecting = true;
+      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/SessionManager/UnRegister')) {
+          return buildMockFetch(responses.SessionManager.UnRegister.alreadyRegistered, false);
+        }
+      });
+
+      await plantronicsService.unregisterPlugin();
+      expect(logSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('connect function', () => {
     it('handles all scenarios appropriately for Register endpoint', async () => {
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
@@ -966,6 +981,10 @@ describe('PlantronicsService', () => {
     it('handles all scenarios appropriately for isActive endpoint',  async () => {
       plantronicsService.logger.debug = jest.fn();
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/SessionManager/UnRegister')) {
+          return buildMockFetch(responses.SessionManager.UnRegister.default, true);
+        }
+
         if (url.includes('/SessionManager/Register')) {
           return buildMockFetch(responses.SessionManager.Register.default, true);
         }
@@ -984,7 +1003,12 @@ describe('PlantronicsService', () => {
 
     it('handles all scenarios appropriately for getActiveCalls endpoint', async () => {
       plantronicsService.logger.info = jest.fn();
+      plantronicsService.logger.warn = jest.fn();
       jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
+        if (url.includes('/SessionManager/UnRegister')) {
+          return buildMockFetch(responses.SessionManager.UnRegister.default, true);
+        }
+
         if (url.includes('/SessionManager/Register')) {
           return buildMockFetch(responses.SessionManager.Register.default, true);
         }
@@ -1009,7 +1033,7 @@ describe('PlantronicsService', () => {
       });
       await plantronicsService.connect();
       expect(plantronicsService.isActive).toBe(true);
-      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Currently active calls in the session');
+      expect(plantronicsService.logger.warn).toHaveBeenCalledWith('Plantronics headset should be in vanilla state but is reporting active call state.');
     });
 
     it('logs an error message if we are unable to connect the headset', async () => {

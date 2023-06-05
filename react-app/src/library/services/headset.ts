@@ -75,6 +75,10 @@ export default class HeadsetService {
   private updateHeadsetState (props: StateCompareProps): boolean {
     if (this.isDifferentState(props)) {
       const state = this.headsetConversationStates[props.conversationId];
+      if (!state) {
+        this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        return false;
+      }
       Object.assign(state, props.state);
       return true;
     }
