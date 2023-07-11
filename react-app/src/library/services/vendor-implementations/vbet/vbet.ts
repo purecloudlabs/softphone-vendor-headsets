@@ -16,7 +16,6 @@ export default class VBetService extends VendorImplementation {
   private _deviceInfo: DeviceInfo = null;
   private activeDevice: any;
   private deviceCmds: any = null;
-  private callState = '';
   private inputReportReportId: null | number = null;
   private lastByte = 0;
   vendorName = 'VBet';
@@ -308,7 +307,6 @@ export default class VBetService extends VendorImplementation {
     }
     const data = new Uint8Array(this.deviceCmds[value]);
     this.logger.debug(`send to dev ${value}`);
-    this.callState = value;
     await this.activeDevice.sendReport(data[0], data.slice(1, data.length));
   }
 }
