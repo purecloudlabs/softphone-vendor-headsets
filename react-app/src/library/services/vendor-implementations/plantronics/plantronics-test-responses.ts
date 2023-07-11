@@ -389,6 +389,7 @@ const responses = {
       },
       
       alreadyRegistered: {
+        Type_Name: 'Error',
         Err: {
           Description: 'Invalid plugin name',
           Error_Code: 0,

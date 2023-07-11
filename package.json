@@ -37,7 +37,6 @@
     "fetch-jsonp": "^1.2.1",
     "rxjs": "^7.4.0",
     "strict-event-emitter-types": "^2.0.0",
-    "utils": "^0.3.1",
     "uuid": "^3.4.0",
     "whatwg-fetch": "^3.6.2",
     "zone.js": "~0.10.2"

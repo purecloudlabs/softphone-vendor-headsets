@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.2...HEAD)
+* [PCM-2184](https://inindca.atlassian.net/browse/PCM-2184) - Fix snyk vuln: utils
+
 # [v2.3.2](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.1...v2.3.2)
 ## Fixed
 * [PCM-2159](https://inindca.atlassian.net/browse/PCM-2159) - Fixed various issues around state, primarily with plantronics headsets
