@@ -3,7 +3,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.2...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.3...HEAD)
+# [v2.3.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.1...v2.3.3)
+## Fixed
 * [PCM-2184](https://inindca.atlassian.net/browse/PCM-2184) - Fix snyk vuln: utils
 
 # [v2.3.2](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.1...v2.3.2)
