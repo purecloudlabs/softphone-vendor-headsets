@@ -18,6 +18,7 @@ export default class VBetService extends VendorImplementation {
   private deviceCmds: any = null;
   private callState = '';
   private inputReportReportId: null | number = null;
+  private lastByte = 0;
   vendorName = 'VBet';
 
   static getInstance (config: ImplementationConfig): VBetService {
@@ -54,8 +55,8 @@ export default class VBetService extends VendorImplementation {
               if ([0x0001].includes(device.productId)){
                 this.deviceCmds = {
                   ring: [0x2, 0x2, 0x1],
-                  onHook: [0x2, 0x2, 0x3],
-                  offHook: [0x2, 0x2, 0x0],
+                  offHook: [0x2, 0x2, 0x3],
+                  onHook: [0x2, 0x2, 0x0],
                   muteOn: [0x3, 0x1, 0x0],
                   muteOff: [0x3, 0x0, 0x0],
                 };
@@ -63,8 +64,8 @@ export default class VBetService extends VendorImplementation {
               else if ([0x0020].includes(device.productId)) {
                 this.deviceCmds  = {
                   ring: [0x6, 0x1, 0x0],
-                  onHook: [0x6, 0x2, 0x0],
-                  offHook: [0x6, 0x0, 0x0],
+                  offHook: [0x6, 0x2, 0x0],
+                  onHook: [0x6, 0x0, 0x0],
                   muteOn: [0x3, 0x1, 0x0],
                   muteOff: [0x3, 0x0, 0x0],
                 };
@@ -72,8 +73,8 @@ export default class VBetService extends VendorImplementation {
               else {
                 this.deviceCmds  = {
                   ring: [0x6, 0x1, 0x0],
-                  onHook: [0x6, 0x2, 0x0],
-                  offHook: [0x6, 0x0, 0x0],
+                  offHook: [0x6, 0x2, 0x0],
+                  onHook: [0x6, 0x0, 0x0],
                   muteOn: [0x5, 0x12, 0x0],
                   muteOff: [0x5, 0x2, 0x0],
                 };
@@ -164,70 +165,94 @@ export default class VBetService extends VendorImplementation {
   }
 
   processBtnPress (value: number): void {
-    // if (!this.activeDevice) {
-    //   this.logger.error('do not have active device');
-    //   return;
-    // }
-    // this.logger.debug(`User pressed button ${value}. local ${this.recCallState}`);
-    // const changeFlag = value ^ this.recCallState;
-    // if (changeFlag === 0) {
-    //   return;
-    // }
-    // if (value !== 0 && (this.callState & ~muteFlag) === 0) {
-    //   this.logger.debug(`Not talking, ignore key`);
-    //   return;
-    // }
-    // this.recCallState = value;
-    // if (changeFlag & offhookFlag) {
-    //   if (value & offhookFlag) {
-    //     this.answerCall();
-    //     if (this.activeConversationId) {
-    //       this.deviceAnsweredCall({
-    //         name: 'OffHook',
-    //         conversationId: this.activeConversationId,
-    //       });
-    //     } else {
-    //       this.logger.debug(`activeConversationId is empty`);
-    //     }
-    //   } else if (!this.isHold) {
-    //     this.sendOpToDevice(this.isMuted ? muteFlag : 0);
-    //     if (this.activeConversationId) {
-    //       this.deviceEndedCall({
-    //         name: 'OnHook',
-    //         conversationId: this.activeConversationId,
-    //       });
-    //     } else {
-    //       this.logger.debug(`activeConversationId is empty`);
-    //     }
-    //     this.activeConversationId = null;
-    //   }
-    // } else if (changeFlag & recMuteFlag) {
-    //   if (value & recMuteFlag) {
-    //     this.setMute(!this.isMuted);
-    //     this.deviceMuteChanged({
-    //       isMuted: this.isMuted,
-    //       name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
-    //       conversationId: this.activeConversationId,
-    //     });
-    //   }
-    // } else if (changeFlag & holdFlag) {
-    //   if (value & holdFlag) {
-    //     this.setHold(null, !this.isHold);
-    //     this.deviceHoldStatusChanged({
-    //       holdRequested: this.isHold,
-    //       name: this.isHold ? 'OnHold' : 'ResumeCall',
-    //       conversationId: this.activeConversationId,
-    //     });
-    //   }
-    // } else if (changeFlag & recReject) {
-    //   if (value & recReject) {
-    //     this.deviceRejectedCall({
-    //       name: 'Reject',
-    //       conversationId: this.pendingConversationId,
-    //     });
-    //     this.rejectCall();
-    //   }
-    // }
+    if (!this.activeDevice) {
+      this.logger.error('do not have active device');
+      return;
+    }
+    if([0x0001].includes(this.activeDevice.productId)){
+      switch (value) {
+      case 0x04:
+        this.answerCall();
+        if (this.activeConversationId) {
+          this.deviceAnsweredCall({
+            name: 'OffHook',
+            conversationId: this.activeConversationId,
+          });
+        }
+        break;
+      case 0x10:
+      case 0x11:
+        this.deviceRejectedCall({
+          name: 'Reject',
+          conversationId: this.pendingConversationId,
+        });
+        this.rejectCall();
+        break;
+      case 0x00:
+        this.sendOpToDevice('onHook');
+        if (this.activeConversationId) {
+          this.deviceEndedCall({
+            name: 'OnHook',
+            conversationId: this.activeConversationId,
+          });
+        }
+        break;
+      case 0x0c:
+        this.isMuted = !this.isMuted;
+        this.setMute(this.isMuted);
+        this.deviceMuteChanged({
+          isMuted: this.isMuted,
+          name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
+          conversationId: this.activeConversationId,
+        });
+        break;
+      }
+    } else if ([0x0020].includes(this.activeDevice.productId)){
+      switch (value) {
+      case 0x01:
+        if (this.lastByte !== 0x09) {
+          this.answerCall();
+          if (this.activeConversationId) {
+            this.deviceAnsweredCall({
+              name: 'OffHook',
+              conversationId: this.activeConversationId,
+            });
+          }
+        }
+        break;
+      case 0x00:
+        if (this.lastByte === 0x08) {
+          this.isMuted = !this.isMuted;
+          this.setMute(this.isMuted);
+          this.deviceMuteChanged({
+            isMuted: this.isMuted,
+            name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
+            conversationId: this.activeConversationId,
+          });
+        } else {
+          this.sendOpToDevice('onHook');
+          if (this.activeConversationId) {
+            this.deviceEndedCall({
+              name: 'OnHook',
+              conversationId: this.activeConversationId,
+            });
+          }
+        }
+        break;
+      case 0x14:
+        this.isMuted = !this.isMuted;
+        this.setMute(this.isMuted);
+        this.deviceMuteChanged({
+          isMuted: this.isMuted,
+          name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
+          conversationId: this.activeConversationId,
+        });
+        break;
+      }
+    }else{  
+      //tet
+    }
+    this.lastByte = value;
   }
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
@@ -237,7 +262,7 @@ export default class VBetService extends VendorImplementation {
 
   async outgoingCall (callInfo: CallInfo): Promise<void> {
     this.pendingConversationId = callInfo.conversationId;
-    await this.sendOpToDevice('onHook');
+    await this.sendOpToDevice('offHook');
   }
 
   async answerCall (): Promise<void> {
@@ -245,46 +270,35 @@ export default class VBetService extends VendorImplementation {
       this.activeConversationId = this.pendingConversationId;
       this.pendingConversationId = null;
     }
-    await this.sendOpToDevice('onHook');
+    await this.sendOpToDevice('offHook');
   }
 
   async rejectCall (): Promise<void> {
     this.pendingConversationId = null;
-    await this.sendOpToDevice('offHook');
+    await this.sendOpToDevice('onHook');
   }
 
   async endCall (conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
-    console.log(conversationId,hasOtherActiveCalls);
     if (hasOtherActiveCalls) {
       return;
     }
     if (conversationId === this.activeConversationId) {
       this.activeConversationId = null;
     }
-    await this.sendOpToDevice('offHook');
+    await this.sendOpToDevice('onHook');
   }
 
   async endAllCalls (): Promise<void> {
     this.activeConversationId = null;
-    await this.sendOpToDevice('offHook');
+    await this.sendOpToDevice('onHook');
   }
 
   async setMute (value: boolean): Promise<void> {
-    // if (value) {
-    //   this.sendOpToDevice(this.callState | muteFlag);
-    // } else {
-    //   this.sendOpToDevice(this.callState & ~muteFlag);
-    // }
-  }
-
-  async setHold (conversationId: string, value: boolean): Promise<void> {
-    // if (value) {
-    //   const setValue = this.callState & ~offhookFlag;
-    //   this.sendOpToDevice(setValue | holdFlag);
-    // } else {
-    //   const setValue = this.callState & ~holdFlag;
-    //   this.sendOpToDevice(setValue | offhookFlag);
-    // }
+    if (value) {
+      this.sendOpToDevice('muteOn');
+    } else {
+      this.sendOpToDevice('muteOff');
+    }
   }
 
   async sendOpToDevice (value: 'ring'|'onHook'|'offHook'|'muteOn'|'muteOff'): Promise<void> {
