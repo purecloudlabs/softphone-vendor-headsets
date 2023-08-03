@@ -156,6 +156,7 @@ export default class HeadsetService {
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.info('mMoo: inside headset library answerCall', { conversationId, autoAnswer, implementation });
     if (!implementation) {
       return;
     }
