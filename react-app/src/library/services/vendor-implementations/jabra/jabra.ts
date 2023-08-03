@@ -187,6 +187,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
+    this.logger.info('mMoo: inside Jabra incomingCall', callInfo);
     this.pendingConversationId = callInfo.conversationId;
     this.pendingConversationIsOutbound = false;
     try {
