@@ -91,7 +91,6 @@ export default class JabraService extends VendorImplementation {
 
       switch (signal.type) {
       case SignalType.HOOK_SWITCH:
-        this.logger.info('mMoo: _processEvents signal', signal);
         if (signal.value) {
           callControl.offHook(true);
           callControl.ring(false);
@@ -208,21 +207,7 @@ export default class JabraService extends VendorImplementation {
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
     this.logger.info('mMoo: inside Jabra answerCall', { conversationId, autoAnswer });
-    // if (autoAnswer) {
-    //   this.pendingConversationId = conversationId;
-    //   try {
-    //     this.callLock = await this.callControl.takeCallLock();
-    //   } catch ({ message, type }) {
-    //     if (this.checkForCallLockError(message, type)) {
-    //       this.logger.info(message);
-    //       this.callLock = true;
-    //     } else {
-    //       this.logger.error(type, message);
-    //     }
-    //   }
-    // }
-
-    if (!this.callLock) {
+    if (autoAnswer) {
       this.pendingConversationId = conversationId;
       try {
         this.callLock = await this.callControl.takeCallLock();
@@ -232,10 +217,12 @@ export default class JabraService extends VendorImplementation {
           this.callLock = true;
         } else {
           this.logger.error(type, message);
-          this.resetState();
-          return;
         }
       }
+    }
+
+    if (!this.callLock) {
+      return;
     }
 
     this.callControl.ring(false);
