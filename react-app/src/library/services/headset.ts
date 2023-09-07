@@ -170,7 +170,7 @@ export default class HeadsetService {
       };
 
       if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
-        console.log('mMoo: the headset state is different')
+        console.log('mMoo: the headset state is different');
         return implementation.answerCall(conversationId);
       }
     } else {
