@@ -6,3 +6,5 @@ dist
 coverage/
 tmp/
 softphone-vendor-headsets*.tgz
+yarn.lock
+
