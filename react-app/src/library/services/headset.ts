@@ -122,7 +122,6 @@ export default class HeadsetService {
 
   async incomingCall (callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
-    this.logger.info('mMoo: inside headset.ts incoming call', { callInfo, implementation });
     if (!implementation) {
       return;
     }
@@ -134,7 +133,6 @@ export default class HeadsetService {
       offHook: false,
       ringing: true
     };
-    this.logger.info('mMoo: corresponding headset state', this.headsetConversationStates[callInfo.conversationId]);
 
     return implementation.incomingCall(callInfo, hasOtherActiveCalls);
   }
