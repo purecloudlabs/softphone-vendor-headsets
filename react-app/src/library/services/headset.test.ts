@@ -80,12 +80,12 @@ describe('HeadsetService', () => {
 
       headsetService['_implementations'] = [];
       
-      expect(headsetService.implementations.length).toBe(5);
+      expect(headsetService.implementations.length).toBe(6);
 
       [headsetService['jabra'], headsetService['jabraNative']].forEach((impl) => (impl.isSupported as jest.Mock).mockReturnValue(false));
       headsetService['_implementations'] = [];
 
-      expect(headsetService.implementations.length).toBe(3);
+      expect(headsetService.implementations.length).toBe(4);
     });
   });
 
