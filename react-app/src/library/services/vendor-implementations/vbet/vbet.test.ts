@@ -181,7 +181,7 @@ const mockMuteFlag = {
   DECTSeries: 0x03,
   ACTIONSeries: 0x01,
 };
-const mockReject = { BT100USeries: 0x10 };
+const mockReject = { BT100USeries: 0x10, ACTIONSeries: 0x08 };
 
 describe('VBetservice', () => {
   let vbetService: VBetService;
@@ -200,7 +200,6 @@ describe('VBetservice', () => {
   });
 
   beforeEach(() => {
-    console.log('enter');
     mockDeviceList = mockDeviceList0;
     mockReqDeviceList = mockDeviceList0;
     vbetService = VBetService.getInstance({ logger: console });
@@ -630,12 +629,20 @@ describe('VBetservice', () => {
       expect(devAnsFun).toHaveBeenCalled();
     });
 
+    it('test reject', async () => {
+      const ansFun = jest.spyOn(vbetService, 'rejectCall');
+      const devAnsFun = jest.spyOn(vbetService, 'deviceRejectedCall');
+      await vbetService.incomingCall({ conversationId: 'id' });
+      await vbetService.processBtnPress(mockReject.ACTIONSeries);
+      expect(ansFun).toHaveBeenCalled();
+      expect(devAnsFun).toHaveBeenCalled();
+    });
+
     it('test mute', async () => {
       const setMuteFun = jest.spyOn(vbetService, 'setMute');
       const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
       await vbetService.incomingCall({ conversationId: 'id' });
       await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
-      await vbetService.processBtnPress(0x05);
       await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries);
       expect(setMuteFun).toHaveBeenCalledWith(true);
       expect(devMuteFun).toHaveBeenCalledWith({

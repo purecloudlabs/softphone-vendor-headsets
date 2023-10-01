@@ -77,8 +77,8 @@ export default class VBetService extends VendorImplementation {
         ring: [0x6, 0x1, 0x0],
         offHook: [0x6, 0x2, 0x0],
         onHook: [0x6, 0x0, 0x0],
-        muteOn: [0x5, 0x12, 0x0],
-        muteOff: [0x5, 0x2, 0x0],
+        muteOn: [0x6, 0x4, 0x0],
+        muteOff: [0x6, 0x5, 0x0],
       };
       this.inputReportReportId = 0x05;
     } else {
@@ -221,11 +221,15 @@ export default class VBetService extends VendorImplementation {
       case 0x20:
         await this.answerCallFromDevice();
         break;
+      case 0x08:
+        await this.rejectCallFromDevice();
+        break;
       case 0x00:
         await this.endCallFromDevice();
         break;
       case 0x01:
-        this.lastByte === 0x05 && await this.setMuteFromDevice();
+      case 0x05:
+        await this.setMuteFromDevice();
         break;
       }
     }
