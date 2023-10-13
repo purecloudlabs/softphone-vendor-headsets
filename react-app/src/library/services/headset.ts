@@ -72,11 +72,13 @@ export default class HeadsetService {
     return !state || Object.entries(props.state).some(([key, value]) => state[key] !== value);
   }
 
-  private updateHeadsetState (props: StateCompareProps): boolean {
+  private updateHeadsetState (props: StateCompareProps, opts = { expectExistingConversation: true }): boolean {
     if (this.isDifferentState(props)) {
       const state = this.headsetConversationStates[props.conversationId];
       if (!state) {
-        this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        if (opts.expectExistingConversation) {
+          this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        }
         return false;
       }
       Object.assign(state, props.state);
@@ -237,7 +239,7 @@ export default class HeadsetService {
     }
   }
 
-  async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
+  async endCall (conversationId: string, hasOtherActiveCalls?: boolean, expectExistingConversation = true): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -247,7 +249,7 @@ export default class HeadsetService {
       offHook: false
     };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction }, { expectExistingConversation })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.endCall(conversationId, hasOtherActiveCalls);

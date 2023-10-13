@@ -1151,6 +1151,13 @@ describe('HeadsetService', () => {
       expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} })).toBe(false);
       expect(warnSpy).toHaveBeenCalled();
     });
+
+    it('should not warn if expectExistingConversation', () => {
+      headsetService['isDifferentState'] = jest.fn().mockReturnValueOnce(true);
+      const warnSpy = jest.spyOn((headsetService as any).logger, 'warn');
+      expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} }, { expectExistingConversation: false })).toBe(false);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('connectionStatus', () => {
