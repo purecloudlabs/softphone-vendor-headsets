@@ -195,7 +195,7 @@ export default class HeadsetService {
     }
   }
 
-  async rejectCall (conversationId: string): Promise<any> {
+  async rejectCall (conversationId: string, expectExistingConversation = true): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -205,7 +205,7 @@ export default class HeadsetService {
       ringing: false
     };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction }, { expectExistingConversation })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.rejectCall(conversationId);
@@ -239,7 +239,7 @@ export default class HeadsetService {
     }
   }
 
-  async endCall (conversationId: string, hasOtherActiveCalls?: boolean, expectExistingConversation = true): Promise<any> {
+  async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -249,7 +249,7 @@ export default class HeadsetService {
       offHook: false
     };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction }, { expectExistingConversation })) {
+    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.endCall(conversationId, hasOtherActiveCalls);
