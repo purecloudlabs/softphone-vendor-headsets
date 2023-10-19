@@ -72,11 +72,13 @@ export default class HeadsetService {
     return !state || Object.entries(props.state).some(([key, value]) => state[key] !== value);
   }
 
-  private updateHeadsetState (props: StateCompareProps): boolean {
+  private updateHeadsetState (props: StateCompareProps, opts = { expectExistingConversation: true }): boolean {
     if (this.isDifferentState(props)) {
       const state = this.headsetConversationStates[props.conversationId];
       if (!state) {
-        this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        if (opts.expectExistingConversation) {
+          this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        }
         return false;
       }
       Object.assign(state, props.state);
@@ -84,6 +86,17 @@ export default class HeadsetService {
     }
 
     return false;
+  }
+
+  deviceIsSupported (params: { micLabel: string }): boolean {
+    if (!params.micLabel) {
+      return false;
+    }
+
+    const implementation = this.implementations.find((implementation) => {
+      return implementation.deviceLabelMatchesVendor(params.micLabel);
+    });
+    return !!implementation;
   }
 
   activeMicChange (newMicLabel: string): void {
@@ -182,7 +195,7 @@ export default class HeadsetService {
     }
   }
 
-  async rejectCall (conversationId: string): Promise<any> {
+  async rejectCall (conversationId: string, expectExistingConversation = true): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -192,7 +205,7 @@ export default class HeadsetService {
       ringing: false
     };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction }, { expectExistingConversation })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.rejectCall(conversationId);
