@@ -132,9 +132,12 @@ export default class JabraNativeService extends VendorImplementation {
 
       return;
     }
-    this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
+
+    if (this.activeConversationId) {
+      this._sendCmd(JabraNativeCommands.Offhook, isOffhook);
+      this.deviceEndedCall({name: 'CallOnHook', conversationId: this.activeConversationId});
+    }
     this._getHeadsetIntoVanillaState();
-    this.deviceEndedCall({name: 'CallOnHook', conversationId: this.activeConversationId});
     this.activeConversationId = null;
   }
 
