@@ -195,7 +195,7 @@ export default class VBetService extends VendorImplementation {
         await this.endCallFromDevice();
         break;
       case 0x0c:
-        this.setMuteFromDevice();
+        await this.setMuteFromDevice();
         break;
       }
     }
@@ -206,13 +206,13 @@ export default class VBetService extends VendorImplementation {
         break;
       case 0x00:
         if (this.lastByte === 0x08) {
-          this.setMuteFromDevice();
+          await this.setMuteFromDevice();
         } else {
           await this.endCallFromDevice();
         }
         break;
       case 0x14:
-        this.setMuteFromDevice();
+        await this.setMuteFromDevice();
         break;
       }
     } 
@@ -229,7 +229,7 @@ export default class VBetService extends VendorImplementation {
         break;
       case 0x01:
       case 0x05:
-        this.setMuteFromDevice();
+        await this.setMuteFromDevice();
         break;
       }
     }
@@ -243,7 +243,7 @@ export default class VBetService extends VendorImplementation {
         break;
       case 0x03:
       case 0x04:
-        this.setMuteFromDevice();
+        await this.setMuteFromDevice();
         break;
       }
     }
@@ -349,8 +349,9 @@ export default class VBetService extends VendorImplementation {
     }
   }
 
-  setMuteFromDevice (): void {
+  async setMuteFromDevice (): Promise<void> {
     this.isMuted = !this.isMuted;
+    await this.setMute(this.isMuted);
     this.deviceMuteChanged({
       isMuted: this.isMuted,
       name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
