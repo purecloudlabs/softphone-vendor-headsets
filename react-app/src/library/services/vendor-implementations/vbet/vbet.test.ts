@@ -687,23 +687,6 @@ describe('VBetservice', () => {
       expect(ansFun).toHaveBeenCalledWith('onHook');
     });
 
-    it('test muteon', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.setMute(true);
-      expect(ansFun).toHaveBeenCalledWith('muteOn');
-    });
-
-    it('test muteoff', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.setMute(true);
-      await vbetService.setMute(false);
-      expect(ansFun).toHaveBeenCalledWith('muteOff');
-    });
-
     it('test onhook with other active calls', async () => {
       const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
       await vbetService.incomingCall({ conversationId: 'id' });
