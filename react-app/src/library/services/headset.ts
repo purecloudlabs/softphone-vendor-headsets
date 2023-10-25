@@ -86,6 +86,17 @@ export default class HeadsetService {
     return false;
   }
 
+  deviceIsSupported (params: { micLabel: string }): boolean {
+    if (!params.micLabel) {
+      return false;
+    }
+
+    const implementation = this.implementations.find((implementation) => {
+      return implementation.deviceLabelMatchesVendor(params.micLabel);
+    });
+    return !!implementation;
+  }
+
   activeMicChange (newMicLabel: string): void {
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));

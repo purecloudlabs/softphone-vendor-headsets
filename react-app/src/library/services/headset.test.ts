@@ -1170,4 +1170,26 @@ describe('HeadsetService', () => {
       expect(headsetService.connectionStatus()).toBe('noVendor');
     });
   });
+
+  describe('deviceIsSupported', () => {
+    afterEach(() => {
+      headsetService.implementations.forEach(impl => (impl.deviceLabelMatchesVendor as jest.Mock).mockRestore());
+    });
+    it('should return true if an implementation returns true', () => {
+      [headsetService.jabra,
+        headsetService.sennheiser,
+        headsetService.yealink].forEach(impl => impl.isSupported = jest.fn().mockReturnValue(true));
+
+      headsetService.implementations.forEach(impl => impl.deviceLabelMatchesVendor = jest.fn().mockReturnValue(false));
+      expect(headsetService.deviceIsSupported({ micLabel: 'sldkfj' })).toBeFalsy();
+
+      (headsetService.implementations[1].deviceLabelMatchesVendor as jest.Mock).mockReturnValue(true);
+      expect(headsetService.deviceIsSupported({ micLabel: 'sldkfj' })).toBeTruthy();
+    });
+
+    it('should return false if falsey label is provided', () => {
+      expect(headsetService.deviceIsSupported({ micLabel: '' })).toBeFalsy();
+      expect(headsetService.deviceIsSupported({ micLabel: undefined })).toBeFalsy();
+    });
+  });
 });
