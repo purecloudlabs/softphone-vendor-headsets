@@ -358,7 +358,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      headsetService.rejectCall(conversationId, false);
+      headsetService.rejectCall(conversationId);
 
       expect(plantronics.rejectCall).toHaveBeenCalledWith(conversationId);
       expect(headsetService['headsetConversationStates']['convoId123'].removeTimer).toBeDefined();
