@@ -297,7 +297,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.rejectCall(conversationId, false);
+      await headsetService.rejectCall(conversationId);
 
       expect(plantronics.rejectCall).not.toHaveBeenCalled();
     });
@@ -315,7 +315,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.rejectCall(conversationId, false);
+      await headsetService.rejectCall(conversationId);
       expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
 
       delete headsetService['headsetConversationStates'][conversationId].removeTimer;
@@ -337,7 +337,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.rejectCall(conversationId, false);
+      await headsetService.rejectCall(conversationId);
       expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
 
       jest.advanceTimersByTime(3000);
@@ -369,7 +369,7 @@ describe('HeadsetService', () => {
       const conversationId = '1234';
       plantronics.isConnected = false;
 
-      headsetService.rejectCall(conversationId, false);
+      headsetService.rejectCall(conversationId);
 
       expect(plantronics.rejectCall).not.toHaveBeenCalled();
     });
@@ -1150,13 +1150,6 @@ describe('HeadsetService', () => {
       const warnSpy = jest.spyOn((headsetService as any).logger, 'warn');
       expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} })).toBe(false);
       expect(warnSpy).toHaveBeenCalled();
-    });
-
-    it('should not warn if expectExistingConversation', () => {
-      headsetService['isDifferentState'] = jest.fn().mockReturnValueOnce(true);
-      const warnSpy = jest.spyOn((headsetService as any).logger, 'warn');
-      expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} }, { expectExistingConversation: false })).toBe(false);
-      expect(warnSpy).not.toHaveBeenCalled();
     });
   });
 
