@@ -1,5 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
+import CyberAcousticsService from './vendor-implementations/CyberAcoustics/CyberAcoustics';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
@@ -24,6 +25,7 @@ export default class HeadsetService {
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
   yealink: VendorImplementation;
+  cyberAcoustics: VendorImplementation;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
   
@@ -41,8 +43,9 @@ export default class HeadsetService {
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger });
+    this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -59,7 +62,8 @@ export default class HeadsetService {
       this.plantronics,
       this.jabra,
       this.jabraNative,
-      this.yealink
+      this.yealink,
+      this.cyberAcoustics
     ].filter((impl) => impl.isSupported());
 
     return implementations;
