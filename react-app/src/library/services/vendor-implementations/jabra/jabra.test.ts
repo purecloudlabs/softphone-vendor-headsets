@@ -911,13 +911,11 @@ describe('JabraService', () => {
       jabraService.callControl = callControl as any;
 
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
       await jabraService.rejectCall();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Currently not in possession of the Call Lock; Cannot react to Device Actions'
       );
       expect(jabraService.callLock).toBe(false);
-      expect(resetStateSpy).toHaveBeenCalled();
     });
 
     it('properly handles flow when in possession of callLock', () => {
@@ -1002,13 +1000,11 @@ describe('JabraService', () => {
       jabraService.callControl = callControl as any;
 
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
       await jabraService.endCall('123', false);
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Currently not in possession of the Call Lock; Cannot react to Device Actions'
       );
       expect(jabraService.callLock).toBe(false);
-      expect(resetStateSpy).toHaveBeenCalled();
     });
 
     it('properly handles flow when in possession of callLock', () => {
@@ -1080,13 +1076,11 @@ describe('JabraService', () => {
       jabraService.callControl = callControl as any;
 
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
       await jabraService.endAllCalls();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Currently not in possession of the Call Lock; Cannot react to Device Actions'
       );
       expect(jabraService.callLock).toBe(false);
-      expect(resetStateSpy).toHaveBeenCalled();
     });
 
     it('properly handles flow when in possession of callLock', () => {
@@ -1181,6 +1175,14 @@ describe('JabraService', () => {
     it('should return false if no deviceInfo', () => {
       jabraService._deviceInfo = null;
       expect(jabraService.isDeviceAttached).toEqual(false);
+    });
+  });
+
+  describe('resetHeadsetStateForCall', () => {
+    it('should call the rejectCall function', () => {
+      const rejectSpy = jest.spyOn(jabraService, 'rejectCall');
+      jabraService.resetHeadsetStateForCall();
+      expect(rejectSpy).toHaveBeenCalled();
     });
   });
 

@@ -73,6 +73,10 @@ export default class JabraService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
+  resetHeadsetStateForCall (): Promise<any> {
+    return this.rejectCall();
+  }
+
   resetState (): void {
     this.setHold(null, false);
     this.setMute(false);
@@ -233,6 +237,7 @@ export default class JabraService extends VendorImplementation {
         );
       }
       this.callControl.ring(false);
+      this.resetState();
       this.callControl.releaseCallLock();
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
@@ -243,7 +248,6 @@ export default class JabraService extends VendorImplementation {
     } finally {
       this.pendingConversationId = null;
       this.callLock = false;
-      this.resetState();
     }
   }
 
@@ -282,6 +286,7 @@ export default class JabraService extends VendorImplementation {
         );
       }
       this.callControl.offHook(false);
+      this.resetState();
       this.callControl.releaseCallLock();
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
@@ -291,7 +296,6 @@ export default class JabraService extends VendorImplementation {
       }
     } finally {
       this.callLock = false;
-      this.resetState();
     }
   }
 
@@ -304,6 +308,7 @@ export default class JabraService extends VendorImplementation {
       }
       this.activeConversationId = null;
       this.callControl.offHook(false);
+      this.resetState();
       this.callControl.releaseCallLock();
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
@@ -313,7 +318,6 @@ export default class JabraService extends VendorImplementation {
       }
     } finally {
       this.callLock = false;
-      this.resetState();
     }
   }
 
@@ -448,6 +452,7 @@ export default class JabraService extends VendorImplementation {
         this.logger.error(type, message);
       }
     } finally {
+      this.resetHeadsetState();
       this.callLock = false;
       this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
       (this.isConnected || this.isConnecting) &&

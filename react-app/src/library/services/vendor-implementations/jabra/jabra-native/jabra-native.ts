@@ -84,6 +84,10 @@ export default class JabraNativeService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
+  resetHeadsetStateForCall(conversationId: string): Promise<any> {
+    return this.rejectCall();
+  }
+
   private isHeadsetEvent (event: any): event is JabraHeadsetEvent {
     return event.msg === HeadsetEvent;
   }

@@ -1199,4 +1199,18 @@ describe('HeadsetService', () => {
       expect(headsetService.deviceIsSupported({ micLabel: undefined })).toBeFalsy();
     });
   });
+
+  describe('resetHeadsetStateForCall', () => {
+    it('should call the implementations resetHeadsetStateForCall', () => {
+      const impl = {
+        resetHeadsetStateForCall: jest.fn().mockResolvedValue(null),
+        isConnected: true
+      };
+
+      headsetService.selectedImplementation = impl as any;
+      headsetService.resetHeadsetStateForCall('test123');
+
+      expect(impl.resetHeadsetStateForCall).toHaveBeenCalledWith('test123');
+    });
+  });
 });

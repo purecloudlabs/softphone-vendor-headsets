@@ -61,6 +61,19 @@ describe('SennheiserService', () => {
     });
   });
 
+  describe('resetHeadsetStateForCall', () => {
+    beforeEach(() => {
+      sennheiserService.websocket = createMockWebSocket();
+    });
+    it('should set ignoreAcknowledgement and call rejectCall function', () => {
+      const rejectSpy = jest.spyOn(sennheiserService, 'rejectCall');
+      sennheiserService.resetHeadsetStateForCall('test123');
+      expect(sennheiserService.ignoreAcknowledgement).toBe(true);
+      expect(rejectSpy).toHaveBeenCalledWith('test123');
+      sennheiserService.ignoreAcknowledgement = false;
+    });
+  });
+
   describe('deviceLabelMatchesVendor', () => {
     it('should return true when the device label contains the string "sennheiser"', () => {
       let testLabel = 'sennheiser headset';
@@ -737,6 +750,21 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('ignoreAcknowledgement', () => {
+      it('should not perform standard function tasks if flag is true', () => {
+        sennheiserService.ignoreAcknowledgement = true;
+        const conversationId = '12r3kh';
+        const payload: SennheiserPayload = {
+          CallID: conversationId,
+          Event: SennheiserEvents.IncomingCallRejected,
+        };
+        message = { data: JSON.stringify(payload) };
+
+        sennheiserService._handleMessage(message);
+        expect(sennheiserService.deviceRejectedCall).not.toHaveBeenCalledWith({ name: payload.Event, conversationId: payload.CallID });
       });
     });
   });

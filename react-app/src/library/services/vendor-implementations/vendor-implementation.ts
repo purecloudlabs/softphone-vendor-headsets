@@ -91,6 +91,10 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   setHold (conversationId: string, value: boolean): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - setHold() not implemented`));
   }
+
+  resetHeadsetStateForCall (conversationId?: string): Promise<any> {
+    return Promise.reject(new Error(`${this.vendorName} - resetHeadsetStateForCall() not implemented`));
+  }
   /* eslint-enable */
 
   private emitEvent (eventName: HeadsetEventName, eventBody: any) {

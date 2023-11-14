@@ -312,6 +312,14 @@ describe('JabraNativeService', () => {
     });
   });
 
+  describe('resetHeadsetStateForCall', () => {
+    it('should call the rejectCall function', () => {
+      const rejectSpy = jest.spyOn(jabraNativeService, 'rejectCall');
+      jabraNativeService.resetHeadsetStateForCall('test123');
+      expect(rejectSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('deviceLabelMatchesVendor', () => {
     it("should return true if the label contains 'jabra'", () => {
       expect(jabraNativeService.deviceLabelMatchesVendor('Jabra')).toBe(true);

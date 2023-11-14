@@ -113,3 +113,9 @@ describe('isSupported', () => {
     expect(implementation.isSupported()).toBeTruthy();
   });
 });
+
+describe('resetHeadsetStateForCall', () => {
+  it('should throw not implemented', () => {
+    expect(() => implementation.resetHeadsetStateForCall('test123')).rejects.toThrow('not implemented');
+  });
+});
