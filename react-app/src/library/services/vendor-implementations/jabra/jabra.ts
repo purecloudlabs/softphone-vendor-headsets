@@ -73,10 +73,6 @@ export default class JabraService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  resetHeadsetStateForCall (): Promise<any> {
-    return this.rejectCall();
-  }
-
   resetState (): void {
     this.setHold(null, false);
     this.setMute(false);
@@ -430,11 +426,15 @@ export default class JabraService extends VendorImplementation {
       return;
     }
 
-    await this.callControl.takeCallLock();
-    this.callControl.hold(false);
-    this.callControl.mute(false);
-    this.callControl.offHook(false);
-    this.callControl.releaseCallLock();
+    try {
+      await this.callControl.takeCallLock();
+      this.callControl.hold(false);
+      this.callControl.mute(false);
+      this.callControl.offHook(false);
+      this.callControl.releaseCallLock();
+    } catch (e) {
+      this.logger.warn('Failed to takeCallLock in order to resetHeadsetState. Ignoring reset.');
+    } 
   }
 
   async disconnect (): Promise<void> {

@@ -44,7 +44,7 @@ export default class SennheiserService extends VendorImplementation {
 
   resetHeadsetStateForCall (conversationId: string): Promise<any> {
     this.ignoreAcknowledgement = true;
-    return this.rejectCall(conversationId);
+    return this.endCall(conversationId);
   }
 
   _handleError (payload: SennheiserPayload): void {
@@ -144,6 +144,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   incomingCall (callInfo: CallInfo): Promise<void> {
+    this.ignoreAcknowledgement = false;
     this._sendMessage({
       Event: SennheiserEvents.IncomingCall,
       EventType: SennheiserEventTypes.Request,
@@ -176,6 +177,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   outgoingCall (callInfo: CallInfo): Promise<void> {
+    this.ignoreAcknowledgement = false;
     const { conversationId } = callInfo;
 
     this._sendMessage({

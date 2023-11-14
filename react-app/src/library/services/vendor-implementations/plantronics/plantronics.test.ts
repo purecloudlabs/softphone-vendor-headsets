@@ -1225,12 +1225,4 @@ describe('PlantronicsService', () => {
       });
     });
   });
-
-  describe('resetHeadsetStateForCall', () => {
-    it('should call the rejectCall function', () => {
-      const rejectSpy = jest.spyOn(plantronicsService, 'rejectCall');
-      plantronicsService.resetHeadsetStateForCall('test123');
-      expect(rejectSpy).toHaveBeenCalledWith('test123');
-    });
-  });
 });

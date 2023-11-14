@@ -65,11 +65,11 @@ describe('SennheiserService', () => {
     beforeEach(() => {
       sennheiserService.websocket = createMockWebSocket();
     });
-    it('should set ignoreAcknowledgement and call rejectCall function', () => {
-      const rejectSpy = jest.spyOn(sennheiserService, 'rejectCall');
+    it('should set ignoreAcknowledgement and call endCall function', () => {
+      const endCallSpy = jest.spyOn(sennheiserService, 'endCall');
       sennheiserService.resetHeadsetStateForCall('test123');
       expect(sennheiserService.ignoreAcknowledgement).toBe(true);
-      expect(rejectSpy).toHaveBeenCalledWith('test123');
+      expect(endCallSpy).toHaveBeenCalledWith('test123');
       sennheiserService.ignoreAcknowledgement = false;
     });
   });
@@ -259,7 +259,9 @@ describe('SennheiserService', () => {
       sennheiserService.websocket = createMockWebSocket();
     });
 
-    it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async () => {
+    it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId and reset ignoreAcknowledgement', async () => {
+      sennheiserService.ignoreAcknowledgement = true;
+      
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
         contactName: 'Ted Danson',
@@ -268,6 +270,7 @@ describe('SennheiserService', () => {
 
       // Run Test
       await sennheiserService.incomingCall(callInfo);
+      expect(sennheiserService.ignoreAcknowledgement).toBe(false);
 
       // Get generated call mapping to create expected payload
       // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
@@ -343,7 +346,8 @@ describe('SennheiserService', () => {
       sennheiserService.websocket = createMockWebSocket();
     });
 
-    it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async () => {
+    it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall and reset ignoreAcknowledgement', async () => {
+      sennheiserService.ignoreAcknowledgement = true;
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
         contactName: 'Joe Fixit',
@@ -352,6 +356,7 @@ describe('SennheiserService', () => {
 
       // Run Test
       await sennheiserService.outgoingCall(callInfo);
+      expect(sennheiserService.ignoreAcknowledgement).toBe(false);
 
       // Get generated call mapping to create expected payload
       // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];

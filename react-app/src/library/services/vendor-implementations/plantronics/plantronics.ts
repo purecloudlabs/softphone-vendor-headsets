@@ -87,10 +87,6 @@ export default class PlantronicsService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  resetHeadsetStateForCall (conversationId: string): Promise<any> {
-    return this.rejectCall(conversationId);
-  }
-
   pollForCallEvents (): void {
     if (this.callEventsTimerId) {
       clearTimeout(this.callEventsTimerId);

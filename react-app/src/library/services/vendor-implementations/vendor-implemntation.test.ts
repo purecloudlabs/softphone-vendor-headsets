@@ -115,7 +115,9 @@ describe('isSupported', () => {
 });
 
 describe('resetHeadsetStateForCall', () => {
-  it('should throw not implemented', () => {
-    expect(() => implementation.resetHeadsetStateForCall('test123')).rejects.toThrow('not implemented');
+  it('should call rejectCall', async () => {
+    const rejectSpy = implementation.rejectCall = jest.fn();
+    await implementation.resetHeadsetStateForCall('test123');
+    expect(rejectSpy).toHaveBeenCalledWith('test123');
   });
 });

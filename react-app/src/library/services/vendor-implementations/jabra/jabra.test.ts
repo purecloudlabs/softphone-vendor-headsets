@@ -612,7 +612,7 @@ describe('JabraService', () => {
       expect(connectionSpy).toHaveBeenCalled();
     });
 
-    it('should properly handle errors while attempting to release callLock', () => {
+    it('should properly handle errors while attempting to release callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
       const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
 
@@ -629,7 +629,7 @@ describe('JabraService', () => {
         );
       });
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      jabraService.disconnect();
+      await jabraService.disconnect();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Trying to release the call lock, but it is not held!'
       );
@@ -638,7 +638,7 @@ describe('JabraService', () => {
       expect(connectionSpy).toHaveBeenCalled();
     });
 
-    it('should properly handle errors while attempting to release callLock', () => {
+    it('should properly handle errors while attempting to release callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
       const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
 
@@ -652,7 +652,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.disconnect();
+      await jabraService.disconnect();
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -942,7 +942,7 @@ describe('JabraService', () => {
       expect(resetStateSpy).toHaveBeenCalled();
     });
 
-    it('properly handles error unrelated callLock', () => {
+    it('properly handles error unrelated callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -954,7 +954,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.rejectCall();
+      await jabraService.rejectCall();
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -1031,7 +1031,7 @@ describe('JabraService', () => {
       expect(resetStateSpy).toHaveBeenCalled();
     });
 
-    it('properly handles error unrelated callLock', () => {
+    it('properly handles error unrelated callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -1043,7 +1043,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.endCall('123', false);
+      await jabraService.endCall('123', false);
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -1107,7 +1107,7 @@ describe('JabraService', () => {
       expect(resetStateSpy).toHaveBeenCalled();
     });
 
-    it('properly handles error unrelated callLock', () => {
+    it('properly handles error unrelated callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -1119,7 +1119,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.endAllCalls();
+      await jabraService.endAllCalls();
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'

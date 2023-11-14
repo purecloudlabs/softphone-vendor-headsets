@@ -93,7 +93,7 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   }
 
   resetHeadsetStateForCall (conversationId?: string): Promise<any> {
-    return Promise.reject(new Error(`${this.vendorName} - resetHeadsetStateForCall() not implemented`));
+    return this.rejectCall(conversationId);
   }
   /* eslint-enable */
 
