@@ -55,7 +55,6 @@ const mackDeviceList0 = [];
 const mackDeviceList1 = [{
   open: jest.fn(),
   close: jest.fn(),
-  //sendReport: jest.fn(),
   sendReport: jest.fn((reportId, data) => {
     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
   }),
@@ -87,7 +86,6 @@ const mackDeviceList1 = [{
 const mackDeviceList1_notOpen = [{
   open: jest.fn(),
   close: jest.fn(),
-  //sendReport: jest.fn(),
   sendReport: jest.fn((reportId, data) => {
     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
   }),
@@ -101,7 +99,7 @@ const mackDeviceList1_notOpen = [{
     });
   }),
   productName: mackTestDevName,
-  productId:  testProductId,
+  productId: testProductId,
   opened: false,
 
   collections: [
@@ -118,7 +116,6 @@ const mackDeviceList1_notOpen = [{
 const mackDeviceList2 = [{
   open: jest.fn(),
   close: jest.fn(),
-  //sendReport: jest.fn(),
   sendReport: jest.fn((reportId, data) => {
     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
   }),
@@ -149,7 +146,6 @@ const mackDeviceList2 = [{
 const mackDeviceList3 = [{
   open: jest.fn(),
   close: jest.fn(),
-  //sendReport: jest.fn(),
   sendReport: jest.fn((reportId, data) => {
     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
   }),
@@ -266,7 +262,6 @@ describe('CyberAcousticsService', () => {
   });
 
   // connect
-
   describe('connect', () => {
     
     beforeEach( async () => {
@@ -278,7 +273,7 @@ describe('CyberAcousticsService', () => {
       const spyOnSelectDevice = jest.spyOn(cyberAcousticsService, 'selectDevice');
       cyberAcousticsService.isConnected = false;
       cyberAcousticsService.isConnecting = false;  
-  });
+    });
     
     
     it('SHOULD NOT connect with bad device string', async () => { 
@@ -316,32 +311,33 @@ describe('CyberAcousticsService', () => {
   
       cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
       
-      mackReqDeviceList = mackDeviceList1_notOpen;
-      callback();
-   });
-    //findme
-    mackDeviceList = mackDeviceList2;    
-    mackReqDeviceList = mackDeviceList1_notOpen;  
-    cyberAcousticsService.activeDevice = null;
-    cyberAcousticsService.connect('CyberAcoustics Emulation');
-    expect(cyberAcousticsService.activeDevice).toBeNull;
-  }),
-
-  it('SHOULD connect after calling requestWebHidPermissions granted', async () => { 
+        mackReqDeviceList = mackDeviceList1_notOpen;
+        callback();
+      });
       
+      mackDeviceList = mackDeviceList2;    
+      mackReqDeviceList = mackDeviceList1_notOpen;  
+      cyberAcousticsService.activeDevice = null;
+      cyberAcousticsService.connect('CyberAcoustics Emulation');
+      expect(cyberAcousticsService.activeDevice).toBeNull;
+  
+    }),
 
-    cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
+    it('SHOULD connect after calling requestWebHidPermissions granted', async () => { 
+        
+
+      cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
+        
+        mackReqDeviceList = mackDeviceList1;
+        callback();
+      });
       
-      mackReqDeviceList = mackDeviceList1;
-      callback();
-  });
-    //findme
-    mackDeviceList = mackDeviceList2;
-    mackReqDeviceList = mackDeviceList1;  
-    cyberAcousticsService.activeDevice = null;
-    cyberAcousticsService.connect('CyberAcoustics Emulation');
-    expect(cyberAcousticsService.activeDevice).not.toBeNull;
-  }),
+      mackDeviceList = mackDeviceList2;
+      mackReqDeviceList = mackDeviceList1;  
+      cyberAcousticsService.activeDevice = null;
+      cyberAcousticsService.connect('CyberAcoustics Emulation');
+      expect(cyberAcousticsService.activeDevice).not.toBeNull;
+    }),
 
   
     it(`should not assign input or output reports if none found`, async () => {
@@ -357,7 +353,7 @@ describe('CyberAcousticsService', () => {
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
       cyberAcousticsService.connect('random device string');
       expect(spyOnchangeConnectionStatus.mock.calls).toEqual(
-        [[{ "isConnected": false, "isConnecting": true}]] );
+        [[{ "isConnected": false, "isConnecting": true }]] );
     }),
 
     it('should not callchangeConnectionStatus if already connecting', async () => { 
@@ -378,7 +374,6 @@ describe('CyberAcousticsService', () => {
       let device = await cyberAcousticsService.HidMockDeviceInit();  
       
       cyberAcousticsService._currentCallState = CALL_ACTIVE;
-      ////cyberAcousticsService.setCurrentCallState(CALL_ACTIVE);
       // disconnect- device should be null, etc...
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
       cyberAcousticsService.isConnected = true;
@@ -397,7 +392,6 @@ describe('CyberAcousticsService', () => {
     }),
 
     it('currentCallState should be CALL_IDLE', async () => { 
-      //expect(cyberAcousticsService.getCurrentCallState()).toBe(CALL_IDLE);
       expect(cyberAcousticsService._currentCallState).toBe(CALL_IDLE);
     }),
 
@@ -411,7 +405,7 @@ describe('CyberAcousticsService', () => {
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
       expect(cyberAcousticsService.changeConnectionStatus).not.toBeCalled;
  
-    })
+    }),
   
     it('disconnect isConnected = false ', async () => { 
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
@@ -455,7 +449,6 @@ describe('CyberAcousticsService', () => {
       mackDeviceList = mackDeviceList1;
       let device = await cyberAcousticsService.HidMockDeviceInit();        
       const spyOnParseStateEvents = jest.spyOn(cyberAcousticsService, 'ParseStateEvents');    
-      //cyberAcousticsService.answerCall(testCallInfo);
       cyberAcousticsService.answerCall(testCallInfo.conversationId, false);
       expect(spyOnParseStateEvents.mock.calls).toEqual(
         [[ca_st_event_call_answer]]);      
@@ -557,7 +550,7 @@ describe('CyberAcousticsService', () => {
     
     it('should set currentProductId & Product name from device', async () => {
       cyberAcousticsService.handleDeviceConnect();
-      expect(cyberAcousticsService.deviceInfo.ProductName).toEqual(mackTestDevName)
+      expect(cyberAcousticsService.deviceInfo.ProductName).toEqual(mackTestDevName);
     })
 
     it('should set currentCallState to CALL_IDLE', async () => {
@@ -576,7 +569,7 @@ describe('CyberAcousticsService', () => {
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
       cyberAcousticsService.handleDeviceConnect();
       expect(spyOnchangeConnectionStatus.mock.calls).toEqual(
-        [[{"isConnected": true, "isConnecting": false}]]    )
+        [[{ "isConnected": true, "isConnecting": false }]] );
     }),
   
 
@@ -629,25 +622,19 @@ describe('CyberAcousticsService', () => {
       cyberAcousticsService.handleInputReport(mockInputReportEvent);
       
       expect(spyOnhandleDeviceButtonPress).toBeCalled;
-      expect(spyOnhandleDeviceButtonPress.mock.calls).toEqual([[ 0, 3]])
+      expect(spyOnhandleDeviceButtonPress.mock.calls).toEqual([[ 0, 3]]);
 
 
       cyberAcousticsService._handeledInputReportIds = 0;
-      //const spyOnhandleDeviceButtonPress = jest.spyOn( cyberAcousticsService, 'handleDeviceButtonPress');
       cyberAcousticsService.handleInputReport(mockInputReportEvent);
       
       expect(spyOnhandleDeviceButtonPress).not.toBeCalled;
-
-      
     })
   });
 
   // handleDeviceButtonPress
   describe('handleDeviceButtonPress', () => {
-      
-    const set = 1;
-    const clear = 0;
-    
+
     beforeEach( async () => {
       mackDeviceList = mackDeviceList1;
       cyberAcousticsService._currentProductID = testProductId; 
@@ -723,7 +710,7 @@ describe('CyberAcousticsService', () => {
       
       expect(spyOndeviceMuteChanged).toBeCalled();
       expect(spyOndeviceMuteChanged.mock.calls).toEqual(
-        [[{isMuted: cyberAcousticsService.muteState, name: cyberAcousticsService.muteState ? 'CallMuted' : 'CallUnmuted'}]] )
+        [[{ isMuted: cyberAcousticsService.muteState, name: cyberAcousticsService.muteState ? 'CallMuted' : 'CallUnmuted' }]] );
       
       // now unmuted- toggle back to muted 
       cyberAcousticsService.handleDeviceButtonPress(muteButtonToggle, cyberAcousticsService._headsetInputReportId);
@@ -762,8 +749,8 @@ describe('CyberAcousticsService', () => {
     const clear = 0;
     
     beforeEach( async () => {
-       mackDeviceList = mackDeviceList1;
-       let device = await cyberAcousticsService.HidMockDeviceInit();  
+      mackDeviceList = mackDeviceList1;
+      let device = await cyberAcousticsService.HidMockDeviceInit();  
     });
     
 
@@ -793,11 +780,9 @@ describe('CyberAcousticsService', () => {
 
   
     it('Should handle Word length commands', async () => { 
-        cyberAcousticsService._JLCommandSet = true;
-        cyberAcousticsService.SendCommandToDevice(0xAA55);
-        //expect(cyberAcousticsService.currentCmdLo).toEqual(0x55);
-        //expect(cyberAcousticsService.currentCmdLo).toEqual(0xAA);
-      })
+      cyberAcousticsService._JLCommandSet = true;
+      cyberAcousticsService.SendCommandToDevice(0xAA55);
+    })
   
   });
 
@@ -838,7 +823,6 @@ describe('CyberAcousticsService', () => {
      
     // CALL_INCOMING
     it('should transition CALL_INCOMING->CALL_ANSWERING on certain events', async () => { 
-      //cyberAcousticsService.setCurrentCallState(CALL_INCOMING);
       cyberAcousticsService._currentCallState = CALL_INCOMING;
       cyberAcousticsService.ParseStateEvents (ca_st_event_hooksw_on);
       expect(cyberAcousticsService._currentCallState).toBe(CALL_ANSWERING);
