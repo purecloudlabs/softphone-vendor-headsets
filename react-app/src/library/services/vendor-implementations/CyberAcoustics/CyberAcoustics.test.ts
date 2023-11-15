@@ -76,7 +76,7 @@ const mackDeviceList1 = [{
     {
       usage: HEADSET_USAGE,
       usagePage: HEADSET_USAGE_PAGE,
-      inputReports:  [{ reportId: 3 }],
+      inputReports: [{ reportId: 3 }],
       outputReports: [{ reportId: 3 }] 
     }
   ]
@@ -108,7 +108,7 @@ let mackDeviceList1_notOpen = [{
     {
       usage: HEADSET_USAGE,
       usagePage: HEADSET_USAGE_PAGE,
-      inputReports:  [{ reportId: 3 }],
+      inputReports: [{ reportId: 3 }],
       outputReports: [{ reportId: 3 }] 
     }
   ]
@@ -170,43 +170,13 @@ const mackDeviceList3 = [{
     {
       usage: HEADSET_USAGE,
       usagePage: HEADSET_USAGE_PAGE,
-      inputReports:  [],
+      inputReports: [],
       outputReports: [] 
     }
   ]
 
 }];
 
-// const mackDeviceList5 = [{
-//   open: jest.fn(),
-//   close: jest.fn(),
-//   //sendReport: jest.fn(),
-//   sendReport: jest.fn((reportId, data) => {
-//     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
-//   }),
- 
-//   addEventListener: jest.fn((name, callback) => {callback(
-//     {
-//       reportId: mackEventReportId,
-//       data: {
-//         getUint8: jest.fn()
-//       }
-//     });
-//   }),
-//   productName: mackTestDevName,
-//   productId:  0x18,
-//   opened: true,
-
-//   collections: [
-//     {
-//       usage: HEADSET_USAGE,
-//       usagePage: HEADSET_USAGE_PAGE,
-//       inputReports:  [{ reportId: 1 }],
-//       outputReports: [{ reportId: 1 }] 
-//     }
-//   ]
-
-// }];
 
 const mackDeviceList10 = [{
   open: jest.fn(),
@@ -232,7 +202,7 @@ const mackDeviceList10 = [{
     {
       usage: HEADSET_USAGE,
       usagePage: HEADSET_USAGE_PAGE,
-      inputReports:  [{ reportId: 1 }],
+      inputReports: [{ reportId: 1 }],
       outputReports: [{ reportId: 1 }] 
     }
   ]
@@ -307,7 +277,7 @@ describe('CyberAcousticsService', () => {
       //cyberAcousticsService.SendCommandToDevice(0);
       //device.sendReport(0,0);
 
-    })});
+    });});
   
   
   describe('instantiation', () => {
@@ -365,10 +335,10 @@ describe('CyberAcousticsService', () => {
     
     it('SHOULD NOT connect with bad device string', async () => { 
       
-        cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
-          mackReqDeviceList = mackDeviceList1;
-          callback();
-       });
+      cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
+        mackReqDeviceList = mackDeviceList1;
+        callback();
+      });
       
       cyberAcousticsService.activeDevice = null;
       cyberAcousticsService.connect('random device string');
@@ -377,43 +347,41 @@ describe('CyberAcousticsService', () => {
     
     // Previously connected device- already open 
     it('SHOULD connect with a good device string', async () => {     
-    mackDeviceList = mackDeviceList1;
-    cyberAcousticsService.activeDevice = null;
-    cyberAcousticsService.connect('CyberAcoustics Emulation');
-    expect(cyberAcousticsService.activeDevice).not.toBeNull;
+      mackDeviceList = mackDeviceList1;
+      cyberAcousticsService.activeDevice = null;
+      cyberAcousticsService.connect('CyberAcoustics Emulation');
+      expect(cyberAcousticsService.activeDevice).not.toBeNull;
   
-  }),
+    }),
 
-  // Previously connected device- not open 
-  it('SHOULD connect with a good device string', async () => {     
-    mackDeviceList = mackDeviceList1_notOpen;
-    cyberAcousticsService.activeDevice = null;
-    cyberAcousticsService.connect('CyberAcoustics Emulation');
-    expect(cyberAcousticsService.activeDevice).not.toBeNull;
+    // Previously connected device- not open 
+    it('SHOULD connect with a good device string', async () => {     
+      mackDeviceList = mackDeviceList1_notOpen;
+      cyberAcousticsService.activeDevice = null;
+      cyberAcousticsService.connect('CyberAcoustics Emulation');
+      expect(cyberAcousticsService.activeDevice).not.toBeNull;
   
-  }),
+    }),
     
   it('SHOULD NOT connect after calling requestWebHidPermissionS denied', async () => { 
     
-    //const mackDeviceListTest =  { ...mackDeviceListDefault };
-    //mackDeviceList1[0].opened = false;
+  
     cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
       
       mackReqDeviceList = mackDeviceList1_notOpen;
       callback();
    });
   
-  mackDeviceList = mackDeviceList2;
-  mackReqDeviceList = mackDeviceList1_notOpen;  
-  cyberAcousticsService.activeDevice = null;
-  cyberAcousticsService.connect('CyberAcoustics Emulation');
-  expect(cyberAcousticsService.activeDevice).toBeNull;
+    mackDeviceList = mackDeviceList2;    
+    mackReqDeviceList = mackDeviceList1_notOpen;  
+    cyberAcousticsService.activeDevice = null;
+    cyberAcousticsService.connect('CyberAcoustics Emulation');
+    expect(cyberAcousticsService.activeDevice).toBeNull;
 }),
 
 it('SHOULD connect after calling requestWebHidPermissions granted', async () => { 
     
-  //const mackDeviceListTest =  { ...mackDeviceListDefault };
-  //mackDeviceList1[0].opened = true;
+
   cyberAcousticsService.requestWebHidPermissions = jest.fn((callback)=>{
     
     mackReqDeviceList = mackDeviceList1;
@@ -600,17 +568,17 @@ expect(cyberAcousticsService.activeDevice).not.toBeNull;
       expect(spyOnUpdateDeviceStatus.mock.calls).toEqual(
         [[micMuteFlag,true]]);      
         expect(cyberAcousticsService.isMuted).toEqual(true);  
-      })
+    })
 
-      it('when called with false, should set global mute state false and call UpdateDeviceStatus with muteflag false', async () => { 
-        mackDeviceList = mackDeviceList1;
-        let device = await cyberAcousticsService.HidMockDeviceInit();        
-        const spyOnUpdateDeviceStatus = jest.spyOn(cyberAcousticsService, 'UpdateDeviceStatus');        
-        cyberAcousticsService.setMute(false);
-        expect(spyOnUpdateDeviceStatus.mock.calls).toEqual(
-          [[micMuteFlag,false]]);      
-          expect(cyberAcousticsService.isMuted).toEqual(false);  
-        })
+    it('when called with false, should set global mute state false and call UpdateDeviceStatus with muteflag false', async () => { 
+      mackDeviceList = mackDeviceList1;
+      let device = await cyberAcousticsService.HidMockDeviceInit();        
+      const spyOnUpdateDeviceStatus = jest.spyOn(cyberAcousticsService, 'UpdateDeviceStatus');        
+      cyberAcousticsService.setMute(false);
+      expect(spyOnUpdateDeviceStatus.mock.calls).toEqual(
+        [[micMuteFlag,false]]);      
+      expect(cyberAcousticsService.isMuted).toEqual(false);  
+    })
   
   
   });
