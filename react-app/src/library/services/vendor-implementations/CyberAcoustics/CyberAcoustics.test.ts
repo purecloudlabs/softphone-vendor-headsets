@@ -1,16 +1,13 @@
 
 import CyberAcousticsService from './CyberAcoustics';
-import { PartialHIDDevice } from '../../../types/device-info';
 import { CallInfo } from '../../..';
-//import { PartialInputReportEvent } from '../../../types/consumed-headset-events';
+// we may need these later
+// import { PartialInputReportEvent } from '../../../types/consumed-headset-events';
+// import { PartialHIDDevice } from '../../../types/device-info';
 
 const HEADSET_USAGE = 0x0005;
 const HEADSET_USAGE_PAGE = 0x000B;
-
-
 const micMuteFlag = 0x04;
-
-
 const testProductId = 0xAA55;
 
 const testCallInfo: CallInfo = {
@@ -129,7 +126,7 @@ const mackDeviceList2 = [{
     });
   }),
   productName: mackTestDevName,
-  productId:  testProductId,
+  productId: testProductId,
   opened: false,
 
   collections: [
@@ -267,7 +264,7 @@ describe('CyberAcousticsService', () => {
     beforeEach( async () => {
       // create a device
       mackDeviceList = mackDeviceList1;
-      let device = await cyberAcousticsService.HidMockDeviceInit();  
+      const device = await cyberAcousticsService.HidMockDeviceInit();  
      
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
       const spyOnSelectDevice = jest.spyOn(cyberAcousticsService, 'selectDevice');
@@ -379,7 +376,7 @@ describe('CyberAcousticsService', () => {
       cyberAcousticsService.isConnected = true;
       cyberAcousticsService.isConnecting = true;
       cyberAcousticsService.disconnect();      
-   });
+    });
     
     //const CAProto = Object.getPrototypeOf(cyberAcousticsService);
     it('activeDevice should be null', async () => { 
@@ -413,7 +410,7 @@ describe('CyberAcousticsService', () => {
       cyberAcousticsService.isConnecting = true;
       cyberAcousticsService.disconnect();
       expect(cyberAcousticsService.changeConnectionStatus).not.toBeCalled;
-    })
+    }),
  
     it('disconnect isConnected = false, isConnecting false ', async () => { 
       const spyOnchangeConnectionStatus = jest.spyOn(cyberAcousticsService, 'changeConnectionStatus');
