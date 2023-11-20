@@ -239,6 +239,10 @@ export default class HeadsetService {
     }
   }
 
+  testFunction () {
+    (this.getConnectedImpl() as any).testFunction();
+  }
+
   async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {

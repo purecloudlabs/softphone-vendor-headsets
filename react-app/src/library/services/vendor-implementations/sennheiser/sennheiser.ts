@@ -204,6 +204,14 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
+  testFunction () {
+    this._sendMessage({
+      Event: 'EnableLogging' as any,
+      EventType: SennheiserEventTypes.Request,
+      LogFileName: "/Users/garrett.jensen/Downloads/sennLogging.log"
+    } as any);
+  }
+
   _handleMessage (message: { data: string }): void {
     let payload: SennheiserPayload;
     try {

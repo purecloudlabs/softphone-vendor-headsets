@@ -196,6 +196,10 @@ const App = () => {
     !fromHeadset && headset.setHold(currentCall.id, holdToggle);
   };
 
+  const getStatus = () => {
+    headset.testFunction();
+  };
+
   return (
     <>
       <div className="entry-row">
@@ -268,6 +272,7 @@ const App = () => {
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
             <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>
+            <button  type="button" onClick={() => getStatus()}>Get Status</button>
           </div>
         </div>
       </div>
