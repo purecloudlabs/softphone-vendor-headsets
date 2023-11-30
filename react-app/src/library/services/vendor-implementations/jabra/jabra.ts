@@ -293,6 +293,7 @@ export default class JabraService extends VendorImplementation {
         );
       }
       this.callControl.offHook(false);
+      this.resetState();
       this.callControl.releaseCallLock();
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
@@ -302,7 +303,6 @@ export default class JabraService extends VendorImplementation {
       }
     } finally {
       this.callLock = false;
-      this.resetState();
     }
   }
 
@@ -315,6 +315,7 @@ export default class JabraService extends VendorImplementation {
       }
       this.activeConversationId = null;
       this.callControl.offHook(false);
+      this.resetState();
       this.callControl.releaseCallLock();
     } catch ({ message, type }) {
       if (this.checkForCallLockError(message, type)) {
@@ -324,7 +325,6 @@ export default class JabraService extends VendorImplementation {
       }
     } finally {
       this.callLock = false;
-      this.resetState();
     }
   }
 
@@ -437,11 +437,15 @@ export default class JabraService extends VendorImplementation {
       return;
     }
 
-    await this.callControl.takeCallLock();
-    this.callControl.hold(false);
-    this.callControl.mute(false);
-    this.callControl.offHook(false);
-    this.callControl.releaseCallLock();
+    try {
+      await this.callControl.takeCallLock();
+      this.callControl.hold(false);
+      this.callControl.mute(false);
+      this.callControl.offHook(false);
+      this.callControl.releaseCallLock();
+    } catch (e) {
+      this.logger.warn('Failed to takeCallLock in order to resetHeadsetState. Ignoring reset.');
+    } 
   }
 
   async disconnect (): Promise<void> {
@@ -459,6 +463,7 @@ export default class JabraService extends VendorImplementation {
         this.logger.error(type, message);
       }
     } finally {
+      this.resetHeadsetState();
       this.callLock = false;
       this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
       (this.isConnected || this.isConnecting) &&

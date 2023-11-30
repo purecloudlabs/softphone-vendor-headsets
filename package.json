@@ -1,6 +1,6 @@
 {
   "name": "softphone-vendor-headsets",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "author": "Genesys",
   "license": "MIT",
   "cjs": "dist/cjs/src/library/index.js",
@@ -32,7 +32,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
-    "@gnaudio/jabra-js": "^4.0.1",
+    "@gnaudio/jabra-js": "^4.2.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
     "rxjs": "^7.4.0",

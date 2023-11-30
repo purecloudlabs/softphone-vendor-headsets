@@ -651,7 +651,7 @@ describe('JabraService', () => {
       expect(connectionSpy).toHaveBeenCalled();
     });
 
-    it('should properly handle errors while attempting to release callLock', () => {
+    it('should properly handle errors while attempting to release callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
       const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
 
@@ -668,7 +668,7 @@ describe('JabraService', () => {
         );
       });
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      jabraService.disconnect();
+      await jabraService.disconnect();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Trying to release the call lock, but it is not held!'
       );
@@ -677,7 +677,7 @@ describe('JabraService', () => {
       expect(connectionSpy).toHaveBeenCalled();
     });
 
-    it('should properly handle errors while attempting to release callLock', () => {
+    it('should properly handle errors while attempting to release callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
       const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
 
@@ -691,7 +691,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.disconnect();
+      await jabraService.disconnect();
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -948,9 +948,9 @@ describe('JabraService', () => {
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
 
       jabraService.callControl = callControl as any;
+      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
 
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
       await jabraService.rejectCall();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Currently not in possession of the Call Lock; Cannot react to Device Actions'
@@ -1002,7 +1002,7 @@ describe('JabraService', () => {
       expect(resetStateSpy).toHaveBeenCalled();
     });
 
-    it('properly handles error unrelated callLock', () => {
+    it('properly handles error unrelated callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -1014,7 +1014,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.rejectCall();
+      await jabraService.rejectCall();
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -1060,13 +1060,11 @@ describe('JabraService', () => {
       jabraService.callControl = callControl as any;
 
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
       await jabraService.endCall('123', false);
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Currently not in possession of the Call Lock; Cannot react to Device Actions'
       );
       expect(jabraService.callLock).toBe(false);
-      expect(resetStateSpy).toHaveBeenCalled();
     });
 
     it('properly handles flow when in possession of callLock', () => {
@@ -1093,7 +1091,7 @@ describe('JabraService', () => {
       expect(resetStateSpy).toHaveBeenCalled();
     });
 
-    it('properly handles error unrelated callLock', () => {
+    it('properly handles error unrelated callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -1105,7 +1103,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.endCall('123', false);
+      await jabraService.endCall('123', false);
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -1138,13 +1136,11 @@ describe('JabraService', () => {
       jabraService.callControl = callControl as any;
 
       const infoLoggerSpy = jest.spyOn(jabraService.logger, 'info');
-      const resetStateSpy = jest.spyOn(jabraService, 'resetState');
       await jabraService.endAllCalls();
       expect(infoLoggerSpy).toHaveBeenCalledWith(
         'Currently not in possession of the Call Lock; Cannot react to Device Actions'
       );
       expect(jabraService.callLock).toBe(false);
-      expect(resetStateSpy).toHaveBeenCalled();
     });
 
     it('properly handles flow when in possession of callLock', () => {
@@ -1171,7 +1167,7 @@ describe('JabraService', () => {
       expect(resetStateSpy).toHaveBeenCalled();
     });
 
-    it('properly handles error unrelated callLock', () => {
+    it('properly handles error unrelated callLock', async () => {
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -1183,7 +1179,7 @@ describe('JabraService', () => {
         throw exceptionWithType('Something much worse', ErrorType.UNEXPECTED_ERROR);
       });
       const errorLoggerSpy = jest.spyOn(jabraService.logger, 'error');
-      jabraService.endAllCalls();
+      await jabraService.endAllCalls();
       expect(errorLoggerSpy).toHaveBeenCalledWith(
         ErrorType.UNEXPECTED_ERROR,
         'Something much worse'
@@ -1239,6 +1235,14 @@ describe('JabraService', () => {
     it('should return false if no deviceInfo', () => {
       jabraService._deviceInfo = null;
       expect(jabraService.isDeviceAttached).toEqual(false);
+    });
+  });
+
+  describe('resetHeadsetStateForCall', () => {
+    it('should call the rejectCall function', () => {
+      const rejectSpy = jest.spyOn(jabraService, 'rejectCall');
+      jabraService.resetHeadsetStateForCall();
+      expect(rejectSpy).toHaveBeenCalled();
     });
   });
 

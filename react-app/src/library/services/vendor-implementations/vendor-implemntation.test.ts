@@ -113,3 +113,11 @@ describe('isSupported', () => {
     expect(implementation.isSupported()).toBeTruthy();
   });
 });
+
+describe('resetHeadsetStateForCall', () => {
+  it('should call rejectCall', async () => {
+    const rejectSpy = implementation.rejectCall = jest.fn();
+    await implementation.resetHeadsetStateForCall('test123');
+    expect(rejectSpy).toHaveBeenCalledWith('test123');
+  });
+});

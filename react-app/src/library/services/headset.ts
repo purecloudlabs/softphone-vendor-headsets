@@ -289,6 +289,11 @@ export default class HeadsetService {
     return 'noVendor';
   }
 
+  resetHeadsetStateForCall (conversationId: string): Promise<any> {
+    const implementation = this.getConnectedImpl();
+    return implementation.resetHeadsetStateForCall(conversationId);
+  }
+
   private getConnectedImpl (): VendorImplementation {
     const impl = this.selectedImplementation;
     if (!impl || !impl.isConnected) {
