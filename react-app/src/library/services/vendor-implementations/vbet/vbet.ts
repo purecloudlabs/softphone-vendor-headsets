@@ -188,7 +188,6 @@ export default class VBetService extends VendorImplementation {
         await this.answerCallFromDevice();
         break;
       case 0x10:
-      case 0x11:
         await this.rejectCallFromDevice();
         break;
       case 0x00:
@@ -266,18 +265,23 @@ export default class VBetService extends VendorImplementation {
     await this.sendOpToDevice('offHook');
   }
 
-  async answerCall (): Promise<void> {
-    if (this.pendingConversationId) {
-      this.activeConversationId = this.pendingConversationId;
-      this.pendingConversationId = null;
-      await this.sendOpToDevice('offHook');
-    } else {
-      this.logger.error('no call to be answered');
+  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
+    if(!conversationId){
+      return;
+    }else {
+      if (autoAnswer) {
+        await this.sendOpToDevice('ring');
+        await this.sendOpToDevice('offHook');
+      } else {
+        await this.sendOpToDevice('offHook');
+        this.pendingConversationId = null;
+      }
+      this.activeConversationId = conversationId;
     }
   }
 
   async answerCallFromDevice (): Promise<void> {
-    await this.answerCall();
+    await this.answerCall(this.pendingConversationId, false);
     if (this.activeConversationId) {
       this.deviceAnsweredCall({
         name: 'OffHook',

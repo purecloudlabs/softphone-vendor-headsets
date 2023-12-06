@@ -483,6 +483,15 @@ describe('VBetservice', () => {
       expect(ansFun).toHaveBeenCalled();
       expect(devAnsFun).toHaveBeenCalled();
     });
+
+
+    it('test auto answer call', async () => {
+      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
+      await vbetService.answerCall('id',true);
+      expect(ansFun).toHaveBeenCalledWith('ring');
+      expect(ansFun).toHaveBeenCalledWith('offHook');
+    });
+
   });
 
   describe('processBtnPress CMEDIASeries', () => {
@@ -670,13 +679,6 @@ describe('VBetservice', () => {
 
     afterEach(async () => {
       await vbetService.disconnect();
-    });
-
-    it('test offhook but no pending id', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.incomingCall({ conversationId: '' });
-      await vbetService.answerCall();
-      expect(ansFun).not.toHaveBeenCalledWith('offHook');
     });
 
     it('test onhook', async () => {
