@@ -178,8 +178,8 @@ const mockOnhookFlag = {
 const mockMuteFlag = {
   BT100USeries: 0x0c,
   CMEDIASeries: 0x14,
-  DECTSeries: 0x03,
-  ACTIONSeries: 0x01,
+  DECTSeries: [0x03, 0x04],
+  ACTIONSeries: [0x05, 0x01],
 };
 const mockReject = { BT100USeries: 0x10, ACTIONSeries: 0x08 };
 
@@ -484,14 +484,12 @@ describe('VBetservice', () => {
       expect(devAnsFun).toHaveBeenCalled();
     });
 
-
     it('test auto answer call', async () => {
       const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.answerCall('id',true);
+      await vbetService.answerCall('id', true);
       expect(ansFun).toHaveBeenCalledWith('ring');
       expect(ansFun).toHaveBeenCalledWith('offHook');
     });
-
   });
 
   describe('processBtnPress CMEDIASeries', () => {
@@ -592,11 +590,25 @@ describe('VBetservice', () => {
       const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
       await vbetService.incomingCall({ conversationId: 'id' });
       await vbetService.processBtnPress(mockOffhookFlag.DECTSeries);
-      await vbetService.processBtnPress(mockMuteFlag.DECTSeries);
+      await vbetService.processBtnPress(mockMuteFlag.DECTSeries[0]);
       expect(setMuteFun).toHaveBeenCalledWith(true);
       expect(devMuteFun).toHaveBeenCalledWith({
         isMuted: true,
         name: 'CallMuted',
+        conversationId: 'id',
+      });
+    });
+
+    it('test unmute', async () => {
+      const setMuteFun = jest.spyOn(vbetService, 'setMute');
+      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
+      await vbetService.incomingCall({ conversationId: 'id' });
+      await vbetService.processBtnPress(mockOffhookFlag.DECTSeries);
+      await vbetService.processBtnPress(mockMuteFlag.DECTSeries[1]);
+      expect(setMuteFun).toHaveBeenCalledWith(false);
+      expect(devMuteFun).toHaveBeenCalledWith({
+        isMuted: false,
+        name: 'CallUnmuted',
         conversationId: 'id',
       });
     });
@@ -652,11 +664,25 @@ describe('VBetservice', () => {
       const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
       await vbetService.incomingCall({ conversationId: 'id' });
       await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
-      await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries);
+      await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries[0]);
       expect(setMuteFun).toHaveBeenCalledWith(true);
       expect(devMuteFun).toHaveBeenCalledWith({
         isMuted: true,
         name: 'CallMuted',
+        conversationId: 'id',
+      });
+    });
+
+    it('test unmute', async () => {
+      const setMuteFun = jest.spyOn(vbetService, 'setMute');
+      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
+      await vbetService.incomingCall({ conversationId: 'id' });
+      await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
+      await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries[1]);
+      expect(setMuteFun).toHaveBeenCalledWith(true);
+      expect(devMuteFun).toHaveBeenCalledWith({
+        isMuted: false,
+        name: 'CallUnmuted',
         conversationId: 'id',
       });
     });
