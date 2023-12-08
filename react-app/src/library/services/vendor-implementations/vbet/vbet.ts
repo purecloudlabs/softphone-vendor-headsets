@@ -355,11 +355,11 @@ export default class VBetService extends VendorImplementation {
     } else {
       await this.sendOpToDevice('muteOff');
     }
+    this.isMuted = value;
   }
 
   async setMuteFromDevice (value: boolean): Promise<void> {
-    this.isMuted = value;
-    await this.setMute(this.isMuted);
+    await this.setMute(value);
     this.deviceMuteChanged({
       isMuted: this.isMuted,
       name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
