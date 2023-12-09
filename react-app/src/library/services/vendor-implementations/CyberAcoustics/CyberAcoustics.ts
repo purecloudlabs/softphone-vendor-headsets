@@ -109,6 +109,20 @@ export default class CyberAcousticsService extends VendorImplementation {
   // Connect: Attempt to connect to the device
   async connect (originalDeviceLabel: string): Promise<void> {
     
+    //// DEBUG CODE ////
+    // uncomment to test Forgetdevice with requestWebHidPermissions
+
+    // const devicesListTest = await (window.navigator as any).hid.getDevices({
+    //   filters: [{ vendorId: 0x3391 },],
+    // });
+    // if(devicesListTest.length > 0){
+    //   const deviceTest = devicesListTest[0];
+    //   deviceTest.forget();
+    // }
+
+    //// END DEBUG CODE ////
+  
+
     let bConnectSuccess = false;
     this.logger.debug("CA: Connect Attempt");
 
@@ -141,49 +155,71 @@ export default class CyberAcousticsService extends VendorImplementation {
       }
     }
 
-    //// DEBUG CODE uncomment to test requestWebHidPermissions
-    ////this.activeDevice.close();
-    ////bConnectSuccess = false;
+    //// DEBUG CODE uncomment to test initial connect fail
+    //this.activeDevice.close();
+    //bConnectSuccess = false;
     ////
   
     if(!bConnectSuccess) {
-      this.requestWebHidPermissions(async () => {  
-        this.logger.debug("Requesting web HID permissions");
-        const devList = await  (window.navigator as any).hid.requestDevice({
-          filters: [
+      try{
+        bConnectSuccess = await new Promise((resolve, reject) => {
+          const HIDPermissionTimeout = setTimeout(reject, 30000);
+          this.requestWebHidPermissions(async () => {  
+            this.logger.debug("Requesting web HID permissions");
+            const devList = await  (window.navigator as any).hid.requestDevice({
+              filters: [
+                {
+                  vendorId: 0x3391,
+                  //vendorId: 0x046D,
+                },
+              ],
+            }); 
+            clearTimeout(HIDPermissionTimeout);
+            const deviceFound = await this.connectFromHidPermissions( devList, originalDeviceLabel);
+            if(deviceFound){
+              resolve(deviceFound);
+            }
+            else
             {
-              vendorId: 0x3391,
-              //vendorId: 0x046D,
-            },
-          ],
+              reject();
+            }
+            console.debug(`CA: requestWebHidPermissions device found = ${ deviceFound } `);
+          });  
         });
-        
-      
-        // select device will set active device if device found
-        this.activeDevice = null; 
-        this.selectDevice(devList, originalDeviceLabel);  
-
-        if(this.activeDevice) {      
-          // Open the device  
-          if (!this.activeDevice.opened) {
-            await this.activeDevice.open();
-          }
-          if(this.activeDevice.opened) {   
-          
-            //SUCESSFUL connection! 
-            bConnectSuccess = true;
-            this.handleDeviceConnect();     
-            this.logger.debug("CA: Connect SUCCESS- from HIDWebPermission request "); 
-          }
-          else{
-            this.logger.debug("CA: Connect FAIL requesting WebHID permissions");
-          }
-        }    
-      });  
-
+      } catch (error) {
+        this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
+        this.logger.error('CA: WebHID permissions denied');
+        return;
+      }
+    //
     }   
   }
   
+  async connectFromHidPermissions (devList: any, originalDeviceLabel: string)
+  {
+
+    this.activeDevice = null; 
+    this.selectDevice(devList, originalDeviceLabel);  
+
+    if(this.activeDevice) {      
+      // Open the device  
+      if (!this.activeDevice.opened) {
+        await this.activeDevice.open();
+      }
+      if(this.activeDevice.opened) {   
+      
+        // SUCESSFUL connection! 
+        this.handleDeviceConnect();     
+        this.logger.debug("CA: Connect SUCCESS- from HIDWebPermission request "); 
+        return true;
+      }
+      else{
+        this.logger.debug("CA: Connect FAIL requesting WebHID permissions");
+        return false;
+      }
+    }  
+  }
+
   // Called when the device sends an input report
   handleInputReport (event: PartialInputReportEvent) {
   
@@ -196,11 +232,11 @@ export default class CyberAcousticsService extends VendorImplementation {
     const byte0 = event.data.getUint8(0);
     const byte1 = event.data.getUint8(1);
     
-    this.logger.debug(`CA Received Input Report #${event.reportId}. byte0 = ${byte0}, byte1 = ${byte1}`);
+    ////this.logger.debug(`CA Received Input Report #${event.reportId}. byte0 = ${byte0}, byte1 = ${byte1}`);
     
     // Process device input
     const wordCommand = (byte1 << 8) + byte0;
-    this.logger.debug(`CA received button press 0x${wordCommand.toString(16)} from Device`); 
+    this.logger.debug(`CA received button press ${ this.formatHex(wordCommand) } reportID ${reportID} from Device`); 
     this.handleDeviceButtonPress(wordCommand, reportID);
   }
 
@@ -247,7 +283,7 @@ export default class CyberAcousticsService extends VendorImplementation {
       break;
     }
 
-    this.logger.debug( `flagSupport = 0x${this.flagSupport.toString(16)} `);
+    this.logger.debug( `flagSupport = ${ this.formatHex(this.flagSupport) } `);
     this.changeConnectionStatus({ isConnected: true, isConnecting: false });
   }
 
@@ -280,15 +316,22 @@ export default class CyberAcousticsService extends VendorImplementation {
     return deviceFound;
   }
 
-  async disconnect (): Promise<void> {
-    if (this.isConnected || this.isConnecting) {
-      this.changeConnectionStatus({ isConnected: false, isConnecting: false });
-    }
+  async disconnect (): Promise<void> { 
     if (this.activeDevice) {
+      this.logger.debug(`CA: Disconnecting`);
+      this.ChangeCallState(CALL_END);
+      this.ChangeCallState(CALL_IDLE);
+      this.activeDevice.removeEventListener('inputreport', this.handleInputReport); 
       await this.activeDevice.close();
+      this.logger.debug(`CA: Device closed`);
       this.activeDevice = null;
       this._deviceInfo = null;
+     
       this.currentCallState = CALL_IDLE;
+    
+      if (this.isConnected || this.isConnecting) {
+        this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+      }   
     }
   }
 
@@ -400,12 +443,12 @@ export default class CyberAcousticsService extends VendorImplementation {
 
       // call rejected if call incoming
       case ca_dev_event_hooksw_off: //0x00 
-        this.ParseStateEvents( ca_st_event_hooksw_off);                                       
+        this.ParseStateEvents(ca_st_event_hooksw_off);                                       
         break;                                                        
                             
-      //Answer Incomming Call
+      // Answer Incomming Call
       case ca_dev_event_hooksw_on : //0x01
-        this.ParseStateEvents( ca_st_event_hooksw_on); 
+        this.ParseStateEvents(ca_st_event_hooksw_on); 
         break;
 
       // hang up
@@ -532,10 +575,20 @@ export default class CyberAcousticsService extends VendorImplementation {
     case CALL_OUTGOING:  
     case CALL_ANSWERING:
       this.UpdateDeviceStatus(hookswFlag, true);
+      // if call answered muted, unmute
+      if(this.isMuted)
+      {
+        this.setMute(false);
+        this.deviceMuteChanged({
+          isMuted: false,
+          name: 'CallUnmuted'
+        });         
+      }
       break;
     
     case CALL_ACTIVE:    
-      this.UpdateDeviceStatus( ringFlag, false);
+      this.UpdateDeviceStatus(ringFlag, false);
+
       this.deviceAnsweredCall({ name: 'CallOffHook', conversationId: this.activeConversationId });  
       break;
 
@@ -545,7 +598,7 @@ export default class CyberAcousticsService extends VendorImplementation {
       break;
 
     case CALL_REJECTING: 
-      this.UpdateDeviceStatus( ringFlag, false); 
+      this.UpdateDeviceStatus(ringFlag, false); 
       this.deviceRejectedCall({ name: 'CallRejected', conversationId: this.activeConversationId }); 
       break;  
     }
@@ -561,8 +614,13 @@ export default class CyberAcousticsService extends VendorImplementation {
 
     this.deviceStatus = value ? this.deviceStatus | flag : this.deviceStatus & ~flag;
     this.SendCommandToDevice(this.deviceStatus);
-    
   }
+
+  // ResetDeviceStatus ()
+  // {
+  //   this.deviceStatus = 0x0000;
+  //   this.SendCommandToDevice(this.deviceStatus);
+  // }
 
   // sends output report to device
   async SendCommandToDevice ( value: number) {
@@ -578,16 +636,21 @@ export default class CyberAcousticsService extends VendorImplementation {
     {
       this.gCmdBuf[0] = value;
     }
-    this.logger.debug(`CA: Command assembled: ${this.gCmdBuf[0].toString(16)},  ${this.gCmdBuf[1].toString(16)} `);
-    this.logger.debug(`CA: reportID ${this.headsetOutputReportId.toString(16)} `);
+    ////this.logger.debug(`CA: Command assembled: ${this.gCmdBuf[0].toString(16)},  ${this.gCmdBuf[1].toString(16)} `);
+    ////this.logger.debug(`CA: reportID ${this.headsetOutputReportId.toString(16)} `);
     await this.activeDevice.sendReport(this.headsetOutputReportId, this.gCmdBuf ); 
-    this.logger.debug(`CA: Sent Command to Device. Value: ${this.gCmdBuf[0].toString(16)},  ${this.gCmdBuf[1].toString(16)} `);
+    this.logger.debug(`CA: Sent Command to Device. Value: ${ this.formatHex(this.gCmdBuf[0])},  ${ this.formatHex(this.gCmdBuf[1])} `);
 
     this.gCmdBuf[0] = 0;
     this.gCmdBuf[1] = 0;
  
     
   }
+
+  formatHex (value:number) {
+    return `0x${value.toString(16).padStart(2, '0')}`;
+  }
+  
 
   // Creates a mock device that is in scope for Jest tests that
   // require this.activeDevice to be valid

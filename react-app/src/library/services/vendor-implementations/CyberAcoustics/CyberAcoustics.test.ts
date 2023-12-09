@@ -156,7 +156,7 @@ const mackDeviceList3 = [{
     });
   }),
   productName: mackTestDevName,
-  productId:  testProductId,
+  productId: testProductId,
   opened: false,
 
   collections: [
@@ -418,7 +418,7 @@ describe('CyberAcousticsService', () => {
       cyberAcousticsService.isConnecting = false;
       cyberAcousticsService.disconnect();
       expect(cyberAcousticsService.changeConnectionStatus).not.toBeCalled;
-    })
+    });
   
   });
 
