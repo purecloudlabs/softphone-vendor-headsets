@@ -56,6 +56,8 @@ export default class CyberAcousticsService extends VendorImplementation {
   private _deviceInfo: DeviceInfo = null;
   activeDevice: any;
 
+  private numDeviceEventListeners = 0;
+
   private currentProductID = null;
   private headsetOutputReportId = 3;
   private headsetInputReportId  = 3;                                     
@@ -248,7 +250,17 @@ export default class CyberAcousticsService extends VendorImplementation {
     };
 
     this.handleInputReport = this.handleInputReport.bind(this);
+    //
     this.activeDevice.addEventListener('inputreport', this.handleInputReport);
+    this.numDeviceEventListeners++;
+    console.debug(`Installed Device Input listener, num listeners = ${this.numDeviceEventListeners} `);
+    if(this.numDeviceEventListeners > 1 )
+    {
+      this.logger.debug(`%c CA: ********************************************************`, 'color: red');
+      this.logger.debug(`%c CA: *****WARNING ***** MULTIPLE EVENT LISTENERS ON DEVICE!!!`, 'color: red');
+      this.logger.debug(`%c CA: ********************************************************`, 'color: red');
+      
+    }
     
     this.currentProductID = this.activeDevice.productId;
     this.logger.debug(`Product ID: 0x${this.currentProductID.toString(16)}`);
@@ -321,7 +333,21 @@ export default class CyberAcousticsService extends VendorImplementation {
       this.logger.debug(`CA: Disconnecting`);
       this.ChangeCallState(CALL_END);
       this.ChangeCallState(CALL_IDLE);
+
+      if(this.isMuted)
+      {
+        this.setMute(false);
+        this.deviceMuteChanged({
+          isMuted: false,
+          name: 'CallUnmuted'
+        });         
+      }
+      
+      ////
       this.activeDevice.removeEventListener('inputreport', this.handleInputReport); 
+      this.numDeviceEventListeners--;
+      console.debug(`Removed Device Input listener, num listeners = ${this.numDeviceEventListeners} `);
+      ////
       await this.activeDevice.close();
       this.logger.debug(`CA: Device closed`);
       this.activeDevice = null;
