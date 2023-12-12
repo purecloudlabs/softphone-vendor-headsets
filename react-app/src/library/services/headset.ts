@@ -44,7 +44,7 @@ export default class HeadsetService {
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger });
     this.vbet = VBetService.getInstance({ logger: this.logger });
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink,this.vbet].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {

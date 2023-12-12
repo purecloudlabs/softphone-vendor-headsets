@@ -679,7 +679,7 @@ describe('VBetservice', () => {
       await vbetService.incomingCall({ conversationId: 'id' });
       await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
       await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries[1]);
-      expect(setMuteFun).toHaveBeenCalledWith(true);
+      expect(setMuteFun).toHaveBeenCalledWith(false);
       expect(devMuteFun).toHaveBeenCalledWith({
         isMuted: false,
         name: 'CallUnmuted',
