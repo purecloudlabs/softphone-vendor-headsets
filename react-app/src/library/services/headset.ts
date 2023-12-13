@@ -6,6 +6,7 @@ import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
+import VBetService from './vendor-implementations/vbet/vbet';
 import { CallInfo } from '../types/call-info';
 import { VendorEvent, HoldEventInfo, MutedEventInfo, EventInfoWithConversationId } from '../types/emitted-headset-events';
 import { WebHidPermissionRequest } from '..';
@@ -25,6 +26,7 @@ export default class HeadsetService {
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
   yealink: VendorImplementation;
+  vbet:VendorImplementation;
   cyberAcoustics: VendorImplementation;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
@@ -43,9 +45,10 @@ export default class HeadsetService {
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger });
+    this.vbet = VBetService.getInstance({ logger: this.logger });
     this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -63,6 +66,7 @@ export default class HeadsetService {
       this.jabra,
       this.jabraNative,
       this.yealink,
+      this.vbet,
       this.cyberAcoustics
     ].filter((impl) => impl.isSupported());
 
@@ -76,11 +80,13 @@ export default class HeadsetService {
     return !state || Object.entries(props.state).some(([key, value]) => state[key] !== value);
   }
 
-  private updateHeadsetState (props: StateCompareProps): boolean {
+  private updateHeadsetState (props: StateCompareProps, opts = { expectExistingConversation: true }): boolean {
     if (this.isDifferentState(props)) {
       const state = this.headsetConversationStates[props.conversationId];
       if (!state) {
-        this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        if (opts.expectExistingConversation) {
+          this.logger.warn('updateHeadsetState has no existing state for provided conversationId.', { conversationId: props.conversationId });
+        }
         return false;
       }
       Object.assign(state, props.state);
@@ -88,6 +94,17 @@ export default class HeadsetService {
     }
 
     return false;
+  }
+
+  deviceIsSupported (params: { micLabel: string }): boolean {
+    if (!params.micLabel) {
+      return false;
+    }
+
+    const implementation = this.implementations.find((implementation) => {
+      return implementation.deviceLabelMatchesVendor(params.micLabel);
+    });
+    return !!implementation;
   }
 
   activeMicChange (newMicLabel: string): void {
@@ -186,7 +203,7 @@ export default class HeadsetService {
     }
   }
 
-  async rejectCall (conversationId: string): Promise<any> {
+  async rejectCall (conversationId: string, expectExistingConversation = true): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       return;
@@ -196,7 +213,7 @@ export default class HeadsetService {
       ringing: false
     };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction }, { expectExistingConversation })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
       return implementation.rejectCall(conversationId);
@@ -278,6 +295,11 @@ export default class HeadsetService {
       return this.selectedImplementation.isConnected ? 'running' : 'checking';
     }
     return 'noVendor';
+  }
+
+  resetHeadsetStateForCall (conversationId: string): Promise<any> {
+    const implementation = this.getConnectedImpl();
+    return implementation.resetHeadsetStateForCall(conversationId);
   }
 
   private getConnectedImpl (): VendorImplementation {

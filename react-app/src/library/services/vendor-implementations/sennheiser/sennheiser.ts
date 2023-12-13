@@ -19,6 +19,7 @@ export default class SennheiserService extends VendorImplementation {
 
   websocket = null;
   deviceInfo: DeviceInfo = null;
+  ignoreAcknowledgement = false;
 
   static getInstance (config: ImplementationConfig): SennheiserService {
     if (!SennheiserService.instance || config.createNew) {
@@ -39,6 +40,11 @@ export default class SennheiserService extends VendorImplementation {
 
   get isDeviceAttached (): boolean {
     return !!this.deviceInfo;
+  }
+
+  resetHeadsetStateForCall (conversationId: string): Promise<any> {
+    this.ignoreAcknowledgement = true;
+    return this.endCall(conversationId);
   }
 
   _handleError (payload: SennheiserPayload): void {
@@ -69,6 +75,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   connect (): Promise<void> {
+    this.ignoreAcknowledgement = false;
     !this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: true });
 
     const socket = new WebSocket(websocketUri);
@@ -137,6 +144,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   incomingCall (callInfo: CallInfo): Promise<void> {
+    this.ignoreAcknowledgement = false;
     this._sendMessage({
       Event: SennheiserEvents.IncomingCall,
       EventType: SennheiserEventTypes.Request,
@@ -169,6 +177,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   outgoingCall (callInfo: CallInfo): Promise<void> {
+    this.ignoreAcknowledgement = false;
     const { conversationId } = callInfo;
 
     this._sendMessage({
@@ -213,86 +222,88 @@ export default class SennheiserService extends VendorImplementation {
 
     const conversationId = payload.CallID;
 
-    switch (payload.Event) {
-    case SennheiserEvents.SocketConnected:
-      this._registerSoftphone();
-      break;
-    case SennheiserEvents.EstablishConnection:
-      this._sendMessage({
-        Event: SennheiserEvents.SPLogin,
-        EventType: SennheiserEventTypes.Request,
-      });
-      break;
-    case SennheiserEvents.SPLogin:
-      if (!this.isConnected || this.isConnecting) {
-        this.changeConnectionStatus({ isConnected: true, isConnecting: false });
-      }
-        
-      this._sendMessage({
-        Event: SennheiserEvents.SystemInformation,
-        EventType: SennheiserEventTypes.Request,
-      });
-      break;
-    case SennheiserEvents.HeadsetConnected:
-      if (payload.HeadsetName) {
-        this.deviceInfo = {
-          deviceName: payload.HeadsetName,
-          headsetType: payload.HeadsetType,
-        };
-      }
-      break;
-    case SennheiserEvents.HeadsetDisconnected:
-      if (payload.HeadsetName === this.deviceName) {
-        this.deviceInfo = null;
-      }
+    if (!this.ignoreAcknowledgement) {
+      switch (payload.Event) {
+      case SennheiserEvents.SocketConnected:
+        this._registerSoftphone();
+        break;
+      case SennheiserEvents.EstablishConnection:
+        this._sendMessage({
+          Event: SennheiserEvents.SPLogin,
+          EventType: SennheiserEventTypes.Request,
+        });
+        break;
+      case SennheiserEvents.SPLogin:
+        if (!this.isConnected || this.isConnecting) {
+          this.changeConnectionStatus({ isConnected: true, isConnecting: false });
+        }
+          
+        this._sendMessage({
+          Event: SennheiserEvents.SystemInformation,
+          EventType: SennheiserEventTypes.Request,
+        });
+        break;
+      case SennheiserEvents.HeadsetConnected:
+        if (payload.HeadsetName) {
+          this.deviceInfo = {
+            deviceName: payload.HeadsetName,
+            headsetType: payload.HeadsetType,
+          };
+        }
+        break;
+      case SennheiserEvents.HeadsetDisconnected:
+        if (payload.HeadsetName === this.deviceName) {
+          this.deviceInfo = null;
+        }
 
-      break;
-    case SennheiserEvents.IncomingCallAccepted:
-      if (payload.EventType === SennheiserEventTypes.Notification) {
-        this.deviceAnsweredCall({ name: payload.Event, conversationId });
-      }
+        break;
+      case SennheiserEvents.IncomingCallAccepted:
+        if (payload.EventType === SennheiserEventTypes.Notification) {
+          this.deviceAnsweredCall({ name: payload.Event, conversationId });
+        }
 
-      break;
-    case SennheiserEvents.Hold:
-      if (payload.EventType === SennheiserEventTypes.Ack) {
-        this._handleAck(payload);
+        break;
+      case SennheiserEvents.Hold:
+        if (payload.EventType === SennheiserEventTypes.Ack) {
+          this._handleAck(payload);
+          break;
+        }
+        this.deviceHoldStatusChanged({ holdRequested: true, name: payload.Event, conversationId });
+        break;
+      case SennheiserEvents.Resume:
+        if (payload.EventType === SennheiserEventTypes.Ack) {
+          this._handleAck(payload);
+          break;
+        }
+        this.deviceHoldStatusChanged({ holdRequested: false, name: payload.Event, conversationId });
+        break;
+      case SennheiserEvents.MuteFromHeadset:
+        this.deviceMuteChanged({ isMuted: true, name: payload.Event });
+        break;
+      case SennheiserEvents.UnmuteFromHeadset:
+        this.deviceMuteChanged({ isMuted: false, name: payload.Event });
+        break;
+      case SennheiserEvents.CallEnded:
+        if (payload.EventType === SennheiserEventTypes.Notification) {
+          this.deviceEndedCall({ name: payload.Event, conversationId });
+        }
+        break;
+      case SennheiserEvents.IncomingCallRejected:
+        this.deviceRejectedCall({ name: payload.Event, conversationId });
+        break;
+      case SennheiserEvents.TerminateConnection:
+        if (this.websocket.readyState === 1) {
+          this.websocket.close();
+        }
+        this.websocket = null;
+        break;
+      default:
+        if (payload.EventType === SennheiserEventTypes.Ack) {
+          // this is mostly for testing purposes so we can confirm reciept of events we don't normally care about
+          this._handleAck(payload);
+        }
         break;
       }
-      this.deviceHoldStatusChanged({ holdRequested: true, name: payload.Event, conversationId });
-      break;
-    case SennheiserEvents.Resume:
-      if (payload.EventType === SennheiserEventTypes.Ack) {
-        this._handleAck(payload);
-        break;
-      }
-      this.deviceHoldStatusChanged({ holdRequested: false, name: payload.Event, conversationId });
-      break;
-    case SennheiserEvents.MuteFromHeadset:
-      this.deviceMuteChanged({ isMuted: true, name: payload.Event });
-      break;
-    case SennheiserEvents.UnmuteFromHeadset:
-      this.deviceMuteChanged({ isMuted: false, name: payload.Event });
-      break;
-    case SennheiserEvents.CallEnded:
-      if (payload.EventType === SennheiserEventTypes.Notification) {
-        this.deviceEndedCall({ name: payload.Event, conversationId });
-      }
-      break;
-    case SennheiserEvents.IncomingCallRejected:
-      this.deviceRejectedCall({ name: payload.Event, conversationId });
-      break;
-    case SennheiserEvents.TerminateConnection:
-      if (this.websocket.readyState === 1) {
-        this.websocket.close();
-      }
-      this.websocket = null;
-      break;
-    default:
-      if (payload.EventType === SennheiserEventTypes.Ack) {
-        // this is mostly for testing purposes so we can confirm reciept of events we don't normally care about
-        this._handleAck(payload);
-      }
-      break;
     }
   }
 }
