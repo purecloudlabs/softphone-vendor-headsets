@@ -9,7 +9,7 @@ import { CallInfo } from '../types/call-info';
 import { VendorEvent, HoldEventInfo, MutedEventInfo, EventInfoWithConversationId } from '../types/emitted-headset-events';
 import { WebHidPermissionRequest } from '..';
 import { ConsumedHeadsetEvents, HeadsetEvents, DeviceConnectionStatus } from '../types/consumed-headset-events';
-import { HeadsetState, HeadsetStateRecord } from '../types/headset-states';
+import { HeadsetState, HeadsetStateRecord, UpdateReasons } from '../types/headset-states';
 
 type StateProps = Partial<HeadsetState>;
 type StateCompareProps = { conversationId: string; state: StateProps };
@@ -99,7 +99,7 @@ export default class HeadsetService {
     return !!implementation;
   }
 
-  activeMicChange (newMicLabel: string): void {
+  activeMicChange (newMicLabel: string, changeReason?: UpdateReasons): void {
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
@@ -108,7 +108,7 @@ export default class HeadsetService {
         this.clearSelectedImplementation();
       }
     } else {
-      this.clearSelectedImplementation();
+      this.clearSelectedImplementation(changeReason);
     }
   }
 
@@ -314,12 +314,12 @@ export default class HeadsetService {
     implementation.on(HeadsetEvents.webHidPermissionRequested, this.handleWebHidPermissionRequested.bind(this));
   }
 
-  private clearSelectedImplementation (): void {
+  private clearSelectedImplementation (clearReason?: UpdateReasons): void {
     if (!this.selectedImplementation) {
       return;
     }
 
-    this.selectedImplementation.disconnect();
+    this.selectedImplementation.disconnect(clearReason);
     this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: null });
     this.selectedImplementation = null;
     this.handleDeviceConnectionStatusChanged();
