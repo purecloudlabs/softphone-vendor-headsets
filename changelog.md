@@ -4,6 +4,9 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.3...HEAD)
+## Fixed
+* [no-jira] Fix issue around plantronics unregistering during headset orchestration causing loss of call controls
+
 # [v2.4.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.1...v2.4.3)
 ## fixed
 * [no-jira] Update uuid to v9.0.1
