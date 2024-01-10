@@ -105,7 +105,7 @@ export default class HeadsetService {
       if (implementation) {
         this.changeImplementation(implementation, newMicLabel);
       } else if (this.selectedImplementation) {
-        this.clearSelectedImplementation();
+        this.clearSelectedImplementation(changeReason);
       }
     } else {
       this.clearSelectedImplementation(changeReason);
