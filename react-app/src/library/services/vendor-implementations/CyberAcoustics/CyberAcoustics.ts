@@ -421,21 +421,17 @@ export default class CyberAcousticsService extends VendorImplementation {
     this.isHolding = value;
   }
 
-
-
   handleDeviceButtonPress (wordCommand: number, reportID: number): void {
     if (!this.activeDevice) {
       this.logger.error('do not have active device');
       return;
     }
     
-    
     if(reportID === this.headsetInputReportId )
     {
-    
       if( this.currentProductID === 0x18 ) //ac-304
       {
-        let newvalue;
+
         switch (wordCommand) 
         {
         
@@ -447,13 +443,33 @@ export default class CyberAcousticsService extends VendorImplementation {
             name: this.isMuted ? 'CallMuted' : 'CallUnmuted'
           });
           
-      
-          newvalue = wordCommand ^ 0x04;
-          this.SendCommandToDevice(newvalue);
+          // Don't do this- updateDeviceStatus instead
+          // this.setMute(this.isMuted);
+          
+          this.UpdateDeviceStatus (micMuteFlag, this.isMuted); 
+          this.logger.debug(`CA: AC304 Mute update micMuteFlag = ${ this.formatHex(micMuteFlag) } this.isMuted = ${this.isMuted}`); 
+
           break;
         }
-
         return;
+
+
+        // This mode of operation will be enabled in a future firmware release
+        // switch (wordCommand) 
+        // {
+        // case 0x01:  this.isMuted = false; break;
+        // case 0x05:  this.isMuted = true;  break;
+        // }
+
+        // this.deviceMuteChanged({
+        //   isMuted: this.isMuted,
+        //   name: this.isMuted ? 'CallMuted' : 'CallUnmuted'
+        // });
+
+        // // send command back to device
+        // this.setMute(this.isMuted);
+      
+        // return;
       }
     
       switch (wordCommand) 
@@ -465,6 +481,11 @@ export default class CyberAcousticsService extends VendorImplementation {
           isMuted: this.isMuted,
           name: this.isMuted ? 'CallMuted' : 'CallUnmuted'
         });  
+        
+        // send mute or unmute command back to device
+        // this seems to help debounce button presses 
+        this.setMute(this.isMuted);  
+                                      
         break;
 
       // call rejected if call incoming

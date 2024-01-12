@@ -434,7 +434,7 @@ describe('JabraService', () => {
       jabraService.callLock = true;
       const conversationId = 'convoId1234';
       jabraService.pendingConversationId = conversationId;
-      jabraService.activeConversationId = 'active id'
+      jabraService.activeConversationId = 'active id';
 
       const deviceRejectedCallSpy = jest.spyOn(jabraService, 'deviceRejectedCall');
 
