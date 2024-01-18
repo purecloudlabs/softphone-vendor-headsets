@@ -219,7 +219,6 @@ describe('JabraService', () => {
   describe('processEvents', () => {
     it('ignores offhook events when there is an active and pending call', async () => {
       jabraService.callLock = true;
-      const deviceAnsweredCallSpy = jest.spyOn(jabraService, 'deviceAnsweredCall'); // const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
       const deviceSignalsSubject = new Subject<ICallControlSignal>();
 
       const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
@@ -434,7 +433,7 @@ describe('JabraService', () => {
       jabraService.callLock = true;
       const conversationId = 'convoId1234';
       jabraService.pendingConversationId = conversationId;
-      jabraService.activeConversationId = 'active id'
+      jabraService.activeConversationId = 'active id';
 
       const deviceRejectedCallSpy = jest.spyOn(jabraService, 'deviceRejectedCall');
 

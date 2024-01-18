@@ -3,6 +3,7 @@ import StrictEventEmitter from 'strict-event-emitter-types';
 import { EventEmitter } from 'events';
 import { EmittedHeadsetEvents, EventInfo, EventInfoWithConversationId, HoldEventInfo, MutedEventInfo } from '../../types/emitted-headset-events';
 import { CallInfo } from '../..';
+import { UpdateReasons } from '../../types/headset-states';
 
 type HeadsetEventName = keyof EmittedHeadsetEvents;
 
@@ -55,7 +56,7 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     return Promise.reject(new Error(`${this.vendorName} - connect() not implemented`));
   }
 
-  disconnect (): Promise<any> {
+  disconnect (clearReason?: UpdateReasons): Promise<any> {
     return Promise.reject(new Error(`${this.vendorName} - disconnect() not implemented`));
   }
 

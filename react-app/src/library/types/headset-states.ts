@@ -11,3 +11,5 @@ export interface HeadsetStateRecord extends HeadsetState {
   conversationId: string;
   removeTimer?: any;
 }
+
+export type UpdateReasons = 'alternativeClient';
