@@ -172,6 +172,7 @@ export default class HeadsetService {
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    // this.logger.info('mMoo: inside headset library answerCall', { conversationId, implementation });
     if (!implementation) {
       return;
     }
@@ -183,6 +184,7 @@ export default class HeadsetService {
       };
 
       if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+        // console.log('mMoo: the headset state is different');
         return implementation.answerCall(conversationId);
       }
     } else {

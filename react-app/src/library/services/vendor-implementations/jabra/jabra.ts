@@ -14,7 +14,7 @@ import {
 import { CallInfo } from '../../..';
 import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from 'rxjs';
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
-import { isCefHosted } from '../../../utils';
+// import { isCefHosted } from '../../../utils';
 
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
@@ -42,7 +42,8 @@ export default class JabraService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return (window.navigator as any).hid && !isCefHosted();
+    // return (window.navigator as any).hid && !isCefHosted();
+    return true;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
@@ -79,6 +80,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   _processEvents (callControl: ICallControl): void {
+    this.logger.info('mMoo: inside _processEvents');
     this.headsetEventSubscription = callControl.deviceSignals.subscribe(async (signal) => {
       if (!this.callLock) {
         this.logger.debug(
@@ -192,6 +194,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
+    this.logger.info('mMoo: inside Jabra incomingCall', callInfo);
     this.pendingConversationId = callInfo.conversationId;
     this.pendingConversationIsOutbound = false;
     try {
@@ -211,6 +214,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
+    this.logger.info('mMoo: inside Jabra answerCall', { conversationId, autoAnswer });
     if (autoAnswer) {
       this.pendingConversationId = conversationId;
       try {
