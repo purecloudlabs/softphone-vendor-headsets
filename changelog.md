@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.5...HEAD)
+
+# [v2.4.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.4...v2.4.5)
 ## Fixed
 * [no-jira] Fixed issue around Jabra persisting a value between calls causing issues
 
