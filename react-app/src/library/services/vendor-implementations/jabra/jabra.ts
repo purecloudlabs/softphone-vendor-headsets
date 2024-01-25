@@ -465,6 +465,9 @@ export default class JabraService extends VendorImplementation {
     } finally {
       this.resetHeadsetState();
       this.callLock = false;
+      if (this.activeConversationId) {
+        this.activeConversationId = null;
+      }
       this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
       (this.isConnected || this.isConnecting) &&
         this.changeConnectionStatus({ isConnected: false, isConnecting: false });
