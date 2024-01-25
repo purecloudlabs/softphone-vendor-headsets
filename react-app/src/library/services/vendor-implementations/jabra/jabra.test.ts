@@ -699,6 +699,25 @@ describe('JabraService', () => {
       expect(jabraService.callLock).toBe(false);
       expect(connectionSpy).toHaveBeenCalled();
     });
+
+    it('should nullify activeConversationId if one exists upon disconnect', async () => {
+      const deviceSignalsSubject = new Subject<ICallControlSignal>();
+      const connectionSpy = jabraService['changeConnectionStatus'] = jest.fn();
+
+      const callControl = createMockCallControl(deviceSignalsSubject.asObservable());
+
+      jabraService.callControl = callControl as any;
+      jabraService.callLock = true;
+      jabraService.isConnected = true;
+      jabraService.activeConversationId = 'testId123';
+
+      await jabraService.disconnect();
+
+      expect(callControl.releaseCallLock).toHaveBeenCalled();
+      expect(jabraService.callLock).toBe(false);
+      expect(connectionSpy).toHaveBeenCalled();
+      expect(jabraService.activeConversationId).toBeNull();
+    });
   });
 
   describe('answerCall', () => {

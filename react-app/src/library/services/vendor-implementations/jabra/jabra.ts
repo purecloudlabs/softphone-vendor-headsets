@@ -465,7 +465,6 @@ export default class JabraService extends VendorImplementation {
     } finally {
       this.resetHeadsetState();
       this.callLock = false;
-      /* istanbul ignore next */
       if (this.activeConversationId) {
         this.activeConversationId = null;
       }
