@@ -1,6 +1,6 @@
 {
   "name": "softphone-vendor-headsets",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "author": "Genesys",
   "license": "MIT",
   "cjs": "dist/cjs/src/library/index.js",
