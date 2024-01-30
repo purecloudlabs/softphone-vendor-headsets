@@ -78,6 +78,7 @@ export function requestCefPromise (cmd: any): Promise<any> {
   });
 }
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export class HeadsetChangesQueue {
   static toDoQueue = [];
   static processingPromise = false;
@@ -122,3 +123,4 @@ export class HeadsetChangesQueue {
     this.toDoQueue = [];
   }
 }
+/* eslint-enable */
