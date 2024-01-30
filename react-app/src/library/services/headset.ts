@@ -11,6 +11,7 @@ import { VendorEvent, HoldEventInfo, MutedEventInfo, EventInfoWithConversationId
 import { WebHidPermissionRequest } from '..';
 import { ConsumedHeadsetEvents, HeadsetEvents, DeviceConnectionStatus } from '../types/consumed-headset-events';
 import { HeadsetState, HeadsetStateRecord, UpdateReasons } from '../types/headset-states';
+import { HeadsetChangesQueue } from '../utils';
 
 type StateProps = Partial<HeadsetState>;
 type StateCompareProps = { conversationId: string; state: StateProps };
@@ -103,6 +104,7 @@ export default class HeadsetService {
   }
 
   activeMicChange (newMicLabel: string, changeReason?: UpdateReasons): void {
+    HeadsetChangesQueue.clearQueue();
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
@@ -142,15 +144,17 @@ export default class HeadsetService {
       return;
     }
 
-    this.headsetConversationStates[callInfo.conversationId] = {
-      conversationId: callInfo.conversationId,
-      held: false,
-      muted: false,
-      offHook: false,
-      ringing: true
-    };
+    return await HeadsetChangesQueue.queueHeadsetChanges(() => {
+      this.headsetConversationStates[callInfo.conversationId] = {
+        conversationId: callInfo.conversationId,
+        held: false,
+        muted: false,
+        offHook: false,
+        ringing: true
+      };
 
-    return implementation.incomingCall(callInfo, hasOtherActiveCalls);
+      return implementation.incomingCall(callInfo, hasOtherActiveCalls);
+    });
   }
 
   async outgoingCall (callInfo: CallInfo): Promise<any> {
@@ -159,15 +163,17 @@ export default class HeadsetService {
       return;
     }
 
-    this.headsetConversationStates[callInfo.conversationId] = {
-      conversationId: callInfo.conversationId,
-      held: false,
-      muted: false,
-      offHook: true,
-      ringing: false
-    };
+    return await HeadsetChangesQueue.queueHeadsetChanges(() => {
+      this.headsetConversationStates[callInfo.conversationId] = {
+        conversationId: callInfo.conversationId,
+        held: false,
+        muted: false,
+        offHook: true,
+        ringing: false
+      };
 
-    return implementation.outgoingCall(callInfo);
+      return implementation.outgoingCall(callInfo);
+    });
   }
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
@@ -176,26 +182,27 @@ export default class HeadsetService {
       return;
     }
 
-    if (!autoAnswer) {
-      const expectedStatePostAction: Partial<HeadsetState> = {
-        ringing: false,
-        offHook: true
-      };
+    return await HeadsetChangesQueue.queueHeadsetChanges(() => {
+      if (!autoAnswer) {
+        const expectedStatePostAction: Partial<HeadsetState> = {
+          ringing: false,
+          offHook: true
+        };
 
-      if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
-        return implementation.answerCall(conversationId);
+        if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+          return implementation.answerCall(conversationId);
+        }
+      } else {
+        this.headsetConversationStates[conversationId] = {
+          conversationId: conversationId,
+          held: false,
+          muted: false,
+          offHook: true,
+          ringing: false
+        };
+        return implementation.answerCall(conversationId, autoAnswer);
       }
-    } else {
-      this.headsetConversationStates[conversationId] = {
-        conversationId: conversationId,
-        held: false,
-        muted: false,
-        offHook: true,
-        ringing: false
-      };
-
-      return implementation.answerCall(conversationId, autoAnswer);
-    }
+    });
   }
 
   async rejectCall (conversationId: string, expectExistingConversation = true): Promise<any> {
@@ -211,6 +218,7 @@ export default class HeadsetService {
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction }, { expectExistingConversation })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
+      HeadsetChangesQueue.clearQueue();
       return implementation.rejectCall(conversationId);
     }
   }
@@ -221,10 +229,12 @@ export default class HeadsetService {
       return;
     }
 
-    if (Object.values(this.headsetConversationStates).some(headsetState => headsetState.muted !== value)) {
-      Object.values(this.headsetConversationStates).forEach(headsetState => headsetState.muted = value);
-      return implementation.setMute(value);
-    }
+    return await HeadsetChangesQueue.queueHeadsetChanges(() => {
+      if (Object.values(this.headsetConversationStates).some(headsetState => headsetState.muted !== value)) {
+        Object.values(this.headsetConversationStates).forEach(headsetState => headsetState.muted = value);
+        return implementation.setMute(value);
+      }
+    });
   }
 
   async setHold (conversationId: string, value: boolean): Promise<any> {
@@ -233,13 +243,15 @@ export default class HeadsetService {
       return;
     }
 
-    const expectedStatePostAction: Partial<HeadsetState> = {
-      held: value
-    };
+    return await HeadsetChangesQueue.queueHeadsetChanges(() => {
+      const expectedStatePostAction: Partial<HeadsetState> = {
+        held: value
+      };
 
-    if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
-      return implementation.setHold(conversationId, value);
-    }
+      if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
+        return implementation.setHold(conversationId, value);
+      }
+    });
   }
 
   async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
@@ -255,6 +267,7 @@ export default class HeadsetService {
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
+      HeadsetChangesQueue.clearQueue();
       return implementation.endCall(conversationId, hasOtherActiveCalls);
     }
   }
