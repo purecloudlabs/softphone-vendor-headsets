@@ -1,6 +1,3 @@
-
-
-
 import CyberAcousticsService from './CyberAcoustics';
 import { CallInfo } from '../../..';
 // we may need these later
@@ -14,7 +11,7 @@ const testProductId = 0xAA55;
 
 const testCallInfo: CallInfo = {
   conversationId: 'test',
-  contactName: 'John Doe' 
+  contactName: 'John Doe'
 };
 
 const muteButtonToggle = 0x13;
@@ -57,7 +54,7 @@ const mackDeviceList1 = [{
   sendReport: jest.fn((reportId, data) => {
     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
   }),
- 
+
   addEventListener: jest.fn((name, callback) => {callback(
     {
       reportId: mackEventReportId,
@@ -81,7 +78,7 @@ const mackDeviceList1 = [{
       usage: HEADSET_USAGE,
       usagePage: HEADSET_USAGE_PAGE,
       inputReports: [{ reportId: 3 }],
-      outputReports: [{ reportId: 3 }] 
+      outputReports: [{ reportId: 3 }]
     }
   ]
 }];
@@ -94,7 +91,7 @@ const mackDeviceList1_notOpen = [{
   sendReport: jest.fn((reportId, data) => {
     console.log(`Mock sendReport called with reportId: ${reportId} and data: ${data}`);
   }),
- 
+
   addEventListener: jest.fn((name, callback) => {callback(
     {
       reportId: mackEventReportId,
@@ -761,11 +758,11 @@ describe('CyberAcousticsService', () => {
       cyberAcousticsService._currentProductID = 0x18;
       cyberAcousticsService.muteState = true;
       cyberAcousticsService.handleDeviceButtonPress(0x05, cyberAcousticsService._headsetInputReportId);
-      expect(cyberAcousticsService.muteState).toBe(true);  
+      expect(cyberAcousticsService.muteState).toBe(false);
     
       cyberAcousticsService._currentProductID = 0x18;  
       cyberAcousticsService.handleDeviceButtonPress(0x01, cyberAcousticsService._headsetInputReportId);
-      expect(cyberAcousticsService.muteState).toBe(false);
+      expect(cyberAcousticsService.muteState).toBe(true);
       
       cyberAcousticsService._currentProductID = testProductId;  
       

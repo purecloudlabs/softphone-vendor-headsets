@@ -47,7 +47,6 @@ const PHONE_USAGE = 0x0001;
 const HEADSET_USAGE = 0x0005;
 const HEADSET_USAGE_PAGE = 0x000B;
 
-
 export default class CyberAcousticsService extends VendorImplementation {
   private static instance: CyberAcousticsService;
 
@@ -60,13 +59,13 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   private currentProductID = null;
   private headsetOutputReportId = 3;
-  private headsetInputReportId  = 3;                                     
+  private headsetInputReportId  = 3;
   private vendorInputReportId   = 4;
-  
+
   private currentState = 0x00;
   private isHolding = false;
   private currentlDeviceLabel: string;
-  
+
   private currentCallInfo: CallInfo;
   protected currentCallState = CALL_IDLE;
   private deviceStatus = 0;
@@ -79,8 +78,8 @@ export default class CyberAcousticsService extends VendorImplementation {
   private JLCommandSet = false;
   private callControlSuport = true;
 
-  private flagSupport = defaultFlagSupport;  
-  private handeledInputReportIds = [this.headsetInputReportId, this.vendorInputReportId]; 
+  private flagSupport = defaultFlagSupport;
+  private handeledInputReportIds = [this.headsetInputReportId, this.vendorInputReportId];
 
   static getInstance (config: ImplementationConfig): CyberAcousticsService {
     if (!CyberAcousticsService.instance) {
@@ -89,7 +88,7 @@ export default class CyberAcousticsService extends VendorImplementation {
     return CyberAcousticsService.instance;
   }
 
-  get deviceInfo (): DeviceInfo {   
+  get deviceInfo (): DeviceInfo {
     return this._deviceInfo;
   }
 
@@ -99,18 +98,16 @@ export default class CyberAcousticsService extends VendorImplementation {
     return supported;
   }
 
-
   deviceLabelMatchesVendor (label: string): boolean {
     this.logger.debug("CA: matchVendor");
     const lowerLabel = label.toLowerCase();
-    
-    return ['ac-104enc', 'ac-204enc', 'ac-304','foundever', 
-      'ca essential', 'ca-2890'].some(searchVal => lowerLabel.includes(searchVal));  
+
+    return ['ac-104enc', 'ac-204enc', 'ac-304','foundever',
+      'ca essential', 'ca-2890'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
   // Connect: Attempt to connect to the device
   async connect (originalDeviceLabel: string): Promise<void> {
-    
     //// DEBUG CODE ////
     // uncomment to test Forgetdevice with requestWebHidPermissions
 
@@ -123,37 +120,35 @@ export default class CyberAcousticsService extends VendorImplementation {
     // }
 
     //// END DEBUG CODE ////
-  
 
     let bConnectSuccess = false;
     this.logger.debug("CA: Connect Attempt");
 
     this.currentlDeviceLabel = originalDeviceLabel;
     this.logger.debug(`CA Device String = ${originalDeviceLabel}`);
-  
+
     if (!this.isConnecting) {
       this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     }
-    
-    // First try to see if this is a previously connected device- does not require 
-    // WebHID permission dialog 
-    const devList: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices(); 
+
+    // First try to see if this is a previously connected device- does not require
+    // WebHID permission dialog
+    const devList: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices();
     this.selectDevice(devList, originalDeviceLabel);
 
-    if(this.activeDevice) {      
-      // Open the device  
+    if(this.activeDevice) {
+      // Open the device
       if (!this.activeDevice.opened) {
         await this.activeDevice.open();
       }
-      if(this.activeDevice.opened) {   
-      
-        //SUCESSFUL connection! 
+      if(this.activeDevice.opened) {
+        //SUCESSFUL connection!
         bConnectSuccess = true;
-        this.handleDeviceConnect();     
-        this.logger.debug("CA: Connect SUCCESS- previously connected device"); 
+        this.handleDeviceConnect();
+        this.logger.debug("CA: Connect SUCCESS- previously connected device");
       }
       else{
-        this.logger.debug("CA: Connect FAIL- Failed connect to previously connected device"); 
+        this.logger.debug("CA: Connect FAIL- Failed connect to previously connected device");
       }
     }
 
@@ -161,12 +156,12 @@ export default class CyberAcousticsService extends VendorImplementation {
     //this.activeDevice.close();
     //bConnectSuccess = false;
     ////
-  
+
     if(!bConnectSuccess) {
       try{
         bConnectSuccess = await new Promise((resolve, reject) => {
           const HIDPermissionTimeout = setTimeout(reject, 30000);
-          this.requestWebHidPermissions(async () => {  
+          this.requestWebHidPermissions(async () => {
             this.logger.debug("Requesting web HID permissions");
             const devList = await  (window.navigator as any).hid.requestDevice({
               filters: [
@@ -175,7 +170,7 @@ export default class CyberAcousticsService extends VendorImplementation {
                   //vendorId: 0x046D,
                 },
               ],
-            }); 
+            });
             clearTimeout(HIDPermissionTimeout);
             const deviceFound = await this.connectFromHidPermissions( devList, originalDeviceLabel);
             if(deviceFound){
@@ -186,7 +181,7 @@ export default class CyberAcousticsService extends VendorImplementation {
               reject();
             }
             console.debug(`CA: requestWebHidPermissions device found = ${ deviceFound } `);
-          });  
+          });
         });
       } catch (error) {
         this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
@@ -194,37 +189,35 @@ export default class CyberAcousticsService extends VendorImplementation {
         return;
       }
     //
-    }   
+    }
   }
-  
+
   async connectFromHidPermissions (devList: any, originalDeviceLabel: string)
   {
 
-    this.activeDevice = null; 
-    this.selectDevice(devList, originalDeviceLabel);  
+    this.activeDevice = null;
+    this.selectDevice(devList, originalDeviceLabel);
 
-    if(this.activeDevice) {      
-      // Open the device  
+    if(this.activeDevice) {
+      // Open the device
       if (!this.activeDevice.opened) {
         await this.activeDevice.open();
       }
-      if(this.activeDevice.opened) {   
-      
-        // SUCESSFUL connection! 
-        this.handleDeviceConnect();     
-        this.logger.debug("CA: Connect SUCCESS- from HIDWebPermission request "); 
+      if(this.activeDevice.opened) {
+        // SUCESSFUL connection!
+        this.handleDeviceConnect();
+        this.logger.debug("CA: Connect SUCCESS- from HIDWebPermission request ");
         return true;
       }
       else{
         this.logger.debug("CA: Connect FAIL requesting WebHID permissions");
         return false;
       }
-    }  
+    }
   }
 
   // Called when the device sends an input report
   handleInputReport (event: PartialInputReportEvent) {
-  
     const reportID = event.reportId;
     // If reportId is not in the list, return immediately
     if (!this.handeledInputReportIds.includes(reportID)) {
@@ -233,12 +226,12 @@ export default class CyberAcousticsService extends VendorImplementation {
 
     const byte0 = event.data.getUint8(0);
     const byte1 = event.data.getUint8(1);
-    
+
     ////this.logger.debug(`CA Received Input Report #${event.reportId}. byte0 = ${byte0}, byte1 = ${byte1}`);
-    
+
     // Process device input
     const wordCommand = (byte1 << 8) + byte0;
-    this.logger.debug(`CA received button press ${ this.formatHex(wordCommand) } reportID ${reportID} from Device`); 
+    this.logger.debug(`CA received button press ${ this.formatHex(wordCommand) } reportID ${reportID} from Device`);
     this.handleDeviceButtonPress(wordCommand, reportID);
   }
 
@@ -259,21 +252,20 @@ export default class CyberAcousticsService extends VendorImplementation {
       this.logger.debug(`%c CA: ********************************************************`, 'color: red');
       this.logger.debug(`%c CA: *****WARNING ***** MULTIPLE EVENT LISTENERS ON DEVICE!!!`, 'color: red');
       this.logger.debug(`%c CA: ********************************************************`, 'color: red');
-      
     }
-    
+
     this.currentProductID = this.activeDevice.productId;
     this.logger.debug(`Product ID: 0x${this.currentProductID.toString(16)}`);
 
     this.currentCallState = CALL_IDLE;
-    
+
     // This could potentially change with different products, but for now this is
     // constant across all products.
     this.headsetOutputReportId = this.outputReportReportId;
-    this.headsetInputReportId  = this.outputReportReportId;                                     
+    this.headsetInputReportId  = this.outputReportReportId;
     this.vendorInputReportId   = 4;
 
-    this.handeledInputReportIds = [this.headsetInputReportId, this.vendorInputReportId]; 
+    this.handeledInputReportIds = [this.headsetInputReportId, this.vendorInputReportId];
 
 
     switch(this.currentProductID )
@@ -288,7 +280,7 @@ export default class CyberAcousticsService extends VendorImplementation {
 
     case 0x18 : // ac-304
       this.flagSupport = 0x05;
-      break;  
+      break;
 
     default:
       this.flagSupport = defaultFlagSupport;
@@ -301,11 +293,11 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   selectDevice (devList: PartialHIDDevice[], originalDeviceLabel : string) {
     this.logger.debug("CA: SelectDevice");
-    
+
     const deviceLabel = originalDeviceLabel.toLowerCase();
-    
+
     let deviceFound = false;
-    devList.forEach(device => {     
+    devList.forEach(device => {
       if (deviceLabel.includes(device?.productName?.toLowerCase())) {
         for (const collection of device.collections) {
           if ( (collection.usage === HEADSET_USAGE || collection.usage === PHONE_USAGE ) &&
@@ -323,12 +315,12 @@ export default class CyberAcousticsService extends VendorImplementation {
             break;
           }
         }
-      }     
+      }
     });
     return deviceFound;
   }
 
-  async disconnect (): Promise<void> { 
+  async disconnect (): Promise<void> {
     if (this.activeDevice) {
       this.logger.debug(`CA: Disconnecting`);
       this.ChangeCallState(CALL_END);
@@ -340,9 +332,9 @@ export default class CyberAcousticsService extends VendorImplementation {
         this.deviceMuteChanged({
           isMuted: false,
           name: 'CallUnmuted'
-        });         
+        });
       }
-      
+
       ////
       this.activeDevice.removeEventListener('inputreport', this.handleInputReport); 
       this.numDeviceEventListeners--;
@@ -352,26 +344,26 @@ export default class CyberAcousticsService extends VendorImplementation {
       this.logger.debug(`CA: Device closed`);
       this.activeDevice = null;
       this._deviceInfo = null;
-     
+
       this.currentCallState = CALL_IDLE;
-    
+
       if (this.isConnected || this.isConnecting) {
         this.changeConnectionStatus({ isConnected: false, isConnecting: false });
-      }   
+      }
     }
   }
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
     this.logger.debug("CA: incomingCall");
     this.currentCallInfo = callInfo;
-    this.activeConversationId = callInfo.conversationId;   
+    this.activeConversationId = callInfo.conversationId;
     this.ParseStateEvents(ca_st_event_incomingCall);
   }
 
   async outgoingCall (callInfo: CallInfo): Promise<void> {
     this.logger.debug("CA: outgoingCall");
     this.currentCallInfo = callInfo;
-    this.activeConversationId = callInfo.conversationId; 
+    this.activeConversationId = callInfo.conversationId;
     this.ParseStateEvents(ca_st_event_outgoingCall);
   }
 
@@ -384,17 +376,16 @@ export default class CyberAcousticsService extends VendorImplementation {
       this.logger.debug("CA: AutoAnswer");
       this.ParseStateEvents(ca_st_event_incomingCall);
     }
-    
+
     // answer call
-    this.ParseStateEvents(ca_st_event_call_answer);  
-    
+    this.ParseStateEvents(ca_st_event_call_answer);
   }
-  
+
   async rejectCall (): Promise<void> {
     this.logger.debug("CA: rejectCall from UI");
     this.ParseStateEvents( ca_st_event_callEnd);
   }
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async endCall (conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
     this.logger.debug("CA: endCall from UI");
@@ -408,11 +399,11 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   async setMute (value: boolean): Promise<void> {
     this.logger.debug(`CA: setMute. Value: ${value}`);
-  
-    // Set the global mute state- this is how Genesys keeps track of mute state. 
+
+    // Set the global mute state- this is how Genesys keeps track of mute state.
     this.isMuted = value;
     // set the device state
-    this.UpdateDeviceStatus (micMuteFlag, value);  
+    this.UpdateDeviceStatus (micMuteFlag, value);
   }
 
   async setHold (conversationId: string, value: boolean): Promise<void> {
@@ -426,28 +417,28 @@ export default class CyberAcousticsService extends VendorImplementation {
       this.logger.error('do not have active device');
       return;
     }
-    
+
     if(reportID === this.headsetInputReportId )
     {
       if( this.currentProductID === 0x18 ) //ac-304
       {
 
-        switch (wordCommand) 
+        switch (wordCommand)
         {
-        
+
         case 0x1:
-        case 0x05:    
+        case 0x05:
           this.isMuted = !this.isMuted;
           this.deviceMuteChanged({
             isMuted: this.isMuted,
             name: this.isMuted ? 'CallMuted' : 'CallUnmuted'
           });
-          
+
           // Don't do this- updateDeviceStatus instead
           // this.setMute(this.isMuted);
-          
-          this.UpdateDeviceStatus (micMuteFlag, this.isMuted); 
-          this.logger.debug(`CA: AC304 Mute update micMuteFlag = ${ this.formatHex(micMuteFlag) } this.isMuted = ${this.isMuted}`); 
+
+          this.UpdateDeviceStatus (micMuteFlag, this.isMuted);
+          this.logger.debug(`CA: AC304 Mute update micMuteFlag = ${ this.formatHex(micMuteFlag) } this.isMuted = ${this.isMuted}`);
 
           break;
         }
@@ -455,7 +446,7 @@ export default class CyberAcousticsService extends VendorImplementation {
 
 
         // This mode of operation will be enabled in a future firmware release
-        // switch (wordCommand) 
+        // switch (wordCommand)
         // {
         // case 0x01:  this.isMuted = false; break;
         // case 0x05:  this.isMuted = true;  break;
@@ -468,11 +459,11 @@ export default class CyberAcousticsService extends VendorImplementation {
 
         // // send command back to device
         // this.setMute(this.isMuted);
-      
+
         // return;
       }
-    
-      switch (wordCommand) 
+
+      switch (wordCommand)
       {
       case JLmuteButtonToggle :  // 0x0203
       case muteButtonToggle:     // 0x13
@@ -480,37 +471,37 @@ export default class CyberAcousticsService extends VendorImplementation {
         this.deviceMuteChanged({
           isMuted: this.isMuted,
           name: this.isMuted ? 'CallMuted' : 'CallUnmuted'
-        });  
-        
+        });
+
         // send mute or unmute command back to device
-        // this seems to help debounce button presses 
-        this.setMute(this.isMuted);  
-                                      
+        // this seems to help debounce button presses
+        this.setMute(this.isMuted);
+
         break;
 
       // call rejected if call incoming
-      case ca_dev_event_hooksw_off: //0x00 
-        this.ParseStateEvents(ca_st_event_hooksw_off);                                       
-        break;                                                        
-                            
+      case ca_dev_event_hooksw_off: //0x00
+        this.ParseStateEvents(ca_st_event_hooksw_off);
+        break;
+
       // Answer Incomming Call
       case ca_dev_event_hooksw_on : //0x01
-        this.ParseStateEvents(ca_st_event_hooksw_on); 
+        this.ParseStateEvents(ca_st_event_hooksw_on);
         break;
 
       // hang up
       case ca_dev_event_busy: //0x02
-        this.ParseStateEvents(ca_st_event_busy); 
+        this.ParseStateEvents(ca_st_event_busy);
         break;
-      
+
       }
-    }  
+    }
     else if( reportID === this.vendorInputReportId)
     {
-      switch (wordCommand) 
+      switch (wordCommand)
       {
       case ca_dev_event_ans_confirm : //0x02
-        this.ParseStateEvents(ca_st_event_answerConfirm);    
+        this.ParseStateEvents(ca_st_event_answerConfirm);
         break;
       }
     }
@@ -520,59 +511,59 @@ export default class CyberAcousticsService extends VendorImplementation {
     }
 
   } // handleDeviceButtonPress
-  
+
 
   // This is the main call control engine.  State dependant events from the device
-  // and/or the UI are handled here.  
+  // and/or the UI are handled here.
   ParseStateEvents (CAStateEvent)
   {
-    switch(this.currentCallState) 
+    switch(this.currentCallState)
     {
     case  CALL_IDLE:
       switch(CAStateEvent)
       {
-      case ca_st_event_incomingCall:  
+      case ca_st_event_incomingCall:
         this.ChangeCallState(CALL_INCOMING);
-        break; 
+        break;
 
-      case ca_st_event_outgoingCall:  
+      case ca_st_event_outgoingCall:
         this.ChangeCallState(CALL_OUTGOING);
-        break; 
-          
+        break;
+
       }
-      break;   
-  
+      break;
+
     case  CALL_INCOMING:
       switch(CAStateEvent)
       {
       // pickup
-      case ca_st_event_hooksw_on:   // call answer from Device 
-      case ca_st_event_call_answer: // call answer from UI 
+      case ca_st_event_hooksw_on:   // call answer from Device
+      case ca_st_event_call_answer: // call answer from UI
         this.ChangeCallState(CALL_ANSWERING);
         break;
-      
+
       // reject
-      case ca_st_event_hooksw_off:  // call reject from Device   
+      case ca_st_event_hooksw_off:  // call reject from Device
       case ca_st_event_callEnd:     // call reject from UI
         this.ChangeCallState(CALL_REJECTING);
         this.ChangeCallState(CALL_END);
-        this.ChangeCallState(CALL_IDLE);   
+        this.ChangeCallState(CALL_IDLE);
         break;
       }
-      break; 
-    
+      break;
+
     case  CALL_ANSWERING:
       switch(CAStateEvent)
       {
       case ca_st_event_answerConfirm:
-        this.ChangeCallState(CALL_ACTIVE);  
+        this.ChangeCallState(CALL_ACTIVE);
         break;
-      
+
       case ca_st_event_callEnd:
-      case ca_st_event_hooksw_off:  
-        this.ChangeCallState(CALL_END); 
+      case ca_st_event_hooksw_off:
+        this.ChangeCallState(CALL_END);
         this.ChangeCallState(CALL_IDLE);
-        break; 
+        break;
       }
       break;
 
@@ -580,31 +571,31 @@ export default class CyberAcousticsService extends VendorImplementation {
       switch(CAStateEvent)
       {
       case ca_st_event_callEnd:
-      case ca_st_event_busy:  
-        this.ChangeCallState(CALL_END ); 
-        this.ChangeCallState(CALL_IDLE); 
-        break;   
+      case ca_st_event_busy:
+        this.ChangeCallState(CALL_END );
+        this.ChangeCallState(CALL_IDLE);
+        break;
       }
-      break;        
-    
+      break;
+
     case  CALL_OUTGOING:
       switch(CAStateEvent)
       {
       case ca_st_event_callEnd:
-      case ca_st_event_busy:  
-        this.ChangeCallState(CALL_END ); 
-        this.ChangeCallState(CALL_IDLE); 
-        break;   
+      case ca_st_event_busy:
+        this.ChangeCallState(CALL_END );
+        this.ChangeCallState(CALL_IDLE);
+        break;
       }
       break;
-  
-    } // switch callstate   
+
+    } // switch callstate
 
   }
 
-  // Events handled in the previous function may change the global call state.  
+  // Events handled in the previous function may change the global call state.
   // This is handeled here.  Entering a new state may require work to be done- this
-  // is also handled here.  
+  // is also handled here.
   ChangeCallState (newstate)
   {
     this.logger.debug(`%cCA SETTING STATE: ${newstate}`, 'color: red');
@@ -614,12 +605,12 @@ export default class CyberAcousticsService extends VendorImplementation {
     case CALL_IDLE:
       this.deviceStatus = 0;
       break;
-    
+
     case CALL_INCOMING:
       this.UpdateDeviceStatus(ringFlag, true);
       break;
-      
-    case CALL_OUTGOING:  
+
+    case CALL_OUTGOING:
     case CALL_ANSWERING:
       this.UpdateDeviceStatus(hookswFlag, true);
       // if call answered muted, unmute
@@ -629,25 +620,25 @@ export default class CyberAcousticsService extends VendorImplementation {
         this.deviceMuteChanged({
           isMuted: false,
           name: 'CallUnmuted'
-        });         
+        });
       }
       break;
-    
-    case CALL_ACTIVE:    
+
+    case CALL_ACTIVE:
       this.UpdateDeviceStatus(ringFlag, false);
 
-      this.deviceAnsweredCall({ name: 'CallOffHook', conversationId: this.activeConversationId });  
+      this.deviceAnsweredCall({ name: 'CallOffHook', conversationId: this.activeConversationId });
       break;
 
-    case CALL_END: 
+    case CALL_END:
       this.UpdateDeviceStatus(hookswFlag, false);
-      this.deviceEndedCall({ name: 'CallOnHook', conversationId: this.activeConversationId }); 
+      this.deviceEndedCall({ name: 'CallOnHook', conversationId: this.activeConversationId });
       break;
 
-    case CALL_REJECTING: 
-      this.UpdateDeviceStatus(ringFlag, false); 
-      this.deviceRejectedCall({ name: 'CallRejected', conversationId: this.activeConversationId }); 
-      break;  
+    case CALL_REJECTING:
+      this.UpdateDeviceStatus(ringFlag, false);
+      this.deviceRejectedCall({ name: 'CallRejected', conversationId: this.activeConversationId });
+      break;
     }
   }
 
@@ -671,13 +662,13 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   // sends output report to device
   async SendCommandToDevice ( value: number) {
-    
+
     if(this.JLCommandSet)
     {
 
       this.gCmdBuf[0] = value >> 8;
       this.gCmdBuf[1] = value & 0x00ff;
-    
+
     }
     else
     {
@@ -690,14 +681,11 @@ export default class CyberAcousticsService extends VendorImplementation {
 
     this.gCmdBuf[0] = 0;
     this.gCmdBuf[1] = 0;
- 
-    
   }
 
   formatHex (value:number) {
     return `0x${value.toString(16).padStart(2, '0')}`;
   }
-  
 
   // Creates a mock device that is in scope for Jest tests that
   // require this.activeDevice to be valid
@@ -739,7 +727,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   get holdState (): boolean {
     return this.isHolding;
   }
- 
+
   get _headsetInputReportId (): number {
     return this.headsetInputReportId;
   }
@@ -747,12 +735,12 @@ export default class CyberAcousticsService extends VendorImplementation {
   get _vendorInputReportId (): number {
     return this.vendorInputReportId;
   }
-  
+
 
   get _headsetOutputReportId (): number {
     return this.headsetOutputReportId;
   }
-  
+
 
   get muteState (): boolean {
     return this.isMuted;
@@ -761,7 +749,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   set muteState (s: boolean) {
     this.isMuted = s;
   }
-  
+
   set _JLCommandSet (s: boolean) {
     this.JLCommandSet= s;
   }
@@ -769,7 +757,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   set _handeledInputReportIds (id: number) {
     this.handeledInputReportIds[0] = id;
   }
-  
+
   set _flagSupport (val: number) {
     this.flagSupport = val;
   }
@@ -777,12 +765,5 @@ export default class CyberAcousticsService extends VendorImplementation {
   set _currentProductID (val: number) {
     this.currentProductID = val;
   }
-  
-} // End CA Vendor Implementation class 
-  
 
-
-
-
-
-
+} // End CA Vendor Implementation class
