@@ -36,7 +36,6 @@
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
     "rxjs": "^7.4.0",
-    "softphone-vendor-headsets": "^2.3.3",
     "strict-event-emitter-types": "^2.0.0",
     "uuid": "^9.0.1",
     "whatwg-fetch": "^3.6.2",

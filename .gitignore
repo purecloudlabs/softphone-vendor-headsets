@@ -1,9 +1,4 @@
 *.log
-*.lock
-package.json
-package-lock.json
-react-app/package.json
-react-app/package-lock.json
 .DS_Store
 node_modules
 dist
