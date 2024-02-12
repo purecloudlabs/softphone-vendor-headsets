@@ -3,7 +3,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.5...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.0...HEAD)
+
+# [v2.5.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.5...v2.5.0)
+## Added
+* [no-jira] Support added for two new vendors VBeT and CyberAcoustics
 
 # [v2.4.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.4...v2.4.5)
 ## Fixed
