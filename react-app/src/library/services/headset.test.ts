@@ -4,6 +4,7 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
+import CyberAcousticsService from './vendor-implementations/CyberAcoustics/CyberAcoustics';
 import { CallInfo } from '../types/call-info';
 import { EventInfoWithConversationId, VendorEvent } from '../types/emitted-headset-events';
 import JabraService from './vendor-implementations/jabra/jabra';
@@ -16,6 +17,7 @@ import { filter } from 'rxjs';
 jest.mock('broadcast-channel');
 
 describe('HeadsetService', () => {
+  let cyberacoustics: VendorImplementation;
   let plantronics: VendorImplementation;
   let sennheiser: VendorImplementation;
   /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -31,6 +33,8 @@ describe('HeadsetService', () => {
     sennheiser = SennheiserService.getInstance({ ...config, vendorName: 'Sennheiser' });
     jabraNative = JabraNativeService.getInstance({ ...config, vendorName: 'JabraNative' });
     yealink = YealinkService.getInstance({ ...config, vendorName: 'Yealink' });
+    cyberacoustics = CyberAcousticsService.getInstance({ ...config, vendorName: 'CyberAcoustics' });
+
     /* eslint-enable */
     jabra = JabraService.getInstance({ ...config, vendorName: 'Jabra' });
 
@@ -80,12 +84,12 @@ describe('HeadsetService', () => {
 
       headsetService['_implementations'] = [];
       
-      expect(headsetService.implementations.length).toBe(6);
+      expect(headsetService.implementations.length).toBe(7);
 
       [headsetService['jabra'], headsetService['jabraNative']].forEach((impl) => (impl.isSupported as jest.Mock).mockReturnValue(false));
       headsetService['_implementations'] = [];
 
-      expect(headsetService.implementations.length).toBe(4);
+      expect(headsetService.implementations.length).toBe(5);
     });
   });
 

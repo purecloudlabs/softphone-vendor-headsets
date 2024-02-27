@@ -17,6 +17,7 @@ interface PartialDeviceCollections {
     usage: number;
     usagePage: number;
     inputReports: PartialInputReports[];
+    outputReports: PartialInputReports[];
 }
 
 interface PartialInputReports {
