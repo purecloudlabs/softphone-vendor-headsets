@@ -6,6 +6,7 @@ import { isCefHosted } from '../../../utils';
 
 const HEADSET_USAGE = 0x0005;
 const HEADSET_USAGE_PAGE = 0x000b;
+const VENDOR_ID = 0x340b;
 const BT100USeries = [0x0001];
 const CMEDIASeries = [0x0020, 0x0022];
 const DECTSeries = [0x0014];
@@ -110,7 +111,7 @@ export default class VBetService extends VendorImplementation {
         this.activeDevice = await new Promise((resolve, reject) => {
           const waiter = setTimeout(reject, 30000);
           this.requestWebHidPermissions(async () => {
-            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE }];
+            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE, vendorId: VENDOR_ID }];
             await (window.navigator as any).hid.requestDevice({ filters });
             clearTimeout(waiter);
             const deviceList = await (window.navigator as any).hid.getDevices();
@@ -143,9 +144,9 @@ export default class VBetService extends VendorImplementation {
       }
     }
 
-   
+
     !this.activeDevice.opened && await this.activeDevice.open();
-    
+
 
     this.logger.debug(`device input reportId ${this.inputReportReportId}`);
     this.activeDevice.addEventListener('inputreport', (event: PartialInputReportEvent) => {
@@ -214,7 +215,7 @@ export default class VBetService extends VendorImplementation {
         await this.setMuteFromDevice(!this.isMuted);
         break;
       }
-    } 
+    }
     if (this.activeDevice.productId >= 0x0040 && this.activeDevice.productId <= 0x0083) {
       switch (value) {
       case 0x20:
@@ -323,7 +324,7 @@ export default class VBetService extends VendorImplementation {
         await this.sendOpToDevice('onHook');
       } else {
         this.logger.error('no call to be ended');
-      } 
+      }
     }
   }
 
