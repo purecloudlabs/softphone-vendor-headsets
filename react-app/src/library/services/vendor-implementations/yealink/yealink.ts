@@ -81,7 +81,8 @@ export default class YealinkService extends VendorImplementation {
         this.activeDevice = await new Promise((resolve, reject) => {
           const waiter = setTimeout(reject, 30000);
           this.requestWebHidPermissions(async () => {
-            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE, vendorId: VENDOR_ID }];
+            const productId = this.deductProductId(originalDeviceLabel);
+            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE, vendorId: VENDOR_ID, productId }];
             await (window.navigator as any).hid.requestDevice({ filters });
             clearTimeout(waiter);
             const deviceLists: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices();
