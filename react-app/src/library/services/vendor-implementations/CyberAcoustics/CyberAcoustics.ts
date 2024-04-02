@@ -169,7 +169,7 @@ export default class CyberAcousticsService extends VendorImplementation {
                 {
                   vendorId: 0x3391,
                   //vendorId: 0x046D,
-                  productId
+                  productId: productId || undefined
                 },
               ],
             });

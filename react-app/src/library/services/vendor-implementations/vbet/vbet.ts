@@ -112,7 +112,7 @@ export default class VBetService extends VendorImplementation {
           const waiter = setTimeout(reject, 30000);
           this.requestWebHidPermissions(async () => {
             const productId = this.deductProductId(originalDeviceLabel);
-            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE, vendorId: VENDOR_ID, productId }];
+            const filters = [{ usage: HEADSET_USAGE, usagePage: HEADSET_USAGE_PAGE, vendorId: VENDOR_ID, productId: productId || undefined }];
             await (window.navigator as any).hid.requestDevice({ filters });
             clearTimeout(waiter);
             const deviceList = await (window.navigator as any).hid.getDevices();
