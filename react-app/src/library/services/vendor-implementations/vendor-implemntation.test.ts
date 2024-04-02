@@ -124,8 +124,8 @@ describe('resetHeadsetStateForCall', () => {
 
 describe('deductProductId', () => {
   it('should match proper labels', () => {
-    const result = implementation.deductProductId('Test Device Label (6993:123)');
-    expect(result).toBe('123');
+    const result = implementation.deductProductId('Test Device Label (6993:b017)');
+    expect(result).toBe(45079);
   });
 
   it('should not match invalid labels', () => {

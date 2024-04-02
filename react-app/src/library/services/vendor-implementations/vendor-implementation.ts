@@ -146,8 +146,8 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
    * @param selectedMicLabel
    * @returns The product id if matched or null.
    */
-  deductProductId (selectedMicLabel: string) : string {
+  deductProductId (selectedMicLabel: string) : number {
     const match = selectedMicLabel?.match(/\((\w+):(\w+)\)$/);
-    return match ? match[2] : null;
+    return match ? parseInt(match[2], 16) : null;
   }
 }
