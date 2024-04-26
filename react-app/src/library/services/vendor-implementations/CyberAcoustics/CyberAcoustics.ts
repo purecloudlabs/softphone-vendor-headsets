@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { VendorImplementation, ImplementationConfig } from "../vendor-implementation";
 import { CallInfo } from '../../..';
 import DeviceInfo, { PartialHIDDevice } from "../../../types/device-info";
@@ -194,7 +195,7 @@ export default class CyberAcousticsService extends VendorImplementation {
     }
   }
 
-  async connectFromHidPermissions (devList: any, originalDeviceLabel: string)
+  async connectFromHidPermissions (devList: any, originalDeviceLabel: string): Promise<void | boolean>
   {
 
     this.activeDevice = null;
@@ -219,7 +220,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   }
 
   // Called when the device sends an input report
-  handleInputReport (event: PartialInputReportEvent) {
+  handleInputReport (event: PartialInputReportEvent): void {
     const reportID = event.reportId;
     // If reportId is not in the list, return immediately
     if (!this.handeledInputReportIds.includes(reportID)) {
@@ -238,7 +239,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   }
 
   // called on sucessful connect to do initialization work
-  async handleDeviceConnect ()
+  async handleDeviceConnect (): Promise<void>
   {
     this._deviceInfo = {
       ProductName: this.activeDevice.productName,
