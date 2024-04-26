@@ -121,3 +121,16 @@ describe('resetHeadsetStateForCall', () => {
     expect(rejectSpy).toHaveBeenCalledWith('test123');
   });
 });
+
+describe('deductProductId', () => {
+  it('should match proper labels', () => {
+    const result = implementation.deductProductId('Test Device Label (6993:b017)');
+    expect(result).toBe(45079);
+  });
+
+  it('should not match invalid labels', () => {
+    const result = implementation.deductProductId('Test Device Label');
+    expect(result).toBe(null);
+  });
+});
+

@@ -163,11 +163,13 @@ export default class CyberAcousticsService extends VendorImplementation {
           const HIDPermissionTimeout = setTimeout(reject, 30000);
           this.requestWebHidPermissions(async () => {
             this.logger.debug("Requesting web HID permissions");
+            const productId = this.deductProductId(originalDeviceLabel);
             const devList = await  (window.navigator as any).hid.requestDevice({
               filters: [
                 {
                   vendorId: 0x3391,
                   //vendorId: 0x046D,
+                  productId: productId || undefined
                 },
               ],
             });
@@ -336,7 +338,7 @@ export default class CyberAcousticsService extends VendorImplementation {
       }
 
       ////
-      this.activeDevice.removeEventListener('inputreport', this.handleInputReport); 
+      this.activeDevice.removeEventListener('inputreport', this.handleInputReport);
       this.numDeviceEventListeners--;
       console.debug(`Removed Device Input listener, num listeners = ${this.numDeviceEventListeners} `);
       ////
@@ -676,7 +678,7 @@ export default class CyberAcousticsService extends VendorImplementation {
     }
     ////this.logger.debug(`CA: Command assembled: ${this.gCmdBuf[0].toString(16)},  ${this.gCmdBuf[1].toString(16)} `);
     ////this.logger.debug(`CA: reportID ${this.headsetOutputReportId.toString(16)} `);
-    await this.activeDevice.sendReport(this.headsetOutputReportId, this.gCmdBuf ); 
+    await this.activeDevice.sendReport(this.headsetOutputReportId, this.gCmdBuf );
     this.logger.debug(`CA: Sent Command to Device. Value: ${ this.formatHex(this.gCmdBuf[0])},  ${ this.formatHex(this.gCmdBuf[1])} `);
 
     this.gCmdBuf[0] = 0;

@@ -6,3 +6,4 @@ dist
 coverage/
 tmp/
 softphone-vendor-headsets*.tgz
+.history/
