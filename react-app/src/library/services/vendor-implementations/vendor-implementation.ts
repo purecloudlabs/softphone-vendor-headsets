@@ -138,4 +138,16 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
     this.isConnecting = headsetState.isConnecting;
     this.emitEvent('deviceConnectionStatusChanged', { currentVendor: this, ...headsetState });
   }
+
+  /**
+   * Try to deduct the product id based on the label.
+   * Making the assumption that the label will end with (vendorid:productid).
+   *
+   * @param selectedMicLabel
+   * @returns The product id if matched or null.
+   */
+  deductProductId (selectedMicLabel: string) : number {
+    const match = selectedMicLabel?.match(/\((\w+):(\w+)\)$/);
+    return match ? parseInt(match[2], 16) : null;
+  }
 }
