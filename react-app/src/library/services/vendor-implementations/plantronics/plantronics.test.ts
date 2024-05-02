@@ -1205,6 +1205,18 @@ describe('PlantronicsService', () => {
       expect(clearTimeoutsSpy).toHaveBeenCalled();
       expect(plantronicsService.isActive).toBe(false);
     });
+
+    it('should skip over unregister if the clearReason is alternativeClient', async () => {
+      plantronicsService.isConnected = true;
+      const clearTimeoutsSpy = jest.spyOn(plantronicsService, 'clearTimeouts');
+      const unregisterPluginSpy = jest.spyOn(plantronicsService, 'unregisterPlugin');
+      await plantronicsService.disconnect('alternativeClient');
+      expect(plantronicsService.isConnected).toBe(false);
+      expect(plantronicsService._deviceInfo).toBeNull();
+      expect(clearTimeoutsSpy).toHaveBeenCalled();
+      expect(plantronicsService.isActive).toBe(false);
+      expect(unregisterPluginSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('_fetch', () => {

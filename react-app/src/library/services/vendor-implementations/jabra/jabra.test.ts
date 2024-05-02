@@ -74,7 +74,7 @@ describe('JabraService', () => {
   });
   Object.defineProperty(window.navigator, 'locks', { get: () => ({}) });
   (window as any).BroadcastChannel = BroadcastChannel;
-  
+
   beforeEach(() => {
     jabraService = JabraService.getInstance({ logger: console, createNew: true });
     jabraService.initializeJabraSdk = initializeSdk as any;

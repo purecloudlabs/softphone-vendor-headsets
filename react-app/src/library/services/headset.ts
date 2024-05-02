@@ -1,15 +1,17 @@
 import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
+import CyberAcousticsService from './vendor-implementations/CyberAcoustics/CyberAcoustics';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
+import VBetService from './vendor-implementations/vbet/vbet';
 import { CallInfo } from '../types/call-info';
 import { VendorEvent, HoldEventInfo, MutedEventInfo, EventInfoWithConversationId } from '../types/emitted-headset-events';
 import { WebHidPermissionRequest } from '..';
 import { ConsumedHeadsetEvents, HeadsetEvents, DeviceConnectionStatus } from '../types/consumed-headset-events';
-import { HeadsetState, HeadsetStateRecord } from '../types/headset-states';
+import { HeadsetState, HeadsetStateRecord, UpdateReasons } from '../types/headset-states';
 
 type StateProps = Partial<HeadsetState>;
 type StateCompareProps = { conversationId: string; state: StateProps };
@@ -24,6 +26,8 @@ export default class HeadsetService {
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
   yealink: VendorImplementation;
+  vbet:VendorImplementation;
+  cyberAcoustics: VendorImplementation;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
   
@@ -41,8 +45,10 @@ export default class HeadsetService {
     this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger });
+    this.vbet = VBetService.getInstance({ logger: this.logger });
+    this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger });
 
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -59,7 +65,9 @@ export default class HeadsetService {
       this.plantronics,
       this.jabra,
       this.jabraNative,
-      this.yealink
+      this.yealink,
+      this.vbet,
+      this.cyberAcoustics
     ].filter((impl) => impl.isSupported());
 
     return implementations;
@@ -99,16 +107,16 @@ export default class HeadsetService {
     return !!implementation;
   }
 
-  activeMicChange (newMicLabel: string): void {
+  activeMicChange (newMicLabel: string, changeReason?: UpdateReasons): void {
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
         this.changeImplementation(implementation, newMicLabel);
       } else if (this.selectedImplementation) {
-        this.clearSelectedImplementation();
+        this.clearSelectedImplementation(changeReason);
       }
     } else {
-      this.clearSelectedImplementation();
+      this.clearSelectedImplementation(changeReason);
     }
   }
 
@@ -314,12 +322,12 @@ export default class HeadsetService {
     implementation.on(HeadsetEvents.webHidPermissionRequested, this.handleWebHidPermissionRequested.bind(this));
   }
 
-  private clearSelectedImplementation (): void {
+  private clearSelectedImplementation (clearReason?: UpdateReasons): void {
     if (!this.selectedImplementation) {
       return;
     }
 
-    this.selectedImplementation.disconnect();
+    this.selectedImplementation.disconnect(clearReason);
     this._headsetEvents$.next({ event: HeadsetEvents.implementationChanged, payload: null });
     this.selectedImplementation = null;
     this.handleDeviceConnectionStatusChanged();

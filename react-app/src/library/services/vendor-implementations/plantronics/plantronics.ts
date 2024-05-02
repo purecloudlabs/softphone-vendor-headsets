@@ -4,6 +4,7 @@ import { PlantronicsCallEvent, PlantronicsCallEventCodes } from './plantronics-c
 import browserama from 'browserama';
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../../types/call-info';
+import { UpdateReasons } from '../../../types/headset-states';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
@@ -336,11 +337,13 @@ export default class PlantronicsService extends VendorImplementation {
       });
   }
 
-  async disconnect (): Promise<any> {
+  async disconnect (clearReason?: UpdateReasons): Promise<any> {
     if (!this.isConnected) {
       return;
     }
-    await this.unregisterPlugin();
+    if (clearReason !== 'alternativeClient') {
+      await this.unregisterPlugin();
+    }
     this.clearTimeouts();
     this._deviceInfo = null;
     this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });

@@ -5,5 +5,6 @@ export * from './types/call-info';
 export * from './types/consumed-headset-events';
 export * from './types/device-info';
 export * from './types/emitted-headset-events';
+export * from './types/headset-states';
 export { VendorImplementation };
 export default HeadsetService;
