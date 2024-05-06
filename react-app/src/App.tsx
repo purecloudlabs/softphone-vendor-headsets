@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
@@ -16,6 +16,7 @@ const App = () => {
   const [currentCall, setCurrentCall] = useState<any>(null);
   const [muted, setMuted] = useState<boolean>(false);
   const [held, setHeld] = useState<boolean>(false);
+  const [allCallStates, setAllCallStates] = useState<any>({});
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const eventLogs = [] as any;
@@ -26,6 +27,7 @@ const App = () => {
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
+  // let allCallStates = {};
 
   useEffect(() => {
     webrtc.initialize();
@@ -51,23 +53,23 @@ const App = () => {
         break;
       case 'deviceHoldStatusChanged':
         handleHeadsetEvent(value.payload);
-        toggleSoftwareHold(value.payload.holdRequested, true);
+        toggleSoftwareHold(value.payload.holdRequested, currentCall.id, true);
         break;
       case 'deviceMuteStatusChanged':
         handleHeadsetEvent(value.payload);
-        toggleSoftwareMute(value.payload.isMuted, true);
+        toggleSoftwareMute(value.payload.isMuted, currentCall.id, true);
         break;
       case 'deviceAnsweredCall':
         handleHeadsetEvent(value.payload);
-        answerIncomingCall(true);
+        answerIncomingCall(currentCall.id, true);
         break;
       case 'deviceRejectedCall':
         handleHeadsetEvent(value.payload);
-        rejectIncomingCall(true);
+        rejectIncomingCall(currentCall.id, true);
         break;
       case 'deviceEndedCall':
         handleHeadsetEvent(value.payload);
-        endCurrentCall(true);
+        endCurrentCall(currentCall.id, true);
         break;
       case 'deviceConnectionStatusChanged':
         setConnectionStatus(value.payload);
@@ -121,13 +123,17 @@ const App = () => {
     setAudioStream(null);
   };
 
-  const endCurrentCall = (fromHeadset?) => {
-    const call = currentCall;
+  const endCurrentCall = (conversationId: string, fromHeadset?) => {
+    const call = currentCall || allCallStates[conversationId];
     if (call) {
       call.end();
       !fromHeadset && headset.endCall(call.id);
     }
     setCurrentCall(null);
+    const totalCalls = allCallStates;
+    delete totalCalls[conversationId];
+    setAllCallStates(totalCalls);
+    console.log('mMoo: after updating allCallStates', { allCallStates, conversationId });
     endHeadsetAudio();
   };
 
@@ -144,10 +150,21 @@ const App = () => {
     console.log('**** SIMULATING CALL ****');
     const call = new MockCall();
     setCurrentCall(call);
+    setAllCallStates({
+      ...allCallStates,
+      [call.id]: call
+    });
+    // allCallStates = { ...allCallStates, [call.id]: call };
+    console.log('mMoo: allCallStates after incoming call', allCallStates);
     if (!autoAnswer) {
       headset.incomingCall({ conversationId: call.id, contactName: call.contactName });
     } else {
       call.answer();
+      setAllCallStates({
+        ...allCallStates,
+        [call.id]: call
+      });
+      // allCallStates = { ...allCallStates, [call.id]: call };
       headset.answerCall(call.id, autoAnswer);
       startHeadsetAudio();
     }
@@ -159,21 +176,36 @@ const App = () => {
     call.answer();
     startHeadsetAudio();
     setCurrentCall(call);
+    setAllCallStates({
+      ...allCallStates,
+      [call.id]: call
+    });
+    // allCallStates = { ...allCallStates, [call.id]: call };
     headset.outgoingCall({ conversationId: call.id, contactName: call.contactName });
   };
 
-  const answerIncomingCall = (fromHeadset?) => {
+  const answerIncomingCall = (conversationId: string, fromHeadset?) => {
     console.log('**** ANSWERING SIMULATED CALL ****', { currentCall });
-    currentCall.answer();
-    !fromHeadset && headset.answerCall(currentCall.id, autoAnswer);
+    allCallStates[conversationId].answer();
+    // currentCall.answer();
+    setAllCallStates({
+      ...allCallStates,
+      [conversationId]: allCallStates[conversationId]
+    });
+    // allCallStates = { ...allCallStates, [currentCall.id]: currentCall };
+    !fromHeadset && headset.answerCall(conversationId, autoAnswer);
     startHeadsetAudio();
   };
 
-  const rejectIncomingCall = (fromHeadset?) => {
+  const rejectIncomingCall = (conversationId: string, fromHeadset?) => {
     console.log('**** REJECTING SIMULATED CALL ****', { currentCall });
-    if (currentCall) {
-      currentCall.end();
-      !fromHeadset && headset.rejectCall(currentCall.id);
+    if (allCallStates[conversationId].ringing) {
+      allCallStates[conversationId].end();
+      const totalCalls = allCallStates;
+      delete totalCalls[conversationId];
+      setAllCallStates(totalCalls);
+      // delete allCallStates[currentCall.id];
+      !fromHeadset && headset.rejectCall(conversationId);
     }
     setCurrentCall(null);
   };
@@ -181,19 +213,64 @@ const App = () => {
   const endAllCalls = () => {
     headset.endAllCalls();
     setCurrentCall(null);
+    setAllCallStates({});
+    // allCallStates = {};
     endHeadsetAudio();
   };
 
-  const toggleSoftwareMute = (muteToggle, fromHeadset?) => {
+  const toggleSoftwareMute = (muteToggle, conversationId: string, fromHeadset?) => {
+    console.log('mMoo: mute call', conversationId);
     console.log('**** TOGGLING MUTE STATUS ****');
     setMuted(muteToggle);
+    setAllCallStates({
+      ...allCallStates,
+      [conversationId]: {
+        ...allCallStates[conversationId],
+        muted: muteToggle
+      }
+    });
     !fromHeadset && headset.setMute(muteToggle);
   };
 
-  const toggleSoftwareHold = (holdToggle, fromHeadset?) => {
+  const toggleSoftwareHold = (holdToggle, conversationId: string, fromHeadset?) => {
     console.log('**** TOGGLING HOLD STATUS ****');
     setHeld(holdToggle);
+    setAllCallStates({
+      ...allCallStates,
+      [currentCall.id]: {
+        ...allCallStates[currentCall.id],
+        held: holdToggle
+      }
+    });
     !fromHeadset && headset.setHold(currentCall.id, holdToggle);
+  };
+
+  const generateCallStates = () => {
+    const calls = [] as any;
+    const keyValues = Object.keys(allCallStates);
+    for (let i = 0; i < keyValues.length; i++) {
+      const key = keyValues[i];
+      calls.push(
+        <Fragment key={allCallStates[key].id}>
+          <div>{t(`dummy.currentCall.id`)}: {allCallStates[key].id}</div>
+          <div>{t('dummy.currentCall.contactName')}: {allCallStates[key].contactName}</div>
+          <div>{t('dummy.currentCall.ringing')}: {JSON.stringify(allCallStates[key].ringing)}</div>
+          <div>{t('dummy.currentCall.connected')}: {JSON.stringify(allCallStates[key].connected)}</div>
+          <div>{t('dummy.currentCall.muted')}: {JSON.stringify(allCallStates[key].muted)}</div>
+          <div>{t('dummy.currentCall.held')}: {JSON.stringify(allCallStates[key].held)}</div>
+
+          <div>
+            <button disabled={allCallStates[key].connected} type="button" onClick={() => answerIncomingCall(allCallStates[key].id)}>{t('dummy.button.answer')}</button>
+            <button disabled={allCallStates[key].connected} type="button" onClick={() => rejectIncomingCall(allCallStates[key].id)}>{t('dummy.button.reject')}</button>
+            <button disabled={!allCallStates[key].connected} type="button" onClick={() => toggleSoftwareMute(!muted, allCallStates[key].id)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
+            <button disabled={!allCallStates[key].connected} type="button" onClick={() => toggleSoftwareHold(!held, allCallStates[key].id)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
+            <button type="button" onClick={() => endCurrentCall(allCallStates[key].id)}>{t('dummy.button.endCall.endCurrentCall')}</button>
+          </div>
+          <hr></hr>
+        </Fragment>
+      );
+    }
+    return calls;
   };
 
   return (
@@ -262,13 +339,13 @@ const App = () => {
             <button type="button" onClick={() => simulateOutgoingCall()}>{t('dummy.button.simulateOutgoingCall')}</button>
             <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
           </div>
-          <div className="entry-value">
-            <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
-            <button disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button>
-            <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
-            <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
-            <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>
-          </div>
+          {/* <div className="entry-value"> */}
+          {/* <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button> */}
+          {/* <button disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button> */}
+          {/* <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button> */}
+          {/* <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button> */}
+          {/* <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button> */}
+          {/* </div> */}
         </div>
       </div>
 
@@ -290,16 +367,10 @@ const App = () => {
             {t('dummy.currentCall.callState')}
           </div>
           <div className="entry-value">
-            {currentCall
-              ? <>
-                <div>{t(`dummy.currentCall.id`)}: {currentCall.id}</div>
-                <div>{t('dummy.currentCall.contactName')}: {currentCall.contactName}</div>
-                <div>{t('dummy.currentCall.ringing')}: {JSON.stringify(currentCall.ringing)}</div>
-                <div>{t('dummy.currentCall.connected')}: {JSON.stringify(currentCall.connected)}</div>
-                <div>{t('dummy.currentCall.muted')}: {JSON.stringify(muted)}</div>
-                <div>{t('dummy.currentCall.held')}: {JSON.stringify(held)}</div>
-              </>
-              : t('dummy.currentCall.noCall')
+            { Object.keys(allCallStates).length
+              ?
+              generateCallStates()
+              : t('dummy.currentCall.noCalls')
             }
           </div>
         </div>

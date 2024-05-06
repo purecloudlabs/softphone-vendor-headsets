@@ -28,7 +28,7 @@
             "held": "On Hold",
             "id": "ID",
             "muted": "Mute State",
-            "noCall": "No Call",
+            "noCalls": "No Calls",
             "ringing": "Ringing"
         }
     },
