@@ -155,6 +155,7 @@ export default class JabraService extends VendorImplementation {
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
     if (autoAnswer) {
+      this.multiCallControl.signalIncomingCall();
       this.pendingConversationId = conversationId;
     }
 
