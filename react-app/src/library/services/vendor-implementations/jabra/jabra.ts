@@ -96,6 +96,7 @@ export default class JabraService extends VendorImplementation {
     });
 
     callControl.holdState.subscribe((holdState) => {
+      console.log('mMoo: inside holdState subscription');
       this.isHeld = holdState === HoldState.ON_HOLD ? true : false;
       this.deviceHoldStatusChanged({
         holdRequested: this.isHeld,
@@ -154,12 +155,22 @@ export default class JabraService extends VendorImplementation {
   }
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
+    console.log('mMoo: IDs', { activeConversationId: this.activeConversationId, pendingConversationId: this.pendingConversationId });
     if (autoAnswer) {
       this.multiCallControl.signalIncomingCall();
       this.pendingConversationId = conversationId;
     }
 
     this.multiCallControl.acceptIncomingCall(AcceptIncomingCallBehavior.HOLD_CURRENT);
+
+    if (this.activeConversationId && this.activeConversationId !== this.pendingConversationId) {
+      console.warn('mMoo: saved IDs are not equal')
+      this.deviceHoldStatusChanged({
+        holdRequested: true,
+        name: 'OnHold',
+        conversationId: this.activeConversationId
+      });
+    }
   }
 
   async rejectCall (conversationId: string): Promise<void> {

@@ -8,6 +8,7 @@ import AudioVisualizer from './components/audio-visualizer';
 import ToggleSwitch from './components/toggle-switch/toggle-switch';
 import MockCall from './mocks/call';
 import { isCefHosted } from './library/utils';
+import CallControls from './components/call-controls/call-controls';
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const App = () => {
@@ -52,6 +53,7 @@ const App = () => {
         logImplementationChange(value?.payload?.vendorName);
         break;
       case 'deviceHoldStatusChanged':
+        console.log('mMoo: device hold status changed');
         handleHeadsetEvent(value.payload);
         toggleSoftwareHold(value.payload.holdRequested, currentCall.id, true);
         break;
@@ -237,12 +239,12 @@ const App = () => {
     setHeld(holdToggle);
     setAllCallStates({
       ...allCallStates,
-      [currentCall.id]: {
-        ...allCallStates[currentCall.id],
+      [conversationId]: {
+        ...allCallStates[conversationId],
         held: holdToggle
       }
     });
-    !fromHeadset && headset.setHold(currentCall.id, holdToggle);
+    !fromHeadset && headset.setHold(conversationId, holdToggle);
   };
 
   const generateCallStates = () => {
@@ -251,23 +253,31 @@ const App = () => {
     for (let i = 0; i < keyValues.length; i++) {
       const key = keyValues[i];
       calls.push(
-        <Fragment key={allCallStates[key].id}>
-          <div>{t(`dummy.currentCall.id`)}: {allCallStates[key].id}</div>
-          <div>{t('dummy.currentCall.contactName')}: {allCallStates[key].contactName}</div>
-          <div>{t('dummy.currentCall.ringing')}: {JSON.stringify(allCallStates[key].ringing)}</div>
-          <div>{t('dummy.currentCall.connected')}: {JSON.stringify(allCallStates[key].connected)}</div>
-          <div>{t('dummy.currentCall.muted')}: {JSON.stringify(allCallStates[key].muted)}</div>
-          <div>{t('dummy.currentCall.held')}: {JSON.stringify(allCallStates[key].held)}</div>
+        <CallControls
+          call={allCallStates[key]}
+          answerCall={() => answerIncomingCall}
+          rejectCall={() => rejectIncomingCall}
+          toggleMute={() => toggleSoftwareMute}
+          toggleHold={() => toggleSoftwareHold}
+          endCurrentCall={() => endCurrentCall}
+        />
+        // <Fragment key={allCallStates[key].id}>
+        //   <div>{t(`dummy.currentCall.id`)}: {allCallStates[key].id}</div>
+        //   <div>{t('dummy.currentCall.contactName')}: {allCallStates[key].contactName}</div>
+        //   <div>{t('dummy.currentCall.ringing')}: {JSON.stringify(allCallStates[key].ringing)}</div>
+        //   <div>{t('dummy.currentCall.connected')}: {JSON.stringify(allCallStates[key].connected)}</div>
+        //   <div>{t('dummy.currentCall.muted')}: {JSON.stringify(allCallStates[key].muted)}</div>
+        //   <div>{t('dummy.currentCall.held')}: {JSON.stringify(allCallStates[key].held)}</div>
 
-          <div>
-            <button disabled={allCallStates[key].connected} type="button" onClick={() => answerIncomingCall(allCallStates[key].id)}>{t('dummy.button.answer')}</button>
-            <button disabled={allCallStates[key].connected} type="button" onClick={() => rejectIncomingCall(allCallStates[key].id)}>{t('dummy.button.reject')}</button>
-            <button disabled={!allCallStates[key].connected} type="button" onClick={() => toggleSoftwareMute(!muted, allCallStates[key].id)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
-            <button disabled={!allCallStates[key].connected} type="button" onClick={() => toggleSoftwareHold(!held, allCallStates[key].id)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
-            <button type="button" onClick={() => endCurrentCall(allCallStates[key].id)}>{t('dummy.button.endCall.endCurrentCall')}</button>
-          </div>
-          <hr></hr>
-        </Fragment>
+        //   <div>
+        //     <button disabled={allCallStates[key].connected} type="button" onClick={() => answerIncomingCall(allCallStates[key].id)}>{t('dummy.button.answer')}</button>
+        //     <button disabled={allCallStates[key].connected} type="button" onClick={() => rejectIncomingCall(allCallStates[key].id)}>{t('dummy.button.reject')}</button>
+        //     <button disabled={!allCallStates[key].connected} type="button" onClick={() => toggleSoftwareMute(!muted, allCallStates[key].id)}>{t(`dummy.button.${allCallStates[key].muted ? 'un' : ''}mute`)}</button>
+        //     <button disabled={!allCallStates[key].connected} type="button" onClick={() => toggleSoftwareHold(!held, allCallStates[key].id)}>{t(`dummy.button.${allCallStates[key].held ? 'resume' : 'hold'}`)}</button>
+        //     <button type="button" onClick={() => endCurrentCall(allCallStates[key].id)}>{t('dummy.button.endCall.endCurrentCall')}</button>
+        //   </div>
+        //   <hr></hr>
+        // </Fragment>
       );
     }
     return calls;
