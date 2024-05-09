@@ -37,23 +37,23 @@ const getRandomContact = () => {
 export default class MockCall {
     id: string;
     contactName: string;
-    ringing = true;
-    connected = false;
-    muted = false;
-    held = false;
+    // ringing = true;
+    // connected = false;
+    // muted = false;
+    // held = false;
 
     constructor () {
       this.id = v4();
       this.contactName = getRandomContact();
     }
 
-    answer (): void {
-      this.ringing = false;
-      this.connected = true;
-    }
+  // answer (): void {
+  //   this.ringing = false;
+  //   this.connected = true;
+  // }
 
-    end (): void {
-      this.ringing = false;
-      this.connected = false;
-    }
+  // end (): void {
+  //   this.ringing = false;
+  //   this.connected = false;
+  // }
 }
