@@ -5,25 +5,19 @@ import './call-controls.css';
 
 const CallControls = (props: {
     call: any,
-    autoAnswer: boolean,
-    isOutgoing: boolean,
     answerCall: any,
     rejectCall: any,
     toggleMute: any,
     toggleHold: any,
     endCurrentCall: any;
-    ongoingCalls: any;
 }) => {
   const {
     call,
-    autoAnswer,
-    isOutgoing,
     answerCall,
     rejectCall,
     toggleMute,
     toggleHold,
     endCurrentCall,
-    ongoingCalls
   } = props;
 
   const { t } = useTranslation();
@@ -31,16 +25,8 @@ const CallControls = (props: {
   const headset = HeadsetService?.getInstance({} as any);
 
   useEffect(() => {
-    setCallState({
-      ...call,
-      ringing: !autoAnswer && !isOutgoing ? true : false,
-      connected: autoAnswer || isOutgoing ? true : false,
-      muted: false,
-      held: false
-    });
-    handleCallInit();
     const sub = headset.headsetEvents$.subscribe(value => {
-      if (!value || value?.payload?.conversationdId !== callState.id) {
+      if (!value || value?.payload?.conversationId !== callState.id) {
         return;
       }
 
@@ -48,25 +34,19 @@ const CallControls = (props: {
 
       switch(value.event) {
       case 'deviceHoldStatusChanged':
-        setCallState({
-          ...callState,
-          held: value.payload.holdRequested
-        });
+        updateHoldState(value.payload.holdRequested, value.payload.conversationId, true);
         break;
       case 'deviceMuteStatusChanged':
-        setCallState({
-          ...callState,
-          muted: value.payload.isMuted
-        });
+        updateMuteState(value.payload.isMuted, value.payload.conversationId, true);
         break;
       case 'deviceAnsweredCall':
+        updateRingingState('answer', value.payload.conversationId, true);
+        break;
       case 'deviceRejectedCall':
+        updateRingingState('reject', value.payload.conversationId, true);
+        break;
       case 'deviceEndedCall':
-        setCallState({
-          ...callState,
-          connected: value.event === 'deviceAnsweredCall' ? true : false,
-          ringing: false
-        });
+        updateRingingState('end', value.payload.conversationId, true);
         break;
       default:
         return;
@@ -76,39 +56,26 @@ const CallControls = (props: {
     return () => {
       sub.unsubscribe();
     };
-  }, []);
+  }, [ callState ]);
 
-  const handleCallInit = () => {
-    if (isOutgoing) {
-      return headset.outgoingCall({ conversationId: call.id, contactName: call.contactName });
-    }
-
-    if (autoAnswer) {
-      return headset.answerCall(call.id, autoAnswer);
-    }
-
-    return headset.incomingCall({ conversationId: call.id, contactName: call.contactName });
-  };
-
-  const updateMuteState = (muted: boolean, conversationId: string) => {
-    setCallState({
+  const updateMuteState = async (muted: boolean, conversationId?: string, fromHeadset?: boolean) => {
+    await setCallState({
       ...callState,
       muted
     });
-    toggleMute(muted, conversationId);
+    toggleMute(muted, conversationId, fromHeadset);
   };
 
-  const updateHoldState = (held: boolean, conversationId: string) => {
-    setCallState({
+  const updateHoldState = async (held: boolean, conversationId?: string, fromHeadset?: boolean) => {
+    await setCallState({
       ...callState,
       held
     });
-    toggleHold(held, conversationId);
+    toggleHold(held, conversationId, fromHeadset);
   };
 
-  const updateRingingState = (action: string, conversationId: string) => {
-    console.log('mMoo: inside updateRingingState', { action, conversationId });
-    setCallState({
+  const updateRingingState = async (action: string, conversationId: string, fromHeadset?: boolean) => {
+    await setCallState({
       ...callState,
       ringing: false,
       connected: action === 'answer' ? true : false
@@ -116,23 +83,17 @@ const CallControls = (props: {
 
     switch(action) {
     case 'answer':
-      answerCall(conversationId);
+      answerCall(conversationId, fromHeadset);
       break;
     case 'end':
-      console.log('mMoo: should fall in here');
-      endCurrentCall(conversationId);
+      endCurrentCall(conversationId, fromHeadset);
       break;
     case 'reject':
-      console.log('mMoo: well check here too');
-      rejectCall(conversationId);
+      rejectCall(conversationId, fromHeadset);
       break;
     default:
       console.warn("Invalid action taken");
     }
-  };
-
-  const getOngoingCalls = () => {
-    ongoingCalls();
   };
 
   return (
@@ -150,7 +111,6 @@ const CallControls = (props: {
         <button disabled={!callState.connected} type="button" onClick={() => updateMuteState(!callState.muted, callState.id)}>{t(`dummy.button.${callState.muted ? 'un' : ''}mute`)}</button>
         <button disabled={!callState.connected} type="button" onClick={() => updateHoldState(!callState.held, callState.id)}>{t(`dummy.button.${callState.held ? 'resume' : 'hold'}`)}</button>
         <button type="button" onClick={() => updateRingingState('end', callState.id)}>{t('dummy.button.endCall.endCurrentCall')}</button>
-        <button type="button" onClick={() => getOngoingCalls()}>Test</button>
       </div>
       <hr></hr>
     </Fragment>

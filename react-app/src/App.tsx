@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import './App.css';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
@@ -14,9 +14,7 @@ import CallControls from './components/call-controls/call-controls';
 const App = () => {
 /* eslint-enable */
   const { t } = useTranslation();
-  const [currentCall, setCurrentCall] = useState<string | null>(null);
-  const [ongoingCalls, setOngoingCalls] = useState<string[]>([]);
-  const [activeCalls, setActiveCalls] = useState<any>([]);
+  const [ongoingCalls, setOngoingCalls] = useState<any[]>([]);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const eventLogs = [] as any;
@@ -27,21 +25,16 @@ const App = () => {
   const headset = HeadsetService?.getInstance({} as any);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
-  // let newCalls = {};
-  // possible array of just conversation ids? let call-controls handle states?
+  const currentCall = useRef("");
 
   useEffect(() => {
     webrtc.initialize();
     _updateDeviceList();
 
     return function cleanup () {
-      setCurrentCall(null);
+      currentCall.current = "";
     };
   }, []);
-
-  useEffect(() => {
-    console.log('mMoo: ongoingCalls', ongoingCalls);
-  }, [ ongoingCalls ]);
 
   useEffect(() => {
     console.info('subscribing to headset events');
@@ -71,7 +64,7 @@ const App = () => {
     return () => {
       sub.unsubscribe();
     };
-  }, [ currentCall, audioStream ]);
+  }, [ currentCall ]);
 
   const _updateDeviceList = async () => {
     await webrtc.ensureAudioPermissions();
@@ -108,25 +101,20 @@ const App = () => {
     setAudioStream(null);
   };
 
-  const endCurrentCall = useCallback((conversationId: string, fromHeadset?) => {
-    console.log('mMoo: inside app endCurrentCall', { conversationId, fromHeadset, ongoingCalls });
-    const call = ongoingCalls.find((element) => {
-      console.log('mMoo: inside array.find()', { element, conversationId });
-      element === conversationId;
-    });
+  const endCurrentCall = (conversationId: string, fromHeadset?) => {
+    const call = ongoingCalls.find((element) => element.id === conversationId);
     if (call) {
-      // call.end();
-      !fromHeadset && headset.endCall(call);
+      !fromHeadset && headset.endCall(call.id);
     }
 
-    if (currentCall === conversationId) {
-      setCurrentCall(null);
+    if (currentCall.current === conversationId) {
+      currentCall.current = "";
     }
 
     const totalCalls = ongoingCalls;
-    setOngoingCalls(totalCalls.filter((element) => element !== conversationId));
+    setOngoingCalls(totalCalls.filter((element) => element.id !== conversationId));
     endHeadsetAudio();
-  }, [ ongoingCalls, activeCalls ]);
+  };
 
   const changeMic = (event) => {
     const mic = microphones.find(mic => mic.deviceId === event.target.value);
@@ -137,61 +125,32 @@ const App = () => {
     }
   };
 
-  const simulateIncomingCall = async () => {
+  const simulateIncomingCall = () => {
     console.log('**** SIMULATING CALL ****');
     const call = new MockCall();
-    await setOngoingCalls([...ongoingCalls, call.id]);
-    console.log('mMoo: onGoingCalls upon creation of incoming call', ongoingCalls);
+    setOngoingCalls([...ongoingCalls, { id: call.id, contactName: call.contactName }]);
 
-    if (autoAnswer) {
-      setCurrentCall(call.id);
+    if (!autoAnswer) {
+      headset.incomingCall({ conversationId: call.id, contactName: call.contactName });
+    } else {
+      currentCall.current = call.id;
+      headset.answerCall(call.id, autoAnswer);
       startHeadsetAudio();
     }
-
-    setActiveCalls([
-      ...activeCalls,
-      <CallControls
-        key={call.id}
-        call={call}
-        autoAnswer={autoAnswer}
-        isOutgoing={false}
-        answerCall={answerIncomingCall}
-        rejectCall={rejectIncomingCall}
-        toggleMute={toggleSoftwareMute}
-        toggleHold={toggleSoftwareHold}
-        endCurrentCall={endCurrentCall}
-        ongoingCalls={getOngoingCalls}
-      />
-    ]);
   };
 
   const simulateOutgoingCall = () => {
     console.log('**** SIMULATING OUTGOING CALL ****');
     const call = new MockCall();
     startHeadsetAudio();
-    setCurrentCall(call.id);
-    setOngoingCalls([...ongoingCalls, call.id]);
-
-    setActiveCalls([
-      ...activeCalls,
-      <CallControls
-        key={call.id}
-        call={call}
-        autoAnswer={autoAnswer}
-        isOutgoing={true}
-        answerCall={answerIncomingCall}
-        rejectCall={rejectIncomingCall}
-        toggleMute={toggleSoftwareMute}
-        toggleHold={toggleSoftwareHold}
-        endCurrentCall={endCurrentCall}
-        ongoingCalls={getOngoingCalls}
-      />
-    ]);
+    currentCall.current = call.id;
+    setOngoingCalls([...ongoingCalls, { id: call.id, contactName: call.contactName }]);
+    headset.outgoingCall({ conversationId: call.id, contactName: call.contactName });
   };
 
   const answerIncomingCall = (conversationId: string, fromHeadset?) => {
     console.log('**** ANSWERING SIMULATED CALL ****', { currentCall });
-    setCurrentCall(conversationId);
+    currentCall.current = conversationId;
     !fromHeadset && headset.answerCall(conversationId, autoAnswer);
     startHeadsetAudio();
   };
@@ -200,14 +159,14 @@ const App = () => {
     console.log('**** REJECTING SIMULATED CALL ****', { conversationId });
     if (ongoingCalls.includes(conversationId)) {
       const totalCalls = ongoingCalls;
-      setOngoingCalls(totalCalls.filter((element) => element !== conversationId));
+      setOngoingCalls(totalCalls.filter((element) => element.id !== conversationId));
       !fromHeadset && headset.rejectCall(conversationId);
     }
   };
 
   const endAllCalls = () => {
     headset.endAllCalls();
-    setCurrentCall(null);
+    currentCall.current = "";
     setOngoingCalls([]);
     endHeadsetAudio();
   };
@@ -222,29 +181,32 @@ const App = () => {
     !fromHeadset && headset.setHold(conversationId, holdToggle);
   };
 
-  const getOngoingCalls = useCallback(() => {
-    console.log('mMoo: current ongoing calls', ongoingCalls);
-  }, [ ongoingCalls, activeCalls ]);
+  const generateCallStates = () => {
+    const calls = [] as any;
+    for (let i = 0; i < ongoingCalls.length; i++) {
+      const callState = {
+        id: ongoingCalls[i].id,
+        contactName: ongoingCalls[i].contactName,
+        ringing: ongoingCalls[i].id !== currentCall.current,
+        connected: ongoingCalls[i].id === currentCall.current,
+        muted: false,
+        held: false
+      };
+      calls.push(
+        <CallControls
+          key={ongoingCalls[i].id}
+          call={callState}
+          answerCall={answerIncomingCall}
+          rejectCall={rejectIncomingCall}
+          toggleMute={toggleSoftwareMute}
+          toggleHold={toggleSoftwareHold}
+          endCurrentCall={endCurrentCall}
+        />
+      );
+    }
 
-  // const generateCallStates = () => {
-  //   console.log('mMoo: inside generateCallStates', { ongoingCalls, newCalls });
-  //   const calls = [] as any;
-  //   for (let i = 0; i < ongoingCalls.length; i++) {
-  //     console.log('mMoo: generateCallStates forLoop');
-  //     calls.push(
-  //       <CallControls
-  //         call={newCalls[ongoingCalls[i]]}
-  //         answerCall={answerIncomingCall}
-  //         rejectCall={rejectIncomingCall}
-  //         toggleMute={toggleSoftwareMute}
-  //         toggleHold={toggleSoftwareHold}
-  //         endCurrentCall={endCurrentCall}
-  //       />
-  //     );
-
-  //     delete newCalls[ongoingCalls[i]];
-  //   }
-  // };
+    return calls;
+  };
 
   return (
     <>
@@ -311,7 +273,6 @@ const App = () => {
             <button type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button>
             <button type="button" onClick={() => simulateOutgoingCall()}>{t('dummy.button.simulateOutgoingCall')}</button>
             <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
-            <button type="button" onClick={() => getOngoingCalls()}>Test</button>
           </div>
         </div>
       </div>
@@ -336,7 +297,7 @@ const App = () => {
           <div className="entry-value">
             { ongoingCalls.length
               ?
-              activeCalls
+              generateCallStates()
               : t('dummy.currentCall.noCalls')
             }
           </div>

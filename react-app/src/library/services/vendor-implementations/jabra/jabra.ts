@@ -130,6 +130,15 @@ export default class JabraService extends VendorImplementation {
     if (value) {
       this.multiCallControl.hold();
     } else {
+      // if (this.activeConversationId && conversationId !== this.activeConversationId) {
+      //   this.deviceHoldStatusChanged({
+      //     holdRequested: true,
+      //     name: 'OnHold',
+      //     conversationId: this.activeConversationId
+      //   });
+
+      //   this.activeConversationId = conversationId;
+      // }
       this.multiCallControl.resume();
     }
   }
@@ -159,8 +168,6 @@ export default class JabraService extends VendorImplementation {
       this.pendingConversationId = conversationId;
     }
 
-    this.multiCallControl.acceptIncomingCall(AcceptIncomingCallBehavior.HOLD_CURRENT);
-
     if (this.activeConversationId && this.activeConversationId !== this.pendingConversationId) {
       this.deviceHoldStatusChanged({
         holdRequested: true,
@@ -168,6 +175,8 @@ export default class JabraService extends VendorImplementation {
         conversationId: this.activeConversationId
       });
     }
+
+    this.multiCallControl.acceptIncomingCall(AcceptIncomingCallBehavior.HOLD_CURRENT);
   }
 
   async rejectCall (conversationId: string): Promise<void> {
@@ -177,6 +186,15 @@ export default class JabraService extends VendorImplementation {
   async outgoingCall (callInfo: CallInfo): Promise<void> {
     this.pendingConversationId = callInfo.conversationId;
     this.pendingConversationIsOutbound = true;
+
+    if (this.activeConversationId && this.activeConversationId !== this.pendingConversationId) {
+      this.deviceHoldStatusChanged({
+        holdRequested: true,
+        name: 'OnHold',
+        conversationId: this.activeConversationId
+      })
+    }
+
     this.multiCallControl.startCall();
   }
 
