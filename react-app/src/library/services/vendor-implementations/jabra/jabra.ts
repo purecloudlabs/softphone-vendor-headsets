@@ -347,8 +347,12 @@ export default class JabraService extends VendorImplementation {
 
     this._deviceInfo = null;
 
-    let selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
-    if (!selectedDevice) {
+    let selectedDevice;
+    if (await this.deviceHasPermissions(deviceLabel)) {
+      console.log('mMoo: device had permissions');
+      selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
+    } else {
+      console.log('mMoo: device did not have permissions');
       try {
         selectedDevice = await this.getDeviceFromWebhid(deviceLabel);
       } catch (e) {
@@ -370,8 +374,27 @@ export default class JabraService extends VendorImplementation {
     this.changeConnectionStatus({ isConnected: true, isConnecting: false });
   }
 
+  // async deviceHasPermissions (deviceLabel: string): Promise<boolean> {
+  async deviceHasPermissions (deviceLabel: string): Promise<boolean> {
+    console.log('mMoo: inside deviceHasPermissions');
+    const allowedHIDDevices = await (window.navigator as any).hid.getDevices();
+    let deviceFound;
+    allowedHIDDevices.forEach(device => {
+      console.log('mMoo: inside forLoop');
+      if (deviceLabel.includes(device?.productName?.toLowerCase())) {
+        console.log('mMoo: label matches returned device');
+        deviceFound = true;
+        return;
+      } else {
+        deviceFound = false;
+        return;
+      }
+    });
+    // console.log('mMoo: deviceFound', deviceFound);
+    return deviceFound;
+  }
+
   async getPreviouslyConnectedDevice (deviceLabel: string): Promise<IDevice> {
-    // we want to wait for up to 2 events or timeout after 2 seconds
     const waitForDevice: Observable<IDevice> = this.jabraSdk.deviceList.pipe(
       defaultIfEmpty(null),
       first((devices: IDevice[]) => !!devices.length),
@@ -379,7 +402,6 @@ export default class JabraService extends VendorImplementation {
         devices.find((device) => this.isDeviceInList(device, deviceLabel))
       ),
       filter((device) => !!device),
-      timeout(3000)
     );
 
     return firstValueFrom(waitForDevice).catch((err) => {
@@ -392,6 +414,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   async getDeviceFromWebhid (deviceLabel: string): Promise<IDevice> {
+    console.log('mMoo: inside getDeviceFromWebHid');
     this.requestWebHidPermissions(webHidPairing);
 
     return firstValueFrom(
