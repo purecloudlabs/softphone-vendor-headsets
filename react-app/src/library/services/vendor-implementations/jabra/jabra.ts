@@ -349,10 +349,8 @@ export default class JabraService extends VendorImplementation {
 
     let selectedDevice;
     if (await this.deviceHasPermissions(deviceLabel)) {
-      console.log('mMoo: device had permissions');
       selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
     } else {
-      console.log('mMoo: device did not have permissions');
       try {
         selectedDevice = await this.getDeviceFromWebhid(deviceLabel);
       } catch (e) {
@@ -374,15 +372,11 @@ export default class JabraService extends VendorImplementation {
     this.changeConnectionStatus({ isConnected: true, isConnecting: false });
   }
 
-  // async deviceHasPermissions (deviceLabel: string): Promise<boolean> {
   async deviceHasPermissions (deviceLabel: string): Promise<boolean> {
-    console.log('mMoo: inside deviceHasPermissions');
     const allowedHIDDevices = await (window.navigator as any).hid.getDevices();
     let deviceFound;
     allowedHIDDevices.forEach(device => {
-      console.log('mMoo: inside forLoop');
       if (deviceLabel.includes(device?.productName?.toLowerCase())) {
-        console.log('mMoo: label matches returned device');
         deviceFound = true;
         return;
       } else {
@@ -390,7 +384,6 @@ export default class JabraService extends VendorImplementation {
         return;
       }
     });
-    // console.log('mMoo: deviceFound', deviceFound);
     return deviceFound;
   }
 
@@ -414,7 +407,6 @@ export default class JabraService extends VendorImplementation {
   }
 
   async getDeviceFromWebhid (deviceLabel: string): Promise<IDevice> {
-    console.log('mMoo: inside getDeviceFromWebHid');
     this.requestWebHidPermissions(webHidPairing);
 
     return firstValueFrom(
@@ -468,7 +460,7 @@ export default class JabraService extends VendorImplementation {
       this.callControl.releaseCallLock();
     } catch (e) {
       this.logger.warn('Failed to takeCallLock in order to resetHeadsetState. Ignoring reset.');
-    } 
+    }
   }
 
   async disconnect (): Promise<void> {
