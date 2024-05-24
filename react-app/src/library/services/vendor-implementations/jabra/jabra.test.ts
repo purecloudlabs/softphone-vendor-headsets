@@ -175,6 +175,31 @@ describe('JabraService', () => {
       expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
     });
 
+    it('should attempt to connect with previouslyConnectedDevice but timeout', async () => {
+      const statusChangeSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
+      const resetHeadsetSpy = jest.spyOn(jabraService, 'resetHeadsetState');
+      const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
+      const callControl = createMockCallControl(new Subject<ICallControlSignal>().asObservable());
+      jest
+        .spyOn(jabraService, 'createCallControlFactory')
+        .mockReturnValue({
+          createCallControl: async () => {
+            return callControl;
+          },
+        } as any);
+      jest.useFakeTimers();
+      jest.spyOn(jabraService,'deviceHasPermissions').mockResolvedValue(true);
+      await jabraService.connect(mockDevice2.name);
+
+      await flushPromises();
+
+      jest.advanceTimersByTime(15005);
+
+      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: false, isConnecting: false });
+      expect(resetHeadsetSpy).not.toHaveBeenCalled();
+      expect(processEventsSpy).not.toHaveBeenCalled();
+    });
+
     it('should connect with webhidRequest', async () => {
       const statusChangeSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
       jest.spyOn(jabraService, 'getPreviouslyConnectedDevice').mockResolvedValue(null);

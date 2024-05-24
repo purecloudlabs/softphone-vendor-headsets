@@ -350,6 +350,12 @@ export default class JabraService extends VendorImplementation {
     let selectedDevice;
     if (await this.deviceHasPermissions(deviceLabel)) {
       selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
+
+      if (!selectedDevice) {
+        console.warn('Unable to find appropriate device. Setting state to "Not Running" to allow a retry"', deviceLabel);
+        this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+        return;
+      }
     } else {
       try {
         selectedDevice = await this.getDeviceFromWebhid(deviceLabel);
@@ -374,14 +380,10 @@ export default class JabraService extends VendorImplementation {
 
   async deviceHasPermissions (deviceLabel: string): Promise<boolean> {
     const allowedHIDDevices = await (window.navigator as any).hid.getDevices();
-    let deviceFound;
+    let deviceFound = false;
     allowedHIDDevices.forEach(device => {
       if (deviceLabel.includes(device?.productName?.toLowerCase())) {
         deviceFound = true;
-        return;
-      } else {
-        deviceFound = false;
-        return;
       }
     });
     return deviceFound;
@@ -395,6 +397,7 @@ export default class JabraService extends VendorImplementation {
         devices.find((device) => this.isDeviceInList(device, deviceLabel))
       ),
       filter((device) => !!device),
+      timeout(15000)
     );
 
     return firstValueFrom(waitForDevice).catch((err) => {

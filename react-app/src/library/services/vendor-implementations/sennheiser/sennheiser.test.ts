@@ -383,11 +383,45 @@ describe('SennheiserService', () => {
         EventType: SennheiserEventTypes.Request,
         CallID: conversationId
       };
+      const expectedHoldPayload: SennheiserPayload = {
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedMutePayload: SennheiserPayload = {
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request
+      };
 
-      await sennheiserService.endCall(conversationId);
+      await sennheiserService.endCall(conversationId, true);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
+      expect(sennheiserService._sendMessage).not.toHaveBeenCalledWith(expectedHoldPayload);
+      expect(sennheiserService._sendMessage).not.toHaveBeenCalledWith(expectedMutePayload);
     });
+
+    it('should reset state for mute and hold when there are no other active calls', async () => {
+      jest.spyOn(sennheiserService, '_sendMessage');
+      const conversationId = '23f897b';
+      const expectedHoldPayload: SennheiserPayload = {
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedMutePayload: SennheiserPayload = {
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedEndPayload: SennheiserPayload = {
+        Event: SennheiserEvents.CallEnded,
+        EventType: SennheiserEventTypes.Request,
+        CallID: conversationId
+      };
+
+      await sennheiserService.endCall(conversationId, false);
+
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedHoldPayload);
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedMutePayload);
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedEndPayload);
+    })
   });
 
   describe('_handleMessage', () => {

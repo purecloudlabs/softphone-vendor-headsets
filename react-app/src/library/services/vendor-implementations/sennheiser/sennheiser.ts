@@ -189,15 +189,17 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  endCall (conversationId: string): Promise<void> {
-    this._sendMessage({
-      Event: SennheiserEvents.Resume,
-      EventType: SennheiserEventTypes.Request
-    });
-    this._sendMessage({
-      Event: SennheiserEvents.UnmuteFromApp,
-      EventType: SennheiserEventTypes.Request,
-    });
+  endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<void> {
+    if (!hasOtherActiveCalls) {
+      this._sendMessage({
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      });
+      this._sendMessage({
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request,
+      });
+    }
     this._sendMessage({
       Event: SennheiserEvents.CallEnded,
       EventType: SennheiserEventTypes.Request,
