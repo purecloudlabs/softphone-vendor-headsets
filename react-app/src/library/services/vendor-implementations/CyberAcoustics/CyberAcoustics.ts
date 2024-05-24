@@ -5,12 +5,12 @@ import { PartialInputReportEvent } from '../../../types/consumed-headset-events'
 import { isCefHosted } from "../../../utils";
 
 
-let hookswFlag  = 0x01;
+let hookswFlag = 0x01;
 let micMuteFlag = 0x04;
-const ringFlag    = 0x08;
+const ringFlag = 0x08;
 
 const defaultFlagSupport = 0x0F;
-const muteButtonToggle   = 0x13;
+const muteButtonToggle = 0x13;
 
 // JLChip support
 const JLmuteButtonToggle = 0x0203;
@@ -19,13 +19,13 @@ const JLMicMuteFlag = 0x40;
 const JLhookswFlag = 0x0200;
 
 // call states
-const CALL_IDLE      = 'callIdle';
-const CALL_INCOMING  = 'callIncoming';
+const CALL_IDLE = 'callIdle';
+const CALL_INCOMING = 'callIncoming';
 const CALL_ANSWERING = 'callAnswering';
 const CALL_REJECTING = 'callRejecting';
-const CALL_ACTIVE    = 'callActive';
-const CALL_END       = 'callEnd';
-const CALL_OUTGOING  = 'callOutgoing';
+const CALL_ACTIVE = 'callActive';
+const CALL_END = 'callEnd';
+const CALL_OUTGOING = 'callOutgoing';
 
 // CAStateEvents
 const ca_st_event_hooksw_on = 0;
@@ -38,9 +38,9 @@ const ca_st_event_call_answer = 7;
 const ca_st_event_outgoingCall = 8;
 
 // CADeviceEvents
-const ca_dev_event_hooksw_on   = 0x01;
-const ca_dev_event_hooksw_off  = 0x00;
-const ca_dev_event_busy        = 0x02;
+const ca_dev_event_hooksw_on = 0x01;
+const ca_dev_event_hooksw_off = 0x00;
+const ca_dev_event_busy = 0x02;
 const ca_dev_event_ans_confirm = 0x02;
 
 const PHONE_USAGE = 0x0001;
@@ -164,7 +164,8 @@ export default class CyberAcousticsService extends VendorImplementation {
           this.requestWebHidPermissions(async () => {
             this.logger.debug("Requesting web HID permissions");
             const productId = this.deductProductId(originalDeviceLabel);
-            const devList = await  (window.navigator as any).hid.requestDevice({
+
+            const devList = await (window.navigator as any).hid.requestDevice({
               filters: [
                 {
                   vendorId: 0x3391,
@@ -174,7 +175,7 @@ export default class CyberAcousticsService extends VendorImplementation {
               ],
             });
             clearTimeout(HIDPermissionTimeout);
-            const deviceFound = await this.connectFromHidPermissions( devList, originalDeviceLabel);
+            const deviceFound = await this.connectFromHidPermissions(devList, originalDeviceLabel);
             if(deviceFound){
               resolve(deviceFound);
             }
@@ -193,8 +194,9 @@ export default class CyberAcousticsService extends VendorImplementation {
     //
     }
   }
-
-  async connectFromHidPermissions (devList: any, originalDeviceLabel: string)
+  /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+  async connectFromHidPermissions (devList: any, originalDeviceLabel: string): Promise<boolean>
+  /* eslint-enable */
   {
 
     this.activeDevice = null;
@@ -219,7 +221,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   }
 
   // Called when the device sends an input report
-  handleInputReport (event: PartialInputReportEvent) {
+  handleInputReport (event: PartialInputReportEvent): void {
     const reportID = event.reportId;
     // If reportId is not in the list, return immediately
     if (!this.handeledInputReportIds.includes(reportID)) {
@@ -238,7 +240,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   }
 
   // called on sucessful connect to do initialization work
-  async handleDeviceConnect ()
+  async handleDeviceConnect (): Promise<void>
   {
     this._deviceInfo = {
       ProductName: this.activeDevice.productName,
@@ -293,7 +295,7 @@ export default class CyberAcousticsService extends VendorImplementation {
     this.changeConnectionStatus({ isConnected: true, isConnecting: false });
   }
 
-  selectDevice (devList: PartialHIDDevice[], originalDeviceLabel : string) {
+  selectDevice (devList: PartialHIDDevice[], originalDeviceLabel : string): boolean {
     this.logger.debug("CA: SelectDevice");
 
     const deviceLabel = originalDeviceLabel.toLowerCase();
@@ -338,7 +340,7 @@ export default class CyberAcousticsService extends VendorImplementation {
       }
 
       ////
-      this.activeDevice.removeEventListener('inputreport', this.handleInputReport);
+      this.activeDevice.removeEventListener('inputreport', this.handleInputReport); 
       this.numDeviceEventListeners--;
       console.debug(`Removed Device Input listener, num listeners = ${this.numDeviceEventListeners} `);
       ////
@@ -517,7 +519,7 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   // This is the main call control engine.  State dependant events from the device
   // and/or the UI are handled here.
-  ParseStateEvents (CAStateEvent)
+  ParseStateEvents (CAStateEvent: number): void
   {
     switch(this.currentCallState)
     {
@@ -598,7 +600,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   // Events handled in the previous function may change the global call state.
   // This is handeled here.  Entering a new state may require work to be done- this
   // is also handled here.
-  ChangeCallState (newstate)
+  ChangeCallState (newstate: string): void
   {
     this.logger.debug(`%cCA SETTING STATE: ${newstate}`, 'color: red');
     this.currentCallState = newstate;
@@ -645,7 +647,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   }
 
   // This will set/clear bits in the hardware as needed.
-  UpdateDeviceStatus (flag, value)
+  UpdateDeviceStatus (flag: number, value: boolean): void
   {
     if(!(flag & this.flagSupport)) {
       console.debug(`CA: UpdateDeviceStatus called with unsupported flag ${flag.toString(16)}... returning`);
@@ -663,8 +665,7 @@ export default class CyberAcousticsService extends VendorImplementation {
   // }
 
   // sends output report to device
-  async SendCommandToDevice ( value: number) {
-
+  async SendCommandToDevice ( value: number): Promise<void> {
     if(this.JLCommandSet)
     {
 
@@ -685,13 +686,13 @@ export default class CyberAcousticsService extends VendorImplementation {
     this.gCmdBuf[1] = 0;
   }
 
-  formatHex (value:number) {
+  formatHex (value:number): string {
     return `0x${value.toString(16).padStart(2, '0')}`;
   }
 
   // Creates a mock device that is in scope for Jest tests that
   // require this.activeDevice to be valid
-  async HidMockDeviceInit ()
+  async HidMockDeviceInit (): Promise<PartialHIDDevice>
   {
     const deviceLists: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices();
     this.activeDevice = deviceLists[0];
