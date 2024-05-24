@@ -421,7 +421,7 @@ describe('SennheiserService', () => {
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedHoldPayload);
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedMutePayload);
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedEndPayload);
-    })
+    });
   });
 
   describe('_handleMessage', () => {
