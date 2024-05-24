@@ -163,11 +163,14 @@ export default class CyberAcousticsService extends VendorImplementation {
           const HIDPermissionTimeout = setTimeout(reject, 30000);
           this.requestWebHidPermissions(async () => {
             this.logger.debug("Requesting web HID permissions");
+            const productId = this.deductProductId(originalDeviceLabel);
+
             const devList = await (window.navigator as any).hid.requestDevice({
               filters: [
                 {
                   vendorId: 0x3391,
                   //vendorId: 0x046D,
+                  productId: productId || undefined
                 },
               ],
             });

@@ -189,13 +189,22 @@ export default class SennheiserService extends VendorImplementation {
     return Promise.resolve();
   }
 
-  endCall (conversationId: string): Promise<void> {
+  endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<void> {
+    if (!hasOtherActiveCalls) {
+      this._sendMessage({
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      });
+      this._sendMessage({
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request,
+      });
+    }
     this._sendMessage({
       Event: SennheiserEvents.CallEnded,
       EventType: SennheiserEventTypes.Request,
       CallID: conversationId,
     });
-
     return Promise.resolve();
   }
 
@@ -237,7 +246,7 @@ export default class SennheiserService extends VendorImplementation {
         if (!this.isConnected || this.isConnecting) {
           this.changeConnectionStatus({ isConnected: true, isConnecting: false });
         }
-          
+
         this._sendMessage({
           Event: SennheiserEvents.SystemInformation,
           EventType: SennheiserEventTypes.Request,
@@ -285,6 +294,10 @@ export default class SennheiserService extends VendorImplementation {
         break;
       case SennheiserEvents.CallEnded:
         if (payload.EventType === SennheiserEventTypes.Notification) {
+          this._sendMessage({
+            Event: SennheiserEvents.UnmuteFromApp,
+            EventType: SennheiserEventTypes.Request,
+          });
           this.deviceEndedCall({ name: payload.Event, conversationId });
         }
         break;
