@@ -199,6 +199,10 @@ describe('VBetservice', () => {
     }),
   });
 
+  Object.defineProperty(global, 'chrome', {
+    get: () => {}
+  });
+
   beforeEach(() => {
     mockDeviceList = mockDeviceList0;
     mockReqDeviceList = mockDeviceList0;

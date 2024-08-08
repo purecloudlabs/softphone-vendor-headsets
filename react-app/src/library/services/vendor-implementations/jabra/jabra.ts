@@ -366,6 +366,11 @@ export default class JabraService extends VendorImplementation {
       }
     }
 
+    /* istanbul ignore next */
+    if (chrome && chrome?.runtime) {
+      chrome?.runtime?.sendMessage('newDevice');
+    }
+
     this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
     await this.resetHeadsetState();
     this._processEvents(this.callControl);
@@ -435,7 +440,9 @@ export default class JabraService extends VendorImplementation {
     return init({
       appId: 'softphone-vendor-headsets',
       appName: 'Softphone Headset Library',
-      transport: RequestedBrowserTransport.CHROME_EXTENSION_WITH_WEB_HID_FALLBACK,
+      // transport: RequestedBrowserTransport.CHROME_EXTENSION_WITH_WEB_HID_FALLBACK,
+      // transport: RequestedBrowserTransport.CHROME_EXTENSION,
+      transport: RequestedBrowserTransport.WEB_HID,
     });
   }
 

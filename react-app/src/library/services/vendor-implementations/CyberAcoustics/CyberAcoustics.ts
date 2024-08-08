@@ -177,6 +177,12 @@ export default class CyberAcousticsService extends VendorImplementation {
             clearTimeout(HIDPermissionTimeout);
             const deviceFound = await this.connectFromHidPermissions(devList, originalDeviceLabel);
             if(deviceFound){
+              /* istanbul ignore next */
+              if (chrome && chrome?.runtime) {
+                console.log('mMoo: Chrome and Runtime existed, sending message');
+                chrome?.runtime?.sendMessage('newDevice');
+              }
+
               resolve(deviceFound);
             }
             else

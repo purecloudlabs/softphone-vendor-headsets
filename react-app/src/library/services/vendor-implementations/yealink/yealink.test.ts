@@ -94,6 +94,10 @@ const mackRecHoldFlag = 0b1000;
 const mackRecMuteFlag = 0b100;
 const mackRecReject = 0x40;
 
+Object.defineProperty(global, 'chrome', {
+  get: () => ({})
+})
+
 describe('YealinkService', () => {
   let yealinkService: YealinkService;
   let mackDeviceList = mackDeviceList0;

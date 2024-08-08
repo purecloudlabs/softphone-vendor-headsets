@@ -126,6 +126,13 @@ export default class VBetService extends VendorImplementation {
                   ) {
                     bFind = true;
                     this.setDeviceAttrs(device.productId);
+
+                    /* istanbul ignore next */
+                    if (chrome && chrome?.runtime) {
+                      console.log('mMoo: Chrome and Runtime existed, sending message');
+                      chrome?.runtime?.sendMessage('newDevice');
+                    }
+
                     resolve(device);
                     break;
                   }

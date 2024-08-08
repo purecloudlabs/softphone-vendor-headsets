@@ -25,10 +25,11 @@
     "types": [
       "node",
       "jest",
-      "uuid"
+      "uuid",
+      "chrome"
     ],
     "esModuleInterop": true,
-    "jsx": "react-jsx",
+  "jsx": "react-jsx",
     "allowJs": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,

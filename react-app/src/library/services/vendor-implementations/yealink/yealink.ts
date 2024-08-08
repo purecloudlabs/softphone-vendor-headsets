@@ -96,6 +96,13 @@ export default class YealinkService extends VendorImplementation {
                     if (collection.inputReports.length !== 0) {
                       this.inputReportReportId = collection.inputReports[0].reportId;
                     }
+
+                    /* istanbul ignore next */
+                    if (chrome && chrome?.runtime) {
+                      console.log('mMoo: Chrome and Runtime existed, sending message');
+                      chrome?.runtime?.sendMessage('newDevice');
+                    }
+
                     resolve(device);
                     break;
                   }

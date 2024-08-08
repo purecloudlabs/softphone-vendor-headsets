@@ -189,7 +189,6 @@ const mackDeviceList3 = [{
 
 }];
 
-
 // CyberAcousticsService tests
 /* eslint-disable @typescript-eslint/no-unused-vars */
 describe('CyberAcousticsService', () => {
@@ -213,6 +212,10 @@ describe('CyberAcousticsService', () => {
         return mackReqDeviceList;
       }
     }),
+  });
+
+  Object.defineProperty(global, 'chrome', {
+    get: () => {}
   });
 
   beforeEach(() => {
