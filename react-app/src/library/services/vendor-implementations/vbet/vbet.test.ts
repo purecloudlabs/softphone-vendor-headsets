@@ -200,7 +200,7 @@ describe('VBetservice', () => {
   });
 
   Object.defineProperty(global, 'chrome', {
-    get: () => {}
+    get: () => ({})
   });
 
   beforeEach(() => {

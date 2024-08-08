@@ -215,7 +215,7 @@ describe('CyberAcousticsService', () => {
   });
 
   Object.defineProperty(global, 'chrome', {
-    get: () => {}
+    get: () => ({})
   });
 
   beforeEach(() => {

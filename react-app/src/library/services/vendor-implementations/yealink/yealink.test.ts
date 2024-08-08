@@ -96,7 +96,7 @@ const mackRecReject = 0x40;
 
 Object.defineProperty(global, 'chrome', {
   get: () => ({})
-})
+});
 
 describe('YealinkService', () => {
   let yealinkService: YealinkService;
