@@ -44,7 +44,7 @@ export default class JabraService extends VendorImplementation {
     super(config);
     this.vendorName = 'Jabra';
     console.log('mMoo: connecting to extension');
-    chrome.runtime.connect(extensionId);
+    // chrome.runtime.connect(extensionId);
   }
 
   isSupported (): boolean {
@@ -373,8 +373,9 @@ export default class JabraService extends VendorImplementation {
     }
 
     /* istanbul ignore next */
-    console.log('mMoo: chrome', { chrome, runtime: chrome.runtime });
+    console.log('mMoo: chrome', { chrome, runtime: chrome?.runtime });
     if (chrome && chrome?.runtime) {
+      await chrome?.runtime?.connect(extensionId);
       chrome?.runtime?.sendMessage(extensionId, 'newDevice');
     }
 
