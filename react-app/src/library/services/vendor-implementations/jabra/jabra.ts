@@ -16,6 +16,10 @@ import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } fr
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
 import { isCefHosted } from '../../../utils';
 
+// const extensionId = 'onbcflemjnkemjpjcpkkpcnephnpjkcb';
+const extensionId = 'cgilhompfagbhdbdoohclabpgijpjhdk';
+
+
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
   private headsetEventSubscription: Subscription;
@@ -39,6 +43,8 @@ export default class JabraService extends VendorImplementation {
   private constructor (config: ImplementationConfig) {
     super(config);
     this.vendorName = 'Jabra';
+    console.log('mMoo: connecting to extension');
+    chrome.runtime.connect(extensionId);
   }
 
   isSupported (): boolean {
@@ -367,8 +373,9 @@ export default class JabraService extends VendorImplementation {
     }
 
     /* istanbul ignore next */
+    console.log('mMoo: chrome', { chrome, runtime: chrome.runtime });
     if (chrome && chrome?.runtime) {
-      chrome?.runtime?.sendMessage('newDevice');
+      chrome?.runtime?.sendMessage(extensionId, 'newDevice');
     }
 
     this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
