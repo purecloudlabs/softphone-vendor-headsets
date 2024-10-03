@@ -1,8 +1,8 @@
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import { CallInfo } from '../../..';
-import DeviceInfo, { PartialHIDDevice } from '../../../types/device-info';
+import DeviceInfo from '../../../types/device-info';
 import { isCefHosted } from '../../../utils';
-import { webhidConsent, IDevice, DeviceSignalType, createDeviceManager } from '@vbet/webhid-sdk';
+import { webhidConsent, IDevice, DeviceSignalType, findDevice } from '@vbet/webhid-sdk';
 
 export default class VBetService extends VendorImplementation {
   private static instance: VBetService;
@@ -38,24 +38,14 @@ export default class VBetService extends VendorImplementation {
     if (!this.isConnecting) {
       this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     }
-    const deviceLabel = originalDeviceLabel.toLowerCase();
-    let dev = null;
-    const deviceList: PartialHIDDevice[] = await (window.navigator as any).hid.getDevices();
-    deviceList.forEach((device) => {
-      if (!dev) {
-        if (deviceLabel.includes(device?.productName?.toLowerCase())) {
-          dev = device;
-        }
-      }
-    });
-
     try {
+      const dev = await findDevice(originalDeviceLabel);
       if (dev) {
-        this.activeDevice = await createDeviceManager(dev);
+        this.activeDevice = dev;
       } else {
-        const dev = await new Promise((resolve, reject) => {
+        const dev = await new Promise<IDevice>((resolve, reject) => {
           const productId = this.deductProductId(originalDeviceLabel);
-          const waiter = setTimeout(reject, 30000);
+          const waiter = setTimeout(()=>reject('The selected device was not granted WebHID permissions'), 30000);
           this.requestWebHidPermissions(() => {
             webhidConsent({
               productId: productId ? productId : undefined,
@@ -69,12 +59,12 @@ export default class VBetService extends VendorImplementation {
               });
           });
         });
-        this.activeDevice = await createDeviceManager(dev);
+        this.activeDevice = dev;
       }
     } catch (error) {
       this.isConnecting &&
         this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
-      this.logger.error('The selected device was not granted WebHID permissions');
+      this.logger.error(error);
       return;
     }
 
