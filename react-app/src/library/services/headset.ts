@@ -299,7 +299,9 @@ export default class HeadsetService {
 
   resetHeadsetStateForCall (conversationId: string): Promise<any> {
     const implementation = this.getConnectedImpl();
-    return implementation.resetHeadsetStateForCall(conversationId);
+    if (implementation) {
+      return implementation.resetHeadsetStateForCall(conversationId);
+    }
   }
 
   private getConnectedImpl (): VendorImplementation {
