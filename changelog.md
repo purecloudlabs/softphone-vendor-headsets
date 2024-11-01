@@ -3,7 +3,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.2...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.3...HEAD)
+
+# [v2.5.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.2...v2.5.3)
+## Added
+* [no-jira] Refactored VBeT implementation to better accommodate more devices; moved code out in favor of VBeT SDK
+
 # [v2.5.2](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.1...v2.5.2)
 ## Fixed
 * [STREAM-168](https://inindca.atlassian.net/browse/STREAM-168) - resetHeadsetState should not attempt if headset is not connected
