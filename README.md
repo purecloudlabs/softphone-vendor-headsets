@@ -13,13 +13,17 @@ At this moment (12/10/2021) there are three supported vendors already handled wi
 As of 11/3/2022 we now support:
 - Yealink
 
+As of 2/12/24 we now support:
+- VBeT
+- CyberAcoustics
+
 ## Installation
 
 ``` sh
 # npm
-npm install --save softphone-headset-vendors
+npm install --save softphone-vendor-headsets
 # yarn
-yarn softphone-headset-vendors
+yarn add softphone-vendor-headsets
 ```
 
 ## Documentation
