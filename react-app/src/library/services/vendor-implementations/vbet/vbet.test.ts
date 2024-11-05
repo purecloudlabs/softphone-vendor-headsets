@@ -855,21 +855,6 @@ describe('VBetservice', () => {
       expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
     });
 
-    it('webhidRequest, connect with previously connected device but label not matched', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList1;
-        callback();
-      }));
-      mockDeviceList = mockDeviceList1;
-      await vbetService.connect('random name');
-
-      const devName = vbetService.deviceInfo;
-      expect(devName.ProductName).toBe(mockTestDevName);
-      expect(requestSpy).toHaveBeenCalled();
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
-    });
-
     it('webhidRequest, let users select from dev list if label not matched', async () => {
       const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
       const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {

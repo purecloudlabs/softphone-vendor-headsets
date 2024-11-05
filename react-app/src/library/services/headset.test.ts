@@ -13,6 +13,7 @@ import { BroadcastChannel } from 'broadcast-channel';
 import { HeadsetEvents } from '../types/consumed-headset-events';
 import { WebHidPermissionRequest } from '..';
 import { filter } from 'rxjs';
+import VBetService from './vendor-implementations/vbet/vbet';
 
 jest.mock('broadcast-channel');
 
@@ -24,6 +25,7 @@ describe('HeadsetService', () => {
   let jabraNative: VendorImplementation;
   let jabra: VendorImplementation;
   let yealink: VendorImplementation;
+  let vbet: VendorImplementation;
   let headsetService: HeadsetService;
   const config: any = { logger: console };
 
@@ -34,6 +36,7 @@ describe('HeadsetService', () => {
     jabraNative = JabraNativeService.getInstance({ ...config, vendorName: 'JabraNative' });
     yealink = YealinkService.getInstance({ ...config, vendorName: 'Yealink' });
     cyberacoustics = CyberAcousticsService.getInstance({ ...config, vendorName: 'CyberAcoustics' });
+    vbet = VBetService.getInstance({ ...config, vendorName: 'VBet' });
 
     /* eslint-enable */
     jabra = JabraService.getInstance({ ...config, vendorName: 'Jabra' });
@@ -45,6 +48,13 @@ describe('HeadsetService', () => {
   });
 
   afterEach(() => {
+    plantronics.removeAllListeners();
+    sennheiser.removeAllListeners();
+    jabraNative.removeAllListeners();
+    yealink.removeAllListeners();
+    cyberacoustics.removeAllListeners();
+    vbet.removeAllListeners();
+    jabra.removeAllListeners();
     headsetService = null;
     plantronics = null;
     sennheiser = null;
@@ -1215,6 +1225,14 @@ describe('HeadsetService', () => {
       headsetService.resetHeadsetStateForCall('test123');
 
       expect(impl.resetHeadsetStateForCall).toHaveBeenCalledWith('test123');
+    });
+
+    it('should log a message if no implementation is active', () => {
+      const infoSpy = jest.spyOn((headsetService as any).logger, 'info');
+      headsetService['getConnectedImpl'] = jest.fn().mockReturnValue(null);
+      headsetService.selectedImplementation = null;
+      headsetService.resetHeadsetStateForCall('test123');
+      expect(infoSpy).toHaveBeenCalledWith('No active implementation, headset state does not require a reset');
     });
   });
 });
