@@ -61,6 +61,19 @@ describe('SennheiserService', () => {
     });
   });
 
+  describe('resetHeadsetStateForCall', () => {
+    beforeEach(() => {
+      sennheiserService.websocket = createMockWebSocket();
+    });
+    it('should set ignoreAcknowledgement and call endCall function', () => {
+      const endCallSpy = jest.spyOn(sennheiserService, 'endCall');
+      sennheiserService.resetHeadsetStateForCall('test123');
+      expect(sennheiserService.ignoreAcknowledgement).toBe(true);
+      expect(endCallSpy).toHaveBeenCalledWith('test123');
+      sennheiserService.ignoreAcknowledgement = false;
+    });
+  });
+
   describe('deviceLabelMatchesVendor', () => {
     it('should return true when the device label contains the string "sennheiser"', () => {
       let testLabel = 'sennheiser headset';
@@ -246,7 +259,9 @@ describe('SennheiserService', () => {
       sennheiserService.websocket = createMockWebSocket();
     });
 
-    it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId', async () => {
+    it('should call _sendMessage with a payload using SennheiserEvents.IncomingCall and the generated callId and reset ignoreAcknowledgement', async () => {
+      sennheiserService.ignoreAcknowledgement = true;
+      
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
         contactName: 'Ted Danson',
@@ -255,6 +270,7 @@ describe('SennheiserService', () => {
 
       // Run Test
       await sennheiserService.incomingCall(callInfo);
+      expect(sennheiserService.ignoreAcknowledgement).toBe(false);
 
       // Get generated call mapping to create expected payload
       // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
@@ -330,7 +346,8 @@ describe('SennheiserService', () => {
       sennheiserService.websocket = createMockWebSocket();
     });
 
-    it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall', async () => {
+    it('should call _sendMessage with a payload using SennheiserEvents.OutgoingCall and reset ignoreAcknowledgement', async () => {
+      sennheiserService.ignoreAcknowledgement = true;
       jest.spyOn(sennheiserService, '_sendMessage');
       const callInfo: CallInfo = {
         contactName: 'Joe Fixit',
@@ -339,6 +356,7 @@ describe('SennheiserService', () => {
 
       // Run Test
       await sennheiserService.outgoingCall(callInfo);
+      expect(sennheiserService.ignoreAcknowledgement).toBe(false);
 
       // Get generated call mapping to create expected payload
       // const generatedCallId = sennheiserService.callMappings[callInfo.conversationId];
@@ -365,10 +383,68 @@ describe('SennheiserService', () => {
         EventType: SennheiserEventTypes.Request,
         CallID: conversationId
       };
+      const expectedHoldPayload: SennheiserPayload = {
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedMutePayload: SennheiserPayload = {
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request
+      };
 
-      await sennheiserService.endCall(conversationId);
+      await sennheiserService.endCall(conversationId, true);
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
+      expect(sennheiserService._sendMessage).not.toHaveBeenCalledWith(expectedHoldPayload);
+      expect(sennheiserService._sendMessage).not.toHaveBeenCalledWith(expectedMutePayload);
+    });
+
+    it('should reset state for mute and hold when there are no other active calls', async () => {
+      jest.spyOn(sennheiserService, '_sendMessage');
+      const conversationId = '23f897b';
+      const expectedHoldPayload: SennheiserPayload = {
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedMutePayload: SennheiserPayload = {
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedEndPayload: SennheiserPayload = {
+        Event: SennheiserEvents.CallEnded,
+        EventType: SennheiserEventTypes.Request,
+        CallID: conversationId
+      };
+
+      await sennheiserService.endCall(conversationId, false);
+
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedHoldPayload);
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedMutePayload);
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedEndPayload);
+    });
+
+    it('should reset state for mute and hold when there are no other active calls', async () => {
+      jest.spyOn(sennheiserService, '_sendMessage');
+      const conversationId = '23f897b';
+      const expectedHoldPayload: SennheiserPayload = {
+        Event: SennheiserEvents.Resume,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedMutePayload: SennheiserPayload = {
+        Event: SennheiserEvents.UnmuteFromApp,
+        EventType: SennheiserEventTypes.Request
+      };
+      const expectedEndPayload: SennheiserPayload = {
+        Event: SennheiserEvents.CallEnded,
+        EventType: SennheiserEventTypes.Request,
+        CallID: conversationId
+      };
+
+      await sennheiserService.endCall(conversationId, false);
+
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedHoldPayload);
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedMutePayload);
+      expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedEndPayload);
     });
   });
 
@@ -737,6 +813,21 @@ describe('SennheiserService', () => {
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService._handleAck).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('ignoreAcknowledgement', () => {
+      it('should not perform standard function tasks if flag is true', () => {
+        sennheiserService.ignoreAcknowledgement = true;
+        const conversationId = '12r3kh';
+        const payload: SennheiserPayload = {
+          CallID: conversationId,
+          Event: SennheiserEvents.IncomingCallRejected,
+        };
+        message = { data: JSON.stringify(payload) };
+
+        sennheiserService._handleMessage(message);
+        expect(sennheiserService.deviceRejectedCall).not.toHaveBeenCalledWith({ name: payload.Event, conversationId: payload.CallID });
       });
     });
   });

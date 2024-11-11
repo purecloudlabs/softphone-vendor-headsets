@@ -3,8 +3,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.3...HEAD)
-# [v2.3.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.1...v2.3.3)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.3...HEAD)
+
+# [v2.5.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.2...v2.5.3)
+## Added
+* [no-jira] Refactored VBeT implementation to better accommodate more devices; moved code out in favor of VBeT SDK
+
+# [v2.5.2](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.1...v2.5.2)
+## Fixed
+* [STREAM-168](https://inindca.atlassian.net/browse/STREAM-168) - resetHeadsetState should not attempt if headset is not connected
+
+# [v2.5.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.0...v2.5.1)
+## Fixed
+* [STREAM-73](https://inindca.atlassian.net/browse/STREAM-73) - fix for issue where Sennheiser/EPOS devices maintained a mute state when starting a new call
+* [STREAM-74](https://inindca.atlassian.net/browse/STREAM-73) - fix for issue where the WebHID permission modal popped up constantly for Jabra
+
+# [v2.5.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.5...v2.5.0)
+## Added
+* [no-jira] Support added for two new vendors VBeT and CyberAcoustics
+
+# [v2.4.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.4...v2.4.5)
+## Fixed
+* [no-jira] Fixed issue around Jabra persisting a value between calls causing issues
+
+# [v2.4.4](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.3...v2.4.4)
+## Fixed
+* [no-jira] Fix issue around plantronics unregistering during headset orchestration causing loss of call controls
+
+# [v2.4.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.1...v2.4.3)
+## fixed
+* [no-jira] Update uuid to v9.0.1
+* [PCM-2224](https://inindca.atlassian.net/browse/PCM-2224) - make jabra multi call slightly better
+* [PCM-2224](https://inindca.atlassian.net/browse/PCM-2224) - Allow silent fail of rejectCall with flag; made resetHeadsetStateForCall rejectCall by default since most vendors do that anyway
+
+# [v2.4.1](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.4.0...v2.4.1)
+* [PCM-2224](https://inindca.atlassian.net/browse/PCM-2224) - Allow silent fail of rejectCall with flag
+
+# [v2.4.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.3...v2.4.0)
+## Fixed
+* [PCM-2252](https://inindca.atlassian.net/browse/PCM-2252) - Fix double hangup with jabra native and concurrent calls.
+
+## Added
+* [PCM-2227](https://inindca.atlassian.net/browse/PCM-2227) - add deviceIsSupported fn to headset
+
+# [v2.3.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.3.2...v2.3.3)
 ## Fixed
 * [PCM-2184](https://inindca.atlassian.net/browse/PCM-2184) - Fix snyk vuln: utils
 

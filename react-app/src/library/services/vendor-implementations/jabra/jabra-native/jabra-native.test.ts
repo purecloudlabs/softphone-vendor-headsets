@@ -312,6 +312,14 @@ describe('JabraNativeService', () => {
     });
   });
 
+  describe('resetHeadsetStateForCall', () => {
+    it('should call the rejectCall function', () => {
+      const rejectSpy = jest.spyOn(jabraNativeService, 'rejectCall');
+      jabraNativeService.resetHeadsetStateForCall('test123');
+      expect(rejectSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('deviceLabelMatchesVendor', () => {
     it("should return true if the label contains 'jabra'", () => {
       expect(jabraNativeService.deviceLabelMatchesVendor('Jabra')).toBe(true);
@@ -358,6 +366,7 @@ describe('JabraNativeService', () => {
       it('should call _getHeadsetIntoVanillaState() and deviceEndedCall()', () => {
         const spy = jest.fn();
         jabraNativeService['_getHeadsetIntoVanillaState'] = spy;
+        jabraNativeService.activeConversationId = 'alskdjf';
 
         jest.spyOn(jabraNativeService, 'deviceEndedCall');
 
@@ -365,6 +374,18 @@ describe('JabraNativeService', () => {
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(jabraNativeService.deviceEndedCall).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should not call _getHeadsetIntoVanillaState() and deviceEndedCall() if no activeConversationId', () => {
+        const spy = jest.fn();
+        jabraNativeService['_getHeadsetIntoVanillaState'] = spy;
+
+        jest.spyOn(jabraNativeService, 'deviceEndedCall');
+
+        jabraNativeService['_handleOffhookEvent'](false);
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(jabraNativeService.deviceEndedCall).not.toHaveBeenCalled();
       });
     });
 

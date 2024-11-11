@@ -1,6 +1,6 @@
 import groovy.json.JsonBuilder
 
-@Library('pipeline-library@COMUI-857') _
+@Library('pipeline-library') _
 
 def MAIN_BRANCH = 'master'
 def DEVELOP_BRANCH = 'develop'
@@ -25,8 +25,9 @@ def getBuildType = {
 
 webappPipeline {
     projectName = 'vendor-headsets'
-    team = 'Genesys Client Media (WebRTC)'
-    mailer = 'genesyscloud-client-media@genesys.com'
+    team = 'Client Streaming and Signaling'
+    jiraProjectKey = 'STREAM'
+    mailer = 'GcMediaStreamSignal@genesys.com'
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
 
     nodeVersion = '14.x'

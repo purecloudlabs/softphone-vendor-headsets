@@ -1,6 +1,6 @@
 {
   "name": "softphone-vendor-headsets",
-  "version": "2.3.4",
+  "version": "2.5.4",
   "author": "Genesys",
   "license": "MIT",
   "cjs": "dist/cjs/src/library/index.js",
@@ -32,12 +32,13 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
-    "@gnaudio/jabra-js": "^4.0.1",
+    "@gnaudio/jabra-js": "^4.2.1",
+    "@vbet/webhid-sdk": "^1.4.0",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
     "rxjs": "^7.4.0",
     "strict-event-emitter-types": "^2.0.0",
-    "uuid": "^3.4.0",
+    "uuid": "^9.0.1",
     "whatwg-fetch": "^3.6.2",
     "zone.js": "~0.10.2"
   },
@@ -49,7 +50,7 @@
     "@types/jest": "^27.5.0",
     "@types/lodash": "^4.14.168",
     "@types/node": "^12.12.37",
-    "@types/uuid": "^8.0.0",
+    "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "babel-loader": "^8.1.0",
@@ -60,6 +61,7 @@
     "husky": "^4.0.10",
     "jest-fetch-mock": "^3.0.3",
     "morgan": "^1.9.0",
+    "ts-jest": "^29.1.1",
     "ts-node": "~7.0.0",
     "tslib": "^2.3.1",
     "typescript": "^4.1.2",

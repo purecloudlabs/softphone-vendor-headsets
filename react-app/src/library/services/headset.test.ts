@@ -4,6 +4,7 @@ import PlantronicsService from './vendor-implementations/plantronics/plantronics
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
+import CyberAcousticsService from './vendor-implementations/CyberAcoustics/CyberAcoustics';
 import { CallInfo } from '../types/call-info';
 import { EventInfoWithConversationId, VendorEvent } from '../types/emitted-headset-events';
 import JabraService from './vendor-implementations/jabra/jabra';
@@ -12,16 +13,19 @@ import { BroadcastChannel } from 'broadcast-channel';
 import { HeadsetEvents } from '../types/consumed-headset-events';
 import { WebHidPermissionRequest } from '..';
 import { filter } from 'rxjs';
+import VBetService from './vendor-implementations/vbet/vbet';
 
 jest.mock('broadcast-channel');
 
 describe('HeadsetService', () => {
+  let cyberacoustics: VendorImplementation;
   let plantronics: VendorImplementation;
   let sennheiser: VendorImplementation;
   /* eslint-disable @typescript-eslint/no-unused-vars */
   let jabraNative: VendorImplementation;
   let jabra: VendorImplementation;
   let yealink: VendorImplementation;
+  let vbet: VendorImplementation;
   let headsetService: HeadsetService;
   const config: any = { logger: console };
 
@@ -31,6 +35,9 @@ describe('HeadsetService', () => {
     sennheiser = SennheiserService.getInstance({ ...config, vendorName: 'Sennheiser' });
     jabraNative = JabraNativeService.getInstance({ ...config, vendorName: 'JabraNative' });
     yealink = YealinkService.getInstance({ ...config, vendorName: 'Yealink' });
+    cyberacoustics = CyberAcousticsService.getInstance({ ...config, vendorName: 'CyberAcoustics' });
+    vbet = VBetService.getInstance({ ...config, vendorName: 'VBet' });
+
     /* eslint-enable */
     jabra = JabraService.getInstance({ ...config, vendorName: 'Jabra' });
 
@@ -41,6 +48,13 @@ describe('HeadsetService', () => {
   });
 
   afterEach(() => {
+    plantronics.removeAllListeners();
+    sennheiser.removeAllListeners();
+    jabraNative.removeAllListeners();
+    yealink.removeAllListeners();
+    cyberacoustics.removeAllListeners();
+    vbet.removeAllListeners();
+    jabra.removeAllListeners();
     headsetService = null;
     plantronics = null;
     sennheiser = null;
@@ -80,12 +94,12 @@ describe('HeadsetService', () => {
 
       headsetService['_implementations'] = [];
       
-      expect(headsetService.implementations.length).toBe(5);
+      expect(headsetService.implementations.length).toBe(7);
 
       [headsetService['jabra'], headsetService['jabraNative']].forEach((impl) => (impl.isSupported as jest.Mock).mockReturnValue(false));
       headsetService['_implementations'] = [];
 
-      expect(headsetService.implementations.length).toBe(3);
+      expect(headsetService.implementations.length).toBe(5);
     });
   });
 
@@ -297,7 +311,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.rejectCall(conversationId);
+      await headsetService.rejectCall(conversationId, false);
 
       expect(plantronics.rejectCall).not.toHaveBeenCalled();
     });
@@ -315,7 +329,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.rejectCall(conversationId);
+      await headsetService.rejectCall(conversationId, false);
       expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
 
       delete headsetService['headsetConversationStates'][conversationId].removeTimer;
@@ -337,7 +351,7 @@ describe('HeadsetService', () => {
         }
       };
 
-      await headsetService.rejectCall(conversationId);
+      await headsetService.rejectCall(conversationId, false);
       expect(headsetService['headsetConversationStates'][conversationId]).toBeTruthy();
 
       jest.advanceTimersByTime(3000);
@@ -369,7 +383,7 @@ describe('HeadsetService', () => {
       const conversationId = '1234';
       plantronics.isConnected = false;
 
-      headsetService.rejectCall(conversationId);
+      headsetService.rejectCall(conversationId, false);
 
       expect(plantronics.rejectCall).not.toHaveBeenCalled();
     });
@@ -1151,6 +1165,13 @@ describe('HeadsetService', () => {
       expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} })).toBe(false);
       expect(warnSpy).toHaveBeenCalled();
     });
+
+    it('should not warn if expectExistingConversation', () => {
+      headsetService['isDifferentState'] = jest.fn().mockReturnValueOnce(true);
+      const warnSpy = jest.spyOn((headsetService as any).logger, 'warn');
+      expect(headsetService['updateHeadsetState']({ conversationId: 'convoId123', state: {} }, { expectExistingConversation: false })).toBe(false);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('connectionStatus', () => {
@@ -1168,6 +1189,50 @@ describe('HeadsetService', () => {
 
       headsetService.selectedImplementation = null;
       expect(headsetService.connectionStatus()).toBe('noVendor');
+    });
+  });
+
+  describe('deviceIsSupported', () => {
+    afterEach(() => {
+      headsetService.implementations.forEach(impl => (impl.deviceLabelMatchesVendor as jest.Mock).mockRestore());
+    });
+    it('should return true if an implementation returns true', () => {
+      [headsetService.jabra,
+        headsetService.sennheiser,
+        headsetService.yealink].forEach(impl => impl.isSupported = jest.fn().mockReturnValue(true));
+
+      headsetService.implementations.forEach(impl => impl.deviceLabelMatchesVendor = jest.fn().mockReturnValue(false));
+      expect(headsetService.deviceIsSupported({ micLabel: 'sldkfj' })).toBeFalsy();
+
+      (headsetService.implementations[1].deviceLabelMatchesVendor as jest.Mock).mockReturnValue(true);
+      expect(headsetService.deviceIsSupported({ micLabel: 'sldkfj' })).toBeTruthy();
+    });
+
+    it('should return false if falsey label is provided', () => {
+      expect(headsetService.deviceIsSupported({ micLabel: '' })).toBeFalsy();
+      expect(headsetService.deviceIsSupported({ micLabel: undefined })).toBeFalsy();
+    });
+  });
+
+  describe('resetHeadsetStateForCall', () => {
+    it('should call the implementations resetHeadsetStateForCall', () => {
+      const impl = {
+        resetHeadsetStateForCall: jest.fn().mockResolvedValue(null),
+        isConnected: true
+      };
+
+      headsetService.selectedImplementation = impl as any;
+      headsetService.resetHeadsetStateForCall('test123');
+
+      expect(impl.resetHeadsetStateForCall).toHaveBeenCalledWith('test123');
+    });
+
+    it('should log a message if no implementation is active', () => {
+      const infoSpy = jest.spyOn((headsetService as any).logger, 'info');
+      headsetService['getConnectedImpl'] = jest.fn().mockReturnValue(null);
+      headsetService.selectedImplementation = null;
+      headsetService.resetHeadsetStateForCall('test123');
+      expect(infoSpy).toHaveBeenCalledWith('No active implementation, headset state does not require a reset');
     });
   });
 });
