@@ -156,7 +156,7 @@ describe('JabraNativeService', () => {
   })
 
   describe('isSupported', () => {
-    it.skip('should be supported', () => {
+    it('should be supported', () => {
       jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
       jabraNativeService.cefSupportsJabra = true;
 

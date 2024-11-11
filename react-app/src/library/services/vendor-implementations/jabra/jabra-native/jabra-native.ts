@@ -187,8 +187,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    // return isCefHosted() && this.cefSupportsJabra;
-    return false;
+    return isCefHosted() && this.cefSupportsJabra;
   }
 
   deviceLabelMatchesVendor(label: string): boolean {

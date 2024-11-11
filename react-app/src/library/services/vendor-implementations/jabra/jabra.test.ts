@@ -1292,7 +1292,7 @@ describe('JabraService', () => {
       expect(jabraService.isSupported()).toBe(true);
     });
 
-    it.skip('should return false if proper values are not met', () => {
+    it('should return false if proper values are not met', () => {
       Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
       expect(jabraService.isSupported()).toBe(false);
     });
