@@ -1,6 +1,7 @@
+import { DeviceSignalType } from '@vbet/webhid-sdk';
 import VBetService from './vbet';
 
-const mockTestDevName = 'Test VBet Dev';
+const mockTestDevName = 'VT Lync (340b:0020)';
 const mockDeviceList0 = [];
 const mockDeviceList1 = [
   {
@@ -16,172 +17,748 @@ const mockDeviceList1 = [
       });
     }),
     productName: mockTestDevName,
-    productId: 0x0001,
+    productId: 13323,
     collections: [
       {
-        usage: 0x0005,
-        usagePage: 0x000b,
+        children: [],
+        featureReports: [],
         inputReports: [
           {
-            reportId: 0x08,
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [786665],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [786666],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: false,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 6,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [786432],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: true,
+                isBufferedBytes: false,
+                isConstant: true,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 112,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [],
+                wrap: false,
+              },
+            ],
+            reportId: 5,
           },
         ],
+        outputReports: [
+          {
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: -1,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 15,
+                reportSize: 8,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [786432],
+                wrap: false,
+              },
+            ],
+            reportId: 5,
+          },
+        ],
+        type: 0,
+        usage: 1,
+        usagePage: 12,
       },
-    ],
-  },
-];
-
-const mockDeviceList2 = [
-  {
-    open: jest.fn(),
-    close: jest.fn(),
-    addEventListener: jest.fn((name, callback) => {
-      callback({
-        reportId: 0x01,
-        data: {
-          getUint8: jest.fn(),
-        },
-      });
-    }),
-    productName: mockTestDevName,
-    collections: [
       {
-        usage: 0,
-        usagePage: 0,
-      },
-    ],
-  },
-];
-
-const mockDeviceList3 = [
-  {
-    open: jest.fn(),
-    close: jest.fn(),
-    addEventListener: jest.fn((name, callback) => {
-      callback({
-        reportId: 0x01,
-        data: {
-          getUint8: jest.fn(),
-        },
-      });
-    }),
-    productName: mockTestDevName,
-    collections: [
-      {
-        usage: 0x0005,
-        usagePage: 0x000b,
-        inputReports: [],
-      },
-    ],
-  },
-];
-
-const mockDeviceList5 = [
-  {
-    open: jest.fn(),
-    close: jest.fn(),
-    sendReport: jest.fn(),
-    addEventListener: jest.fn((name, callback) => {
-      callback({
-        reportId: 0x01,
-        data: {
-          getUint8: jest.fn(),
-        },
-      });
-    }),
-    productName: mockTestDevName,
-    productId: 0x0020,
-    collections: [
-      {
-        usage: 0x0005,
-        usagePage: 0x000b,
+        children: [],
+        featureReports: [],
         inputReports: [
           {
-            reportId: 0x01,
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720935],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: false,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720931],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720928],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: false,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720943],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [721047],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [589831],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720929],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720896],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: false,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 1,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 14,
+                reportSize: 8,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [720896],
+                wrap: false,
+              },
+            ],
+            reportId: 1,
           },
         ],
-      },
-    ],
-  },
-];
-
-const mockDeviceList6 = [
-  {
-    open: jest.fn(),
-    close: jest.fn(),
-    sendReport: jest.fn(),
-    addEventListener: jest.fn((name, callback) => {
-      callback({
-        reportId: 0x01,
-        data: {
-          getUint8: jest.fn(),
-        },
-      });
-    }),
-    productName: mockTestDevName,
-    productId: 0x0014,
-    collections: [
-      {
-        usage: 0x0005,
-        usagePage: 0x000b,
-        inputReports: [
+        outputReports: [
           {
-            reportId: 0x01,
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 1,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 15,
+                reportSize: 8,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [134152192],
+                wrap: false,
+              },
+            ],
+            reportId: 1,
           },
-        ],
-      },
-    ],
-  },
-];
-
-const mockDeviceList7 = [
-  {
-    open: jest.fn(),
-    close: jest.fn(),
-    sendReport: jest.fn(),
-    addEventListener: jest.fn((name, callback) => {
-      callback({
-        reportId: 0x05,
-        data: {
-          getUint8: jest.fn(),
-        },
-      });
-    }),
-    productName: mockTestDevName,
-    productId: 0x0040,
-    collections: [
-      {
-        usage: 0x0005,
-        usagePage: 0x000b,
-        inputReports: [
           {
-            reportId: 0x05,
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: false,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [524311],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: false,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [524320],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: false,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [524321],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: true,
+                isBufferedBytes: false,
+                isConstant: true,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 117,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [],
+                wrap: false,
+              },
+            ],
+            reportId: 2,
+          },
+          {
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [524297],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: true,
+                isBufferedBytes: false,
+                isConstant: true,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 119,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [],
+                wrap: false,
+              },
+            ],
+            reportId: 3,
+          },
+          {
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [524312],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: true,
+                isBufferedBytes: false,
+                isConstant: true,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 119,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [],
+                wrap: false,
+              },
+            ],
+            reportId: 4,
+          },
+          {
+            items: [
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: false,
+                isBufferedBytes: false,
+                isConstant: false,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 1,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [524358],
+                wrap: false,
+              },
+              {
+                hasNull: false,
+                hasPreferredState: true,
+                isAbsolute: true,
+                isArray: true,
+                isBufferedBytes: false,
+                isConstant: true,
+                isLinear: true,
+                isRange: false,
+                isVolatile: false,
+                logicalMaximum: 0,
+                logicalMinimum: 0,
+                physicalMaximum: 0,
+                physicalMinimum: 0,
+                reportCount: 1,
+                reportSize: 119,
+                unitExponent: 0,
+                unitFactorCurrentExponent: 0,
+                unitFactorLengthExponent: 0,
+                unitFactorLuminousIntensityExponent: 0,
+                unitFactorMassExponent: 0,
+                unitFactorTemperatureExponent: 0,
+                unitFactorTimeExponent: 0,
+                unitSystem: 'none',
+                usages: [],
+                wrap: false,
+              },
+            ],
+            reportId: 6,
           },
         ],
+        type: 0,
+        usage: 5,
+        usagePage: 11,
       },
     ],
-  },
+  }
 ];
-
-const mockOffhookFlag = {
-  BT100USeries: 0x04,
-  CMEDIASeries: 0x01,
-  DECTSeries: 0x02,
-  ACTIONSeries: 0x20,
-};
-const mockOnhookFlag = {
-  BT100USeries: 0x00,
-  CMEDIASeries: 0x00,
-  DECTSeries: 0x00,
-  ACTIONSeries: 0x00,
-};
-const mockMuteFlag = {
-  BT100USeries: 0x0c,
-  CMEDIASeries: 0x14,
-  DECTSeries: [0x03, 0x04],
-  ACTIONSeries: [0x05, 0x01],
-};
-const mockReject = { BT100USeries: 0x10, ACTIONSeries: 0x08 };
 
 describe('VBetservice', () => {
   let vbetService: VBetService;
@@ -194,7 +771,7 @@ describe('VBetservice', () => {
         return mockDeviceList;
       },
       requestDevice: () => {
-        mockDeviceList = mockReqDeviceList;
+        return mockReqDeviceList;
       },
     }),
   });
@@ -251,56 +828,6 @@ describe('VBetservice', () => {
       vbetService.disconnect();
     });
 
-    it('should connect with previouslyConnectedDevice', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      mockDeviceList = mockDeviceList1;
-      await vbetService.connect(mockTestDevName);
-      const devName = vbetService.deviceInfo;
-      expect(devName.ProductName).toBe(mockTestDevName);
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
-    });
-
-    it('already have active device', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      mockDeviceList = mockDeviceList1;
-      await vbetService.connect(mockTestDevName);
-      await vbetService.connect(mockTestDevName);
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
-    });
-
-    it('device usage not match', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList0;
-        callback();
-      });
-      mockDeviceList = mockDeviceList2;
-      await vbetService.connect(mockTestDevName);
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: false, isConnecting: false });
-    });
-
-    it('device inputReports is empty', async () => {
-      vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList0;
-        callback();
-      });
-      mockDeviceList = mockDeviceList3;
-      await vbetService.connect(mockTestDevName);
-      expect(vbetService.isConnected).toBe(true);
-      expect(vbetService.isConnecting).toBe(false);
-    });
-
-    it('previouslyConnectedDevice not have device', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList0;
-        callback();
-      });
-      mockDeviceList = mockDeviceList1;
-      await vbetService.connect('test');
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: false, isConnecting: false });
-    });
-
     it('webhidRequest, 30s timeout, failed to connect', async () => {
       const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
       jest.useFakeTimers();
@@ -315,7 +842,46 @@ describe('VBetservice', () => {
       jest.useRealTimers();
     });
 
-    it('webhidRequest, connect success', async () => {
+    it('webhidRequest, connect with previously connected device', async () => {
+      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
+      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn());
+      mockDeviceList = mockDeviceList1;
+      await vbetService.connect(mockTestDevName);
+
+      const devName = vbetService.deviceInfo;
+      expect(devName.ProductName).toBe(mockTestDevName);
+      expect(requestSpy).not.toHaveBeenCalled();
+      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
+    });
+
+    it('webhidRequest, let users select from dev list if label not matched', async () => {
+      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
+      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
+        mockReqDeviceList = mockDeviceList1;
+        callback();
+      }));
+
+      await vbetService.connect('random name');
+      expect(requestSpy).toHaveBeenCalled();
+      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
+    });
+
+    it('webhidRequest, connect with previously connected device but label not matched', async () => {
+      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
+      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
+        mockReqDeviceList = mockDeviceList1;
+        callback();
+      }));
+      mockDeviceList = mockDeviceList1;
+      await vbetService.connect('random name');
+
+      const devName = vbetService.deviceInfo;
+      expect(devName.ProductName).toBe(mockTestDevName);
+      expect(requestSpy).toHaveBeenCalled();
+      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
+    });
+
+    it('webhidRequest, let users select from dev list if label matched', async () => {
       const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
       const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
         mockReqDeviceList = mockDeviceList1;
@@ -329,48 +895,11 @@ describe('VBetservice', () => {
 
     it('webhidRequest, connect fail', async () => {
       const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        callback();
-      }));
+      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => callback()));
 
       await vbetService.connect(mockTestDevName);
       expect(requestSpy).toHaveBeenCalled();
       expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: false, isConnecting: false });
-    });
-
-    it('webhidRequest, connect fail, device name error', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList1;
-        callback();
-      }));
-
-      await vbetService.connect('test');
-      expect(requestSpy).toHaveBeenCalled();
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: false, isConnecting: false });
-    });
-
-    it('webhidRequest, connect fail, device usage error', async () => {
-      const statusChangeSpy = jest.spyOn(vbetService, 'changeConnectionStatus');
-      const requestSpy = (vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList2;
-        callback();
-      }));
-
-      await vbetService.connect(mockTestDevName);
-      expect(requestSpy).toHaveBeenCalled();
-      expect(statusChangeSpy).toHaveBeenCalledWith({ isConnected: false, isConnecting: false });
-    });
-
-    it('webhidRequest, device inputReports is empty', async () => {
-      vbetService.requestWebHidPermissions = jest.fn((callback) => {
-        mockReqDeviceList = mockDeviceList3;
-        callback();
-      });
-
-      await vbetService.connect(mockTestDevName);
-      expect(vbetService.isConnected).toBe(true);
-      expect(vbetService.isConnecting).toBe(false);
     });
   });
 
@@ -385,7 +914,7 @@ describe('VBetservice', () => {
     });
   });
 
-  describe('processBtnPress BT100USeries', () => {
+  describe('telephoney control', () => {
     beforeEach(async () => {
       mockDeviceList = mockDeviceList1;
       await vbetService.connect(mockTestDevName);
@@ -396,216 +925,52 @@ describe('VBetservice', () => {
       await vbetService.disconnect();
     });
 
-    it('activeDevice is null', async () => {
-      const ansFun = jest.spyOn(vbetService, 'answerCall');
-      await vbetService.disconnect();
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      expect(ansFun).not.toHaveBeenCalled();
-    });
-
-    it('test offhook', async () => {
+    it('accept inbound call', async () => {
       const ansFun = jest.spyOn(vbetService, 'answerCall');
       const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
+
       await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
+      vbetService.processBtnPress(DeviceSignalType.ACCEPT_CALL);
       expect(ansFun).toHaveBeenCalled();
       expect(devAnsFun).toHaveBeenCalled();
     });
 
-    it('test offhook but no active conversion id', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      expect(ansFun).not.toHaveBeenCalledWith('offHook');
-      expect(devAnsFun).not.toHaveBeenCalled();
-    });
+    it('reject inbound call', async () => {
+      const rejFun = jest.spyOn(vbetService, 'rejectCall');
+      const devRejFun = jest.spyOn(vbetService, 'deviceRejectedCall');
 
-    it('test onhook', async () => {
-      const ansFun = jest.spyOn(vbetService, 'endCallFromDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceEndedCall');
       await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.processBtnPress(mockOnhookFlag.BT100USeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
+      vbetService.processBtnPress(DeviceSignalType.REJECT_CALL);
+      expect(rejFun).toHaveBeenCalled();
+      expect(devRejFun).toHaveBeenCalled();
     });
 
-    it('test onhook but no active conversion id', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceEndedCall');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      vbetService.activeConversationId = null;
-      await vbetService.processBtnPress(mockOnhookFlag.BT100USeries);
-      expect(ansFun).not.toHaveBeenCalledWith('onHook');
-      expect(devAnsFun).not.toHaveBeenCalled();
+    it('end current call', async () => {
+      const endFun = jest.spyOn(vbetService, 'endCall');
+      const devEndFun = jest.spyOn(vbetService, 'deviceEndedCall');
+
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.END_CALL);
+      expect(endFun).toHaveBeenCalled();
+      expect(devEndFun).toHaveBeenCalled();
     });
 
-    it('test mute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
+    it('mute/unmute current call', async () => {
+      const muteFun = jest.spyOn(vbetService, 'setMute');
       const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.processBtnPress(mockMuteFlag.BT100USeries);
-      expect(setMuteFun).toHaveBeenCalledWith(true);
-      expect(devMuteFun).toHaveBeenCalledWith({
-        isMuted: true,
-        name: 'CallMuted',
-        conversationId: 'id',
-      });
-    });
 
-    it('test unmute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.processBtnPress(mockMuteFlag.BT100USeries);
-      await vbetService.processBtnPress(mockMuteFlag.BT100USeries);
-      expect(setMuteFun).toHaveBeenCalledTimes(2);
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.MUTE_CALL);
+      vbetService.processBtnPress(DeviceSignalType.UNMUTE_CALL);
+      expect(muteFun).toHaveBeenCalledTimes(2);
       expect(devMuteFun).toHaveBeenCalledTimes(2);
-    });
-
-    it('test rejectCall', async () => {
-      const devRejectFun = jest.spyOn(vbetService, 'deviceRejectedCall');
-      const setRejectFun = jest.spyOn(vbetService, 'rejectCall');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockReject.BT100USeries);
-      expect(devRejectFun).toHaveBeenCalledWith({ name: 'Reject', conversationId: 'id' });
-      expect(setRejectFun).toHaveBeenCalled();
-    });
-
-    it('test outgoing call', async () => {
-      const ansFun = jest.spyOn(vbetService, 'endCallFromDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceEndedCall');
-      await vbetService.outgoingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOnhookFlag.BT100USeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-
-    it('test auto answer call', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.answerCall('id', true);
-      expect(ansFun).toHaveBeenCalledWith('ring');
-      expect(ansFun).toHaveBeenCalledWith('offHook');
-    });
-  });
-
-  describe('processBtnPress CMEDIASeries', () => {
-    beforeEach(async () => {
-      mockDeviceList = mockDeviceList5;
-      await vbetService.connect(mockTestDevName);
-    });
-
-    afterEach(async () => {
-      await vbetService.endAllCalls();
-      await vbetService.disconnect();
-    });
-
-    it('activeDevice is null', async () => {
-      await vbetService.disconnect();
-      const ansFun = jest.spyOn(vbetService, 'answerCall');
-      await vbetService.processBtnPress(mockOffhookFlag.CMEDIASeries);
-      expect(ansFun).not.toHaveBeenCalled();
-    });
-
-    it('test offhook', async () => {
-      const ansFun = jest.spyOn(vbetService, 'answerCall');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.CMEDIASeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-
-    it('test mute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.CMEDIASeries);
-      await vbetService.processBtnPress(mockMuteFlag.CMEDIASeries);
-      expect(setMuteFun).toHaveBeenCalledWith(true);
+      expect(muteFun).toHaveBeenCalledWith(true);
       expect(devMuteFun).toHaveBeenCalledWith({
         isMuted: true,
         name: 'CallMuted',
         conversationId: 'id',
       });
-    });
-
-    it('test mute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.CMEDIASeries);
-      await vbetService.processBtnPress(0x08);
-      await vbetService.processBtnPress(0x00);
-      expect(setMuteFun).toHaveBeenCalledWith(true);
-      expect(devMuteFun).toHaveBeenCalledWith({
-        isMuted: true,
-        name: 'CallMuted',
-        conversationId: 'id',
-      });
-    });
-
-    it('test outgoing call', async () => {
-      const ansFun = jest.spyOn(vbetService, 'endCallFromDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceEndedCall');
-      await vbetService.outgoingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOnhookFlag.CMEDIASeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-  });
-
-  describe('processBtnPress DECTSeries', () => {
-    beforeEach(async () => {
-      mockDeviceList = mockDeviceList6;
-      await vbetService.connect(mockTestDevName);
-    });
-
-    afterEach(async () => {
-      await vbetService.endAllCalls();
-      await vbetService.disconnect();
-    });
-
-    it('activeDevice is null', async () => {
-      await vbetService.disconnect();
-      const ansFun = jest.spyOn(vbetService, 'answerCall');
-      await vbetService.processBtnPress(mockOffhookFlag.DECTSeries);
-      expect(ansFun).not.toHaveBeenCalled();
-    });
-
-    it('test offhook', async () => {
-      const ansFun = jest.spyOn(vbetService, 'answerCall');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.DECTSeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-
-    it('test mute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.DECTSeries);
-      await vbetService.processBtnPress(mockMuteFlag.DECTSeries[0]);
-      expect(setMuteFun).toHaveBeenCalledWith(true);
-      expect(devMuteFun).toHaveBeenCalledWith({
-        isMuted: true,
-        name: 'CallMuted',
-        conversationId: 'id',
-      });
-    });
-
-    it('test unmute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.DECTSeries);
-      await vbetService.processBtnPress(mockMuteFlag.DECTSeries[1]);
-      expect(setMuteFun).toHaveBeenCalledWith(false);
+      expect(muteFun).toHaveBeenCalledWith(false);
       expect(devMuteFun).toHaveBeenCalledWith({
         isMuted: false,
         name: 'CallUnmuted',
@@ -613,129 +978,81 @@ describe('VBetservice', () => {
       });
     });
 
-    it('test outgoing call', async () => {
-      const ansFun = jest.spyOn(vbetService, 'endCallFromDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceEndedCall');
-      await vbetService.outgoingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOnhookFlag.DECTSeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-  });
-
-  describe('processBtnPress ACTIONSeries', () => {
-    beforeEach(async () => {
-      mockDeviceList = mockDeviceList7;
-      await vbetService.connect(mockTestDevName);
-    });
-
-    afterEach(async () => {
-      await vbetService.endAllCalls();
-      await vbetService.disconnect();
-    });
-
-    it('activeDevice is null', async () => {
-      await vbetService.disconnect();
-      const ansFun = jest.spyOn(vbetService, 'answerCall');
-      await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
-      expect(ansFun).not.toHaveBeenCalled();
-    });
-
-    it('test offhook', async () => {
+    it('answer inbound call but no id', async () => {
       const ansFun = jest.spyOn(vbetService, 'answerCall');
       const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
 
-    it('test reject', async () => {
-      const ansFun = jest.spyOn(vbetService, 'rejectCall');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceRejectedCall');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockReject.ACTIONSeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-
-    it('test mute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
-      await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries[0]);
-      expect(setMuteFun).toHaveBeenCalledWith(true);
-      expect(devMuteFun).toHaveBeenCalledWith({
-        isMuted: true,
-        name: 'CallMuted',
-        conversationId: 'id',
-      });
-    });
-
-    it('test unmute', async () => {
-      const setMuteFun = jest.spyOn(vbetService, 'setMute');
-      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.ACTIONSeries);
-      await vbetService.processBtnPress(mockMuteFlag.ACTIONSeries[1]);
-      expect(setMuteFun).toHaveBeenCalledWith(false);
-      expect(devMuteFun).toHaveBeenCalledWith({
-        isMuted: false,
-        name: 'CallUnmuted',
-        conversationId: 'id',
-      });
-    });
-
-    it('test outgoing call', async () => {
-      const ansFun = jest.spyOn(vbetService, 'endCallFromDevice');
-      const devAnsFun = jest.spyOn(vbetService, 'deviceEndedCall');
-      await vbetService.outgoingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOnhookFlag.ACTIONSeries);
-      expect(ansFun).toHaveBeenCalled();
-      expect(devAnsFun).toHaveBeenCalled();
-    });
-  });
-
-  describe('endcall from user interface', () => {
-    beforeEach(async () => {
-      mockDeviceList = mockDeviceList1;
-      await vbetService.connect(mockTestDevName);
-    });
-
-    afterEach(async () => {
-      await vbetService.disconnect();
-    });
-
-    it('test onhook', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.endCall('id', false);
-      expect(ansFun).toHaveBeenCalledWith('onHook');
-    });
-
-    it('test onhook with other active calls', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.endCall('id', true);
-      expect(ansFun).not.toHaveBeenCalledWith('onHook');
-    });
-
-    it('test onhook but no matching conversion id', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
-      await vbetService.incomingCall({ conversationId: 'id' });
-      await vbetService.processBtnPress(mockOffhookFlag.BT100USeries);
-      await vbetService.endCall('dif', false);
-      expect(ansFun).not.toHaveBeenCalledWith('onHook');
-    });
-
-    it('test reject call but no pending conversion id', async () => {
-      const ansFun = jest.spyOn(vbetService, 'sendOpToDevice');
       await vbetService.incomingCall({ conversationId: '' });
-      await vbetService.rejectCall();
-      expect(ansFun).not.toHaveBeenCalledWith('onHook');
+      vbetService.processBtnPress(DeviceSignalType.ACCEPT_CALL);
+      expect(ansFun).not.toHaveBeenCalled();
+      expect(devAnsFun).not.toHaveBeenCalled();
+    });
+
+    it('end call but no id', async () => {
+      const endFun = jest.spyOn(vbetService, 'endCall');
+      const devEndFun = jest.spyOn(vbetService, 'deviceEndedCall');
+
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      await vbetService.endCall('id');
+      vbetService.processBtnPress(DeviceSignalType.END_CALL);
+      expect(endFun).toHaveBeenCalledTimes(1);
+      expect(devEndFun).not.toHaveBeenCalled();
+    });
+
+    it('mute call but no id', async () => {
+      const muteFun = jest.spyOn(vbetService, 'setMute');
+      const devMuteFun = jest.spyOn(vbetService, 'deviceMuteChanged');
+
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.MUTE_CALL);
+      await vbetService.endCall('id');
+      vbetService.processBtnPress(DeviceSignalType.MUTE_CALL);
+      expect(muteFun).toHaveBeenCalledTimes(1);
+      expect(devMuteFun).toHaveBeenCalledTimes(1);
+    });
+
+    it('reject call but no id', async () => {
+      const rejectFun = jest.spyOn(vbetService, 'rejectCall');
+      const devRejectFun = jest.spyOn(vbetService, 'deviceRejectedCall');
+
+      await vbetService.incomingCall({ conversationId: 'id' });
+      await vbetService.endAllCalls();
+      vbetService.processBtnPress(DeviceSignalType.REJECT_CALL);
+      expect(rejectFun).not.toHaveBeenCalled();
+      expect(devRejectFun).not.toHaveBeenCalled();
+    });
+
+    it('answer inbound call from ui but no id', async () => {
+      const ansFun = jest.spyOn(vbetService, 'answerCall');
+      const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
+
+      await vbetService.incomingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.ACCEPT_CALL);
+      vbetService.answerCall('id');
+      expect(ansFun).toHaveBeenCalled();
+      expect(devAnsFun).toHaveBeenCalled();
+    });
+
+    it('reject call from ui but no id', async () => {
+      const rejectFun = jest.spyOn(vbetService, 'rejectCall');
+      const devRejectFun = jest.spyOn(vbetService, 'deviceRejectedCall');
+
+      await vbetService.incomingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.REJECT_CALL);
+      vbetService.rejectCall('id');
+      expect(rejectFun).toHaveBeenCalled();
+      expect(devRejectFun).toHaveBeenCalled();
+    });
+
+    it('end call from ui but no id', async () => {
+      const endFun = jest.spyOn(vbetService, 'endCall');
+      const devEndFun = jest.spyOn(vbetService, 'deviceEndedCall');
+
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.END_CALL);
+      vbetService.endCall('id');
+      expect(endFun).toHaveBeenCalled();
+      expect(devEndFun).toHaveBeenCalled();
     });
   });
 });
