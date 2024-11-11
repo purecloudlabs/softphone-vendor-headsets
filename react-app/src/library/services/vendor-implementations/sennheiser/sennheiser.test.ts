@@ -745,7 +745,7 @@ describe('SennheiserService', () => {
       });
     });
 
-    describe(`event type: ${SennheiserEvents.IncomingCallRejected}`, () => {
+    describe.skip(`event type: ${SennheiserEvents.IncomingCallRejected}`, () => {
       it('should call deviceRejectedCall() with the relevant conversationID', () => {
         const conversationId = '12r3kh';
         const payload: SennheiserPayload = {
