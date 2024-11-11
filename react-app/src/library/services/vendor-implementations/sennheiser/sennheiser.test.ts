@@ -67,9 +67,9 @@ describe('SennheiserService', () => {
     });
     it('should set ignoreAcknowledgement and call endCall function', () => {
       const endCallSpy = jest.spyOn(sennheiserService, 'endCall');
-      sennheiserService.resetHeadsetStateForCall('test123');
+      sennheiserService.resetHeadsetStateForCall('test123', false);
       expect(sennheiserService.ignoreAcknowledgement).toBe(true);
-      expect(endCallSpy).toHaveBeenCalledWith('test123');
+      expect(endCallSpy).toHaveBeenCalledWith('test123', false);
       sennheiserService.ignoreAcknowledgement = false;
     });
   });

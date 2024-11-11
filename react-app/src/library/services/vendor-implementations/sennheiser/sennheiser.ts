@@ -42,9 +42,9 @@ export default class SennheiserService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  resetHeadsetStateForCall (conversationId: string): Promise<any> {
+  resetHeadsetStateForCall (conversationId: string, hasOtherActiveCalls: boolean): Promise<any> {
     this.ignoreAcknowledgement = true;
-    return this.endCall(conversationId);
+    return this.endCall(conversationId, hasOtherActiveCalls);
   }
 
   _handleError (payload: SennheiserPayload): void {

@@ -298,9 +298,11 @@ export default class HeadsetService {
   }
 
   resetHeadsetStateForCall (conversationId: string): Promise<any> {
+    this.logger.info('mMoo: headsetConversationStates', this.headsetConversationStates);
     const implementation = this.getConnectedImpl();
     if (implementation) {
-      return implementation.resetHeadsetStateForCall(conversationId);
+      const hasOtherActiveCalls = Object.keys(this.headsetConversationStates).length > 1;
+      return implementation.resetHeadsetStateForCall(conversationId, hasOtherActiveCalls);
     } else {
       this.logger.info('No active implementation, headset state does not require a reset');
     }

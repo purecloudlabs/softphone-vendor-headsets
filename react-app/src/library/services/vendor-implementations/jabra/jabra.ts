@@ -79,7 +79,6 @@ export default class JabraService extends VendorImplementation {
   }
 
   _processEvents (callControl: ICallControl): void {
-    this.logger.info('mMoo: inside _processEvents');
     this.headsetEventSubscription = callControl.deviceSignals.subscribe(async (signal) => {
       if (!this.callLock) {
         this.logger.debug(
@@ -193,7 +192,6 @@ export default class JabraService extends VendorImplementation {
   }
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
-    this.logger.info('mMoo: inside Jabra incomingCall', callInfo);
     this.pendingConversationId = callInfo.conversationId;
     this.pendingConversationIsOutbound = false;
     try {
@@ -213,7 +211,6 @@ export default class JabraService extends VendorImplementation {
   }
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
-    this.logger.info('mMoo: inside Jabra answerCall', { conversationId, autoAnswer });
     if (autoAnswer) {
       this.pendingConversationId = conversationId;
       try {

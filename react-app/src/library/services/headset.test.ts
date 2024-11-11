@@ -1224,7 +1224,7 @@ describe('HeadsetService', () => {
       headsetService.selectedImplementation = impl as any;
       headsetService.resetHeadsetStateForCall('test123');
 
-      expect(impl.resetHeadsetStateForCall).toHaveBeenCalledWith('test123');
+      expect(impl.resetHeadsetStateForCall).toHaveBeenCalledWith('test123', false);
     });
 
     it('should log a message if no implementation is active', () => {
