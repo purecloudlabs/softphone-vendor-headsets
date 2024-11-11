@@ -269,7 +269,7 @@ export default class HeadsetService {
     if (!implementation) {
       return;
     }
-    
+
     Object.values(this.headsetConversationStates).forEach((headsetState) => {
       if (!headsetState.removeTimer) {
         headsetState.removeTimer = this.setRemoveTimer(headsetState.conversationId);
@@ -301,6 +301,8 @@ export default class HeadsetService {
     const implementation = this.getConnectedImpl();
     if (implementation) {
       return implementation.resetHeadsetStateForCall(conversationId);
+    } else {
+      this.logger.info('No active implementation, headset state does not require a reset');
     }
   }
 
