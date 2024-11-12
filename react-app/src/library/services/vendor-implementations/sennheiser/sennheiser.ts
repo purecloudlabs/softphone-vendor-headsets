@@ -302,7 +302,9 @@ export default class SennheiserService extends VendorImplementation {
         }
         break;
       case SennheiserEvents.IncomingCallRejected:
-        this.deviceRejectedCall({ name: payload.Event, conversationId });
+        if (payload.EventType === SennheiserEventTypes.Notification) {
+          this.deviceRejectedCall({ name: payload.Event, conversationId });
+        }
         break;
       case SennheiserEvents.TerminateConnection:
         if (this.websocket.readyState === 1) {
