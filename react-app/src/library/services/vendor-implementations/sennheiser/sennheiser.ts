@@ -214,6 +214,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   _handleMessage (message: { data: string }): void {
+    console.warn('mMoo: message received or something', message);
     let payload: SennheiserPayload;
     try {
       payload = JSON.parse(message.data);
