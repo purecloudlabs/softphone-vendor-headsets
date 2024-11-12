@@ -745,18 +745,43 @@ describe('SennheiserService', () => {
       });
     });
 
-    describe.skip(`event type: ${SennheiserEvents.IncomingCallRejected}`, () => {
+    describe(`event type: ${SennheiserEvents.IncomingCallRejected}`, () => {
+      it(`should call deviceRejectedCall() when the payload EventType is '${SennheiserEventTypes.Notification}'`, () => {
+        message = {
+          data: `{
+            "Event": "${SennheiserEvents.IncomingCallRejected}",
+            "EventType": "${SennheiserEventTypes.Notification}"
+          }`,
+        };
+
+        sennheiserService._handleMessage(message);
+
+        expect(sennheiserService.deviceRejectedCall).toHaveBeenCalledTimes(1);
+      });
       it('should call deviceRejectedCall() with the relevant conversationID', () => {
         const conversationId = '12r3kh';
         const payload: SennheiserPayload = {
           CallID: conversationId,
           Event: SennheiserEvents.IncomingCallRejected,
+          EventType: SennheiserEventTypes.Notification
         };
         message = { data: JSON.stringify(payload) };
 
         sennheiserService._handleMessage(message);
 
         expect(sennheiserService.deviceRejectedCall).toHaveBeenCalledWith({ name: payload.Event, conversationId: payload.CallID });
+      });
+      it(`should NOT call deviceRejectedCall() when the payload EventType is NOT '${SennheiserEventTypes.Notification}'`, () => {
+        message = {
+          data: `{
+            "Event": "${SennheiserEvents.IncomingCallRejected}",
+            "EventType": "${SennheiserEventTypes.Ack}"
+          }`,
+        };
+
+        sennheiserService._handleMessage(message);
+
+        expect(sennheiserService.deviceRejectedCall).not.toHaveBeenCalled();
       });
     });
 
