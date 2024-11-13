@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.4...HEAD)
 
-# [v2.5.4](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.2...v2.5.3)
+# [v2.5.4](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.3...v2.5.4)
 ## Fixed
 * [STREAM-259](https://inindca.atlassian.net/browse/STREAM-259) - added in guard for EPOS reject call to only bubble up events in the case of a "Notification" type message to avoid issues with "Acknowledgements"
 
