@@ -108,11 +108,14 @@ export default class HeadsetService {
   }
 
   activeMicChange (newMicLabel: string, changeReason?: UpdateReasons): void {
+    this.logger.info('Attempting to change the active mic', { newMicLabel, changeReason });
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
+        this.logger.info('Associated implementation was found, changing vendor', implementation);
         this.changeImplementation(implementation, newMicLabel);
       } else if (this.selectedImplementation) {
+        this.logger.info('Associated implementation was not found but selectedImplementation existed, clearing selected implementation', this.selectedImplementation);
         this.clearSelectedImplementation(changeReason);
       }
     } else {
@@ -122,10 +125,12 @@ export default class HeadsetService {
 
   async changeImplementation (implementation: VendorImplementation | null, deviceLabel: string): Promise<void> {
     if (implementation === this.selectedImplementation) {
+      this.logger.info('Requested implementation and selected implementation are the same, not changing anything');
       return;
     }
 
     if (this.selectedImplementation) {
+      this.logger.info('Selected implementation was present, disconnecting selected implementation');
       // remove headsetStates associated with implementation
       this.headsetConversationStates = {};
 
@@ -327,6 +332,7 @@ export default class HeadsetService {
   }
 
   private clearSelectedImplementation (clearReason?: UpdateReasons): void {
+    this.logger.info('Attempting to clear the selected vendor', { selectedImplementation: this.selectedImplementation, clearReason });
     if (!this.selectedImplementation) {
       return;
     }
