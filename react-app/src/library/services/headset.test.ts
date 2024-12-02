@@ -1235,4 +1235,21 @@ describe('HeadsetService', () => {
       expect(infoSpy).toHaveBeenCalledWith('No active implementation, headset state does not require a reset');
     });
   });
+
+  describe('disconnectImplementation', () => {
+    it('should call the implementation\'s disconnect function if an implementation is present', () => {
+      const impl = { disconnect: jest.fn() };
+      headsetService['getConnectedImpl'] = jest.fn().mockReturnValue(impl);
+      headsetService.disconnectImplementation();
+
+      expect(impl.disconnect).toHaveBeenCalled();
+    });
+
+    it('should not call disconnect if no implementation is present', () => {
+      const infoSpy = jest.spyOn((headsetService as any).logger, 'info');
+      headsetService['getConnectedImpl'] = jest.fn().mockReturnValue(null);
+      headsetService.disconnectImplementation();
+      expect(infoSpy).toHaveBeenCalledWith('There is no active implementation to disconnect.');
+    });
+  });
 });

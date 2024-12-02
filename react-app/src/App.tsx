@@ -196,6 +196,10 @@ const App = () => {
     !fromHeadset && headset.setHold(currentCall.id, holdToggle);
   };
 
+  const disconnectHeadset = () => {
+    headset.disconnectImplementation();
+  };
+
   return (
     <>
       <div className="entry-row">
@@ -236,6 +240,9 @@ const App = () => {
             </div>
             <div className="entry-values">
               {t(`implementation.connectionStatus.${connectionStatus}`)}
+              {connectionStatus === 'running' && (
+                <button type="button" style={{ marginLeft: '5px' }} onClick={() => disconnectHeadset()}>Disconnect</button>
+              )}
               {connectionStatus === 'notRunning' && (
                 <button type="button" style={{ marginLeft: '5px' }} onClick={() => headset.retryConnection(webrtc.getDefaultMicrophone().label)}>Retry</button>
               )}

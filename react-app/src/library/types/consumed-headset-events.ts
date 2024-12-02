@@ -26,7 +26,7 @@ type Events = {
     [HeadsetEvents.deviceConnectionStatusChanged]: DeviceConnectionStatus;
 }
 
-export type DeviceConnectionStatus = 'checking' | 'running' | 'notRunning' | 'noVendor';
+export type DeviceConnectionStatus = 'checking' | 'running' | 'notRunning' | 'disconnected' | 'noVendor';
 
 export type ConsumedHeadsetEvents<T = keyof Events> = T extends keyof Events
     ? { event: T, payload: Events[T] }

@@ -39,7 +39,8 @@
             "error": "Error occurred while establishing connection",
             "checking": "Checking",
             "running": "Running",
-            "notRunning": "Not Running"
+            "notRunning": "Not Running",
+            "disconnected": "Disconnected"
         }
     }
 }
