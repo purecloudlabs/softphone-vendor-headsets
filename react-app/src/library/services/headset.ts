@@ -287,7 +287,7 @@ export default class HeadsetService {
     return this.selectedImplementation.connect(micLabel);
   }
 
-  disconnectImplementation (): void {
+  disconnectImplementation (): Promise<void> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
       this.logger.info('There is no active implementation to disconnect.');
