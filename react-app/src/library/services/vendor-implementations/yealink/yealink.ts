@@ -13,7 +13,7 @@ const recReject = 0x40;
 const HEADSET_USAGE = 0x0005;
 const HEADSET_USAGE_PAGE = 0x000B;
 const VENDOR_ID = 0x6993;
-const HEADSER_REPORT_ID = 0x04;
+const HEADSET_REPORT_ID = 0x04;
 
 export default class YealinkService extends VendorImplementation {
   private static instance: YealinkService;
@@ -68,7 +68,7 @@ export default class YealinkService extends VendorImplementation {
               collection.usagePage === HEADSET_USAGE_PAGE) {
               this.activeDevice = device;
               if (collection.inputReports.length !== 0) {
-                this.inputReportReportId = HEADSER_REPORT_ID;
+                this.inputReportReportId = HEADSET_REPORT_ID;
               }
               break;
             }
@@ -95,7 +95,7 @@ export default class YealinkService extends VendorImplementation {
                     && collection.usagePage === HEADSET_USAGE_PAGE) {
                     bFind = true;
                     if (collection.inputReports.length !== 0) {
-                      this.inputReportReportId = HEADSER_REPORT_ID;
+                      this.inputReportReportId = HEADSET_REPORT_ID;
                     }
                     resolve(device);
                     break;
