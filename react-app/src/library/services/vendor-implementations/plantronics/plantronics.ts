@@ -245,6 +245,8 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;
     case 'TerminateCall':
+      this.setMute(false);
+      this.setHold(conversationId, false);
       this.deviceEndedCall({ ...eventInfo, conversationId });
       break;
     case 'CallEnded':
@@ -424,6 +426,8 @@ export default class PlantronicsService extends VendorImplementation {
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
+    this.setMute(false);
+    this.setHold(conversationId, false);
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;
