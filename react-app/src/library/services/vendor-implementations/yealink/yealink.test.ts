@@ -1,7 +1,7 @@
 import YealinkService from './yealink';
 
 const mackTestDevName = 'Test Yealink Dev';
-const mackReportId = 0x02;
+const mackReportId = 0x04;
 let mackEventReportId = mackReportId;
 
 const mackDeviceList0 = [];
