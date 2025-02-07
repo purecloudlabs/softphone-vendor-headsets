@@ -7,7 +7,7 @@ module.exports = (env) => {
   let filename = 'softhphone-vendor-headsets';
   let babelExcludes = [];
   let babelOptions;
-  let externals = [];
+  // let externals = ['@gnaudio/jabra-js'];
 
   /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
   babelExcludes = [/node_modules\/(?!(core\-util\-is)).*/];
@@ -34,7 +34,7 @@ module.exports = (env) => {
     optimization: {
       minimize
     },
-    externals,
+    externals: '@gnaudio/jabra-js',
     devtool: 'source-map',
     output: {
       path: path.resolve(__dirname, 'dist'),
