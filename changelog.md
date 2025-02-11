@@ -3,7 +3,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.4...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.5...HEAD)
+
+# [v2.5.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.4...v2.5.5)
+## Fixed
+* [STREAM-331](https://inindca.atlassian.net/browse/STREAM-331) - Plantronics devices weren't resetting their state upon disconnect
+* [no-jira] - Yealink provided fix that helped with conflict while sharing with Teams
 
 # [v2.5.4](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.3...v2.5.4)
 ## Fixed
