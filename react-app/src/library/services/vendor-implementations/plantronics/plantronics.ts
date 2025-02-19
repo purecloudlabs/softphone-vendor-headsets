@@ -88,6 +88,11 @@ export default class PlantronicsService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
+  resetState (conversationId: string): void {
+    this.setMute(false);
+    this.setHold(conversationId, false);
+  }
+
   pollForCallEvents (): void {
     if (this.callEventsTimerId) {
       clearTimeout(this.callEventsTimerId);
@@ -245,15 +250,14 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;
     case 'TerminateCall':
-      if (Object.keys(this.callMappings).length === 2) {
-        this.setMute(false);
-        this.setHold(conversationId, false);
-      }
       this.deviceEndedCall({ ...eventInfo, conversationId });
       break;
     case 'CallEnded':
       delete this.callMappings[callId];
       delete this.callMappings[conversationId];
+      if (Object.keys(this.callMappings).length === 0) {
+        this.resetState(conversationId);
+      }
       this._checkIsActiveTask();
       break;
     case 'Mute':
@@ -428,10 +432,6 @@ export default class PlantronicsService extends VendorImplementation {
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
-    if (Object.keys(this.callMappings).length === 2) {
-      this.setMute(false);
-      this.setHold(conversationId, false);
-    }
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;

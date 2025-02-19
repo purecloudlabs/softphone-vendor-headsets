@@ -291,14 +291,8 @@ describe('PlantronicsService', () => {
       expect(deviceRejectedCallSpy).toHaveBeenCalledWith({ conversationId: 'convoId1234', name: 'RejectCall' });
     });
 
-    it('will call deviceEndedCall and clear state', () => {
+    it('will call deviceEndedCall', () => {
       const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
-      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
-      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
-      plantronicsService.callMappings = {
-        'test1': 'franklin',
-        'franklin': 'test1'
-      };
       plantronicsService.callCorrespondingFunction({
         name: 'TerminateCall',
         event: {
@@ -308,31 +302,6 @@ describe('PlantronicsService', () => {
         }
       } as any);
       expect(deviceEndedCallSpy).toHaveBeenCalled();
-      expect(setMuteSpy).toHaveBeenCalled();
-      expect(setHoldSpy).toHaveBeenCalled();
-    });
-
-    it('will call deviceEndedCall and not clear state', () => {
-      const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
-      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
-      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
-      plantronicsService.callMappings = {
-        'test1': 'franklin',
-        'franklin': 'test1',
-        'test2': 'henry',
-        'henry': 'test2'
-      };
-      plantronicsService.callCorrespondingFunction({
-        name: 'TerminateCall',
-        event: {
-          CallId: {
-            Id: '123456',
-          }
-        }
-      } as any);
-      expect(deviceEndedCallSpy).toHaveBeenCalled();
-      expect(setMuteSpy).not.toHaveBeenCalled();
-      expect(setHoldSpy).not.toHaveBeenCalled();
     });
 
     it('will call _checkIsActiveTask', () => {
@@ -346,6 +315,42 @@ describe('PlantronicsService', () => {
         }
       } as any);
       expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
+    });
+
+    it('will reset state if we have no more callMappings present', () => {
+      const resetStateSpy = jest.spyOn(plantronicsService, 'resetState');
+      plantronicsService.callMappings = {
+        '123456': 'henry',
+        'henry': '123456'
+      };
+      plantronicsService.callCorrespondingFunction({
+        name: 'CallEnded',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(resetStateSpy).toHaveBeenCalled();
+    });
+
+    it('will not reset state if we have more callMappings present', () => {
+      const resetStateSpy = jest.spyOn(plantronicsService, 'resetState');
+      plantronicsService.callMappings = {
+        '123456': 'henry',
+        'henry': '123456',
+        'test1': 'franklin',
+        'franklin': 'test1'
+      };
+      plantronicsService.callCorrespondingFunction({
+        name: 'CallEnded',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(resetStateSpy).not.toHaveBeenCalled();
     });
 
     it('will call deviceMuteChanged with the proper flag', () => {
