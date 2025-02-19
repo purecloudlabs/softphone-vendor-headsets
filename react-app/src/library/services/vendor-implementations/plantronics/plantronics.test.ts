@@ -291,8 +291,14 @@ describe('PlantronicsService', () => {
       expect(deviceRejectedCallSpy).toHaveBeenCalledWith({ conversationId: 'convoId1234', name: 'RejectCall' });
     });
 
-    it('will call deviceEndedCall', () => {
+    it('will call deviceEndedCall and clear state', () => {
       const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
+      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
+      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
+      plantronicsService.callMappings = {
+        'test1': 'franklin',
+        'franklin': 'test1'
+      };
       plantronicsService.callCorrespondingFunction({
         name: 'TerminateCall',
         event: {
@@ -302,6 +308,31 @@ describe('PlantronicsService', () => {
         }
       } as any);
       expect(deviceEndedCallSpy).toHaveBeenCalled();
+      expect(setMuteSpy).toHaveBeenCalled();
+      expect(setHoldSpy).toHaveBeenCalled();
+    });
+
+    it('will call deviceEndedCall and not clear state', () => {
+      const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
+      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
+      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
+      plantronicsService.callMappings = {
+        'test1': 'franklin',
+        'franklin': 'test1',
+        'test2': 'henry',
+        'henry': 'test2'
+      };
+      plantronicsService.callCorrespondingFunction({
+        name: 'TerminateCall',
+        event: {
+          CallId: {
+            Id: '123456',
+          }
+        }
+      } as any);
+      expect(deviceEndedCallSpy).toHaveBeenCalled();
+      expect(setMuteSpy).not.toHaveBeenCalled();
+      expect(setHoldSpy).not.toHaveBeenCalled();
     });
 
     it('will call _checkIsActiveTask', () => {
