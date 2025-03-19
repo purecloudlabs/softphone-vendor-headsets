@@ -17,11 +17,14 @@ def isDevelop = {
   env.BRANCH_NAME == DEVELOP_BRANCH
 }
 
-webappPipelineV2 {
-    urlPrefix = 'vendor-headsets'
+  def chatGroupId = 'adhoc-60e40c95-3d9c-458e-a48e-ca4b29cf486d'
+  def name = 'vendor-headsets'
+
+  webappPipelineV2 {
+    urlPrefix = name
     nodeVersion = '20.x multiarch'
     mailer = 'GcMediaStreamSignal@genesys.com'
-    chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
+    chatGroupId = chatGroupId
 
     manifest = directoryManifest('dist')
 
@@ -39,7 +42,6 @@ ENVIRONMENT  : ${env.ENVIRONMENT}
 BUILD_NUMBER : ${env.BUILD_NUMBER}
 BUILD_ID     : ${env.BUILD_ID}
 BRANCH_NAME  : ${env.BRANCH_NAME}
-APP_NAME     : ${env.APP_NAME}
 VERSION      : ${env.VERSION}
 ===================================
       """)
@@ -112,6 +114,7 @@ VERSION      : ${env.VERSION}
 
         def npmFunctions = null
         def gitFunctions = null
+        def notifications = new com.genesys.jenkins.Notifications()
         def pwd = pwd()
 
         stage('Download npm & git utils') {
@@ -138,6 +141,14 @@ VERSION      : ${env.VERSION}
                         dryRun: false // dry run the publish, default `false`
                     ])
                 }
+
+                def message = "**${name}** ${version} (Build [#${env.BUILD_NUMBER}](${env.BUILD_URL})) has been published to **npm**"
+
+                if(!tag) {
+                  message = ":loudspeaker: ${message}"
+                }
+
+                notifications.requestToGenericWebhooksWithMessage(chatGroupId, message);
             }
         } // end publish to npm
 
