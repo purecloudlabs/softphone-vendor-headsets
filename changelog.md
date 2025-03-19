@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.5...HEAD)
+## Changed
+* [STREAM-407](https://inindca.atlassian.net/browse/STREAM-407) - Migrate to webappPipelineV2
 
 # [v2.5.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.4...v2.5.5)
 ## Fixed
