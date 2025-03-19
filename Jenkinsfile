@@ -32,10 +32,6 @@ webappPipelineV2 {
       ]
     }
 
-    List deployConfig = []
-
-    testJob = 'no-tests' // see buildStep to spigot tests
-
     ciTests = {
         println("""
 ========= BUILD VARIABLES =========
