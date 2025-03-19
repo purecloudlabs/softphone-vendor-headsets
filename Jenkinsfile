@@ -17,21 +17,11 @@ def isDevelop = {
   env.BRANCH_NAME == DEVELOP_BRANCH
 }
 
-def getBuildType = {
-  isMain()
-    ? 'MAINLINE'
-    : 'FEATURE'
-}
-
-webappPipeline {
-    projectName = 'vendor-headsets'
-    team = 'Client Streaming and Signaling'
-    jiraProjectKey = 'STREAM'
+webappPipelineV2 {
+    urlPrefix = 'vendor-headsets'
+    nodeVersion = '20.x multiarch'
     mailer = 'GcMediaStreamSignal@genesys.com'
     chatGroupId = '763fcc91-e530-4ed7-b318-03f525a077f6'
-
-    nodeVersion = '14.x'
-    buildType = getBuildType
 
     manifest = directoryManifest('dist')
 
@@ -59,7 +49,6 @@ VERSION      : ${env.VERSION}
       """)
 
       sh("""
-        npm i -g npm@7
         npm run install:all
         npm run lint
         npm run test

@@ -1,0 +1,17 @@
+---
+service:
+  family:
+    - core
+    - webui
+  name: vendor-headsets-webui
+  blueprint: webUi
+  team: Client Streaming and Signaling
+  jiraProjectKey: STREAM
+  pmContact: david.vanmilligan@genesys.com
+  qaContact: sohel.patel@genesys.com
+  gitDefaultBranch: develop
+costAllocation:
+  productGroup: Platform
+  businessUnit: CX
+  consumedBy:
+    - CX
