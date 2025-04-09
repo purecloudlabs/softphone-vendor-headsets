@@ -14,7 +14,6 @@ import {
 import { CallInfo } from '../../..';
 import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from 'rxjs';
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
-import { isCefHosted } from '../../../utils';
 
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
@@ -35,14 +34,17 @@ export default class JabraService extends VendorImplementation {
   pendingConversationId: string;
   pendingConversationIsOutbound: boolean;
   activeConversationId: string;
+  useWebHIDImpl: boolean = undefined;
 
   private constructor (config: ImplementationConfig) {
     super(config);
     this.vendorName = 'Jabra';
+    const hostedContext = (window as any).Orgspan?.serviceFor('application').get('hostedContext');
+    this.useWebHIDImpl = hostedContext?.supportsJabra();
   }
 
   isSupported (): boolean {
-    return (window.navigator as any).hid && !isCefHosted();
+    return (window.navigator as any).hid && !this.useWebHIDImpl;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

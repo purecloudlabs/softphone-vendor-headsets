@@ -1293,8 +1293,15 @@ describe('JabraService', () => {
     });
 
     it('should return false if proper values are not met', () => {
-      Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
-      expect(jabraService.isSupported()).toBe(false);
+      (window as any).Orgspan = {
+        serviceFor: jest.fn().mockReturnValue({
+          get: jest.fn().mockReturnValue({
+            supportsJabra: jest.fn().mockReturnValue(true)
+          })
+        })
+      };
+      const jabraInstance2 = JabraService.getInstance({ logger: console, createNew: true });
+      expect(jabraInstance2.isSupported()).toBe(false);
     });
   });
 
