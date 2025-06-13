@@ -25,9 +25,8 @@ webappPipelineV2 {
   nodeVersion = '20.x multiarch'
   mailer = 'GcMediaStreamSignal@genesys.com'
   chatGroupId = 'adhoc-60e40c95-3d9c-458e-a48e-ca4b29cf486d'
-  manifest = customManifest('./dist') {
-      readJSON(file: 'dist/manifest.json')
-  }
+  manifest = directoryManifest('dist')
+
   ciTests = {
     sh('''
       npm run install:all
@@ -39,7 +38,7 @@ webappPipelineV2 {
   buildStep = { cdnUrl ->
     sh("""
       echo 'CDN_URL ${cdnUrl}'
-      npm --versions
+      npm run compile:module
       npm run build
     """)
   }
