@@ -1,0 +1,20 @@
+---
+service:
+  family:
+    - core
+    - webui
+  name: softphone-vendor-headsets-webui
+  blueprint: webUi
+  team: Client Streaming and Signaling
+  jiraProjectKey: STREAM
+  pmContact: David.VanMilligan@genesys.com
+  qaContact: sohel.patel@genesys.com
+  gitDefaultBranch:
+    - master
+    - develop
+  gitRepoSshUrl: git@github.com:purecloudlabs/softphone-vendor-headsets.git
+costAllocation:
+  productGroup: Platform
+  businessUnit: CX
+  consumedBy:
+    - CX

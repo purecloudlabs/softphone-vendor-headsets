@@ -1,6 +1,6 @@
 {
   "name": "softphone-vendor-headsets",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "author": "Genesys",
   "license": "MIT",
   "cjs": "dist/cjs/src/library/index.js",
@@ -24,7 +24,7 @@
     "build:react": "cd react-app; yarn build",
     "build:src": "tsc -p .",
     "build:es": "tsc -p . --outDir ./dist/es --target es2015 --module es2015",
-    "build:module": "webpack --mode production",
+    "build:module": "NODE_OPTIONS='--openssl-legacy-provider' webpack --mode production",
     "compile:module": "tsc -p ./react-app/tsconfig.json",
     "test": "cd react-app; npm run test; cd -",
     "test:watch": "cd react-app; npm run test:watch; cd -",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@gnaudio/jabra-js": "^4.2.1",
-    "@vbet/webhid-sdk": "^1.4.0",
+    "@vbet/webhid-sdk": "^1.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
     "rxjs": "^7.4.0",
@@ -45,6 +45,8 @@
   "devDependencies": {
     "@babel/core": "^7.15.5",
     "@babel/plugin-proposal-class-properties": "^7.14.5",
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.27.1",
+    "@babel/plugin-transform-optional-chaining": "^7.27.1",
     "@babel/preset-env": "^7.15.6",
     "@babel/preset-typescript": "^7.15.0",
     "@types/jest": "^27.5.0",
