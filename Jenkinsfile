@@ -78,11 +78,11 @@ webappPipelineV2 {
       }
 
       version = "${packageJson.version}-${featureBranch}.${env.BUILD_NUMBER}".toString()
+      sh("npm version ${version} --no-git-tag-version")
+    } else {
+      version = packageJson.version
+      tag = 'latest'
     }
-
-
-    // Manually update package.json version to prevent corruption
-    sh("npm version ${version} --no-git-tag-version")
 
     stage('Publish to NPM') {
       script {
