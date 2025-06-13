@@ -30,7 +30,8 @@ webappPipelineV2 {
   }
   ciTests = {
     sh('''
-      npm ci
+      npm run install:all
+      npm run lint
       npm run test
     ''')
   }
