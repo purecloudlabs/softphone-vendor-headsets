@@ -24,7 +24,7 @@
     "build:react": "cd react-app; yarn build",
     "build:src": "tsc -p .",
     "build:es": "tsc -p . --outDir ./dist/es --target es2015 --module es2015",
-    "build:module": "webpack --mode production",
+    "build:module": "NODE_OPTIONS='--openssl-legacy-provider' webpack --mode production",
     "compile:module": "tsc -p ./react-app/tsconfig.json",
     "test": "cd react-app; npm run test; cd -",
     "test:watch": "cd react-app; npm run test:watch; cd -",
