@@ -9,8 +9,8 @@ module.exports = (env) => {
   let babelOptions;
   let externals = [];
 
-  /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
-  babelExcludes = [/node_modules\/(?!(core\-util\-is)).*/];
+  /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
+  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk)).*/];
 
   babelOptions = {
     sourceType: 'unambiguous',
