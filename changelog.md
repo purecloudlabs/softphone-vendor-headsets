@@ -4,10 +4,11 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
+## Changed
+* [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
 
 # [v2.5.6](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.5...v2.5.6)
 ## Changed
-* [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
 * [STREAM-484](https://inindca.atlassian.net/browse/STREAM-484) - Migrated to Jenkins webappPipelineV2.
 
 # [v2.5.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.4...v2.5.5)
