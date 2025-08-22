@@ -19,7 +19,7 @@ module.exports = (env) => {
       '@babel/preset-typescript'
     ],
     plugins: [
-      '@babel/plugin-proposal-class-properties',
+      '@babel/plugin-transform-class-properties',
       '@babel/plugin-transform-optional-chaining',
       '@babel/plugin-transform-nullish-coalescing-operator'
     ]
@@ -41,11 +41,12 @@ module.exports = (env) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename,
-      library: 'SoftphoneVendorHeadsets',
+      library: {
+        name: 'SoftphoneVendorHeadsets',
+        type: 'umd'
+      },
       // TODO: exporting the SDK class here does not allow CDN imports access to any
       //  other files/modules of this lib. See: https://inindca.atlassian.net/browse/PCM-1708
-      libraryExport: '',
-      libraryTarget: 'umd'
     },
     resolve: {
       extensions: ['.ts', '.js', '.cjs', '.mjs', '.json']

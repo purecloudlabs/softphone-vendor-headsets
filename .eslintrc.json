@@ -29,6 +29,7 @@
     "space-before-function-paren": ["error", "always"]
   },
   "ignorePatterns": [
-    "**/jabra-*/*.ts"
+    "**/jabra-*/*.ts",
+    "**/CallControlSDK*/*.js"
   ]
 }
