@@ -3,7 +3,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.3...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
+## Changed
+* [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
+
+# [v2.5.6](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.5...v2.5.6)
+## Changed
+* [STREAM-484](https://inindca.atlassian.net/browse/STREAM-484) - Migrated to Jenkins webappPipelineV2.
+
+# [v2.5.5](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.4...v2.5.5)
+## Fixed
+* [STREAM-331](https://inindca.atlassian.net/browse/STREAM-331) - Plantronics devices weren't resetting their state upon disconnect
+* [no-jira] - Yealink provided fix that helped with conflict while sharing with Teams
+
+# [v2.5.4](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.3...v2.5.4)
+## Fixed
+* [STREAM-259](https://inindca.atlassian.net/browse/STREAM-259) - added in guard for EPOS reject call to only bubble up events in the case of a "Notification" type message to avoid issues with "Acknowledgements"
 
 # [v2.5.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.2...v2.5.3)
 ## Added
