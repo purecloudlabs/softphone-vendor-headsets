@@ -260,7 +260,9 @@ export default class HeadsetService {
     if (this.updateHeadsetState({ conversationId, state: expectedStatePostAction })) {
       const headsetState = this.headsetConversationStates[conversationId];
       headsetState.removeTimer = this.setRemoveTimer(conversationId);
-      return implementation.endCall(conversationId, hasOtherActiveCalls);
+      console.log('mMoo: headsetConversationStates', this.headsetConversationStates, Object.keys(this.headsetConversationStates).length);
+      const hasOtherCalls = Object.keys(this.headsetConversationStates).length > 1;
+      return implementation.endCall(conversationId, hasOtherCalls);
     }
   }
 
