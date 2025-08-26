@@ -247,6 +247,7 @@ export default class HeadsetService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
     if (!implementation) {
