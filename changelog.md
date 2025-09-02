@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
 ## Changed
 * [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
+## Added
+* [STREAM-881](https://inindca.atlassian.net/browse/STREAM-881) - Generate a test report in JUnit.xml format
 
 # [v2.5.6](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.5...v2.5.6)
 ## Changed
