@@ -6,8 +6,8 @@ import CcSdk, { CallState, SdkEvent } from '@hp/call-control-sdk';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
-export default class PlantronicsService extends VendorImplementation {
-  private static instance: PlantronicsService;
+export default class HpService extends VendorImplementation {
+  private static instance: HpService;
   vendorName = 'Plantronics';
   pluginName: string;
   config: ImplementationConfig;
@@ -38,12 +38,12 @@ export default class PlantronicsService extends VendorImplementation {
     return ['plantronics', 'plt', 'poly', '(047f:', '(095d:', '(03f0:'].some(searchVal => lowerLabel.includes(searchVal));
   }
 
-  static getInstance (config: ImplementationConfig): PlantronicsService {
-    if (!PlantronicsService.instance || config.createNew) {
-      PlantronicsService.instance = new PlantronicsService(config);
+  static getInstance (config: ImplementationConfig): HpService {
+    if (!HpService.instance || config.createNew) {
+      HpService.instance = new HpService(config);
     }
 
-    return PlantronicsService.instance;
+    return HpService.instance;
   }
 
   get deviceName (): string | undefined {
