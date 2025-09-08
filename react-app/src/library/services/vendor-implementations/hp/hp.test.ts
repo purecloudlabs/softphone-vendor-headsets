@@ -7,6 +7,13 @@ import { mockLogger, eventValidation } from "../../../test-utils";
 import DeviceInfo from "../../../types/device-info";
 import HpService from "./hp";
 import fetchJsonp from "fetch-jsonp";
+import {
+  mockConnectHeadset,
+  mockDisconnectHeadset,
+  mockRegisterEventHandler,
+  mockSetCallState,
+  mockSetMuteState
+} from "./__mocks__/index"
 
 jest.mock('broadcast-channel');
 jest.mock('fetch-jsonp', () => jest.fn());
@@ -69,6 +76,24 @@ describe('HpService', () => {
       hpService._deviceInfo = undefined;
       const result = hpService.deviceName;
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('When disconnected', () => {
+    it('should not call the SDK when disconnect is called', () => {
+      hpService.disconnect();
+      expect(mockDisconnectHeadset).not.toBeCalled();
+    });
+  });
+
+  describe('When connected', () => {
+    beforeEach(() => {
+      hpService.isConnected = true;
+    });
+
+    it('should call the SDK when disconnect is called', () => {
+      hpService.disconnect();
+      expect(mockDisconnectHeadset).toBeCalled();
     });
   });
   /*
