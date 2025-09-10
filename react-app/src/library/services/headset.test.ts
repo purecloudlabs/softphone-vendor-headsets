@@ -1,5 +1,6 @@
 import HeadsetService from './headset';
 import { VendorImplementation } from './vendor-implementations/vendor-implementation';
+import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import HpService from './vendor-implementations/hp/hp';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
@@ -22,6 +23,7 @@ jest.mock('broadcast-channel');
 
 describe('HeadsetService', () => {
   let cyberacoustics: VendorImplementation;
+  let plantronics: VendorImplementation;
   let hp: VendorImplementation;
   let sennheiser: VendorImplementation;
   /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -34,6 +36,7 @@ describe('HeadsetService', () => {
 
   beforeEach(() => {
     headsetService = HeadsetService.getInstance({ ...config, createNew: true });
+    plantronics = PlantronicsService.getInstance({ ...config, vendorName: 'Plantronics' });
     hp = HpService.getInstance({ ...config, vendorName: 'Hp' });
     sennheiser = SennheiserService.getInstance({ ...config, vendorName: 'Sennheiser' });
     jabraNative = JabraNativeService.getInstance({ ...config, vendorName: 'JabraNative' });
@@ -51,6 +54,7 @@ describe('HeadsetService', () => {
   });
 
   afterEach(() => {
+    plantronics.removeAllListeners();
     hp.removeAllListeners();
     sennheiser.removeAllListeners();
     jabraNative.removeAllListeners();
@@ -59,6 +63,7 @@ describe('HeadsetService', () => {
     vbet.removeAllListeners();
     jabra.removeAllListeners();
     headsetService = null;
+    plantronics = null;
     hp = null;
     sennheiser = null;
     /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -91,7 +96,7 @@ describe('HeadsetService', () => {
   describe('implementations', () => {
     it('should only include implementations that are supported', () => {
       headsetService = HeadsetService.getInstance(config);
-      [headsetService['hp'], headsetService['sennheiser'], headsetService['jabra'], headsetService['jabraNative'], headsetService['yealink']]
+      [headsetService['plantronics'], headsetService['hp'], headsetService['sennheiser'], headsetService['jabra'], headsetService['jabraNative'], headsetService['yealink']]
         .forEach((impl) => {
           impl.isSupported = jest.fn().mockReturnValue(true);
         });

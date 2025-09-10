@@ -8,7 +8,7 @@ const defaultAppName = 'genesys-cloud-headset-library';
 
 export default class HpService extends VendorImplementation {
   private static instance: HpService;
-  vendorName = 'Plantronics';
+  vendorName = 'Hp';
   pluginName: string;
   config: ImplementationConfig;
   pendingDeviceLabel: string | null = null;
@@ -168,7 +168,8 @@ export default class HpService extends VendorImplementation {
           return;
         }
         if (activeConversationId) {
-          this.heldConversationIds.push(activeConversationId);
+          /* Add this to the end of the stack to simulate a round robin if doing flash with multiple active calls */
+          this.heldConversationIds = [activeConversationId].concat(this.heldConversationIds);
           this.deviceHoldStatusChanged({
             holdRequested: true,
             name: SdkEvent[sdkEvent],
@@ -184,7 +185,10 @@ export default class HpService extends VendorImplementation {
             conversationId: this.incomingConversationId,
           });
           this.incomingConversationId = null;
-        } else {
+        } else if (this.activeConversationIds.length == 0 && (this.heldConversationIds.length > 1 || !activeConversationId)) {
+          /* Ensure there are no active calls before resuming a held call, and either resuming a previous held call.
+           * if activeConverstationId is not null then we just held the call above so we only resume if there was more
+           * than one held call when activeConversationId is non null.*/
           const heldConversationId = this.heldConversationIds.pop();
           if (heldConversationId) {
             this.activeConversationIds.push(heldConversationId);
@@ -407,7 +411,7 @@ export default class HpService extends VendorImplementation {
   }
 
   async rejectCall (conversationId: string): Promise<any> {
-    this.logger.inf('Rejecting call for conversationId:', conversationId);
+    this.logger.info('Rejecting call for conversationId:', conversationId);
     this.incomingConversationId = null;
     this.removeConversationId(conversationId);
     this.updateCcsdkCallState();
