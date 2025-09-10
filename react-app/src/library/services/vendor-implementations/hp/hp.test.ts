@@ -2,6 +2,7 @@
 import "whatwg-fetch";
 import 'regenerator-runtime';
 import { mockLogger, eventValidation } from "../../../test-utils";
+import { UpdateReasons } from '../../../types/headset-states';
 import DeviceInfo from "../../../types/device-info";
 import HpService from "./hp";
 import {
@@ -53,6 +54,22 @@ describe('HpService', () => {
       expect(result).toBeUndefined();
     });
   });
+
+  describe('deviceInfo', () => {
+    it('should return _deviceInfo', () => {
+      const device: DeviceInfo = {
+        ProductName: 'Poly Headset',
+        deviceId: '123',
+        attached: true,
+      };
+      hpService._deviceInfo = device;
+
+      expect(hpService.deviceInfo).toBe(device);
+
+      expect(hpService.isDeviceAttached).toBe(true);
+    });
+  });
+
 
   describe('vendorName', () => {
     it('should return the expected name', () => {
@@ -207,11 +224,17 @@ describe('HpService', () => {
   describe('When connected', () => {
     beforeEach(() => {
       hpService.isConnected = true;
+      mockDisconnectHeadset.mockClear();
     });
 
-    it('should call the SDK when disconnect is called', () => {
-      hpService.disconnect();
+    it('should call the SDK when disconnect is called', async () => {
+      await hpService.disconnect();
       expect(mockDisconnectHeadset).toBeCalled();
+    });
+
+    it('should not call the SDK when disconnect is called with reason alternativeClient', async () => {
+      await hpService.disconnect('alternativeClient');
+      expect(mockDisconnectHeadset).not.toBeCalled();
     });
   });
 
@@ -225,20 +248,107 @@ describe('HpService', () => {
       expect(hpService.isConnecting).toBe(false);
       await deviceStatusEvent;
     });
-    /*
+
     it('will notify the when a disconnection has happened.', async () => {
       const deviceStatusEvent = eventValidation(hpService, 'deviceConnectionStatusChanged');
       hpService.isConnected = true;
-      const sdkevent = SdkEvent.DISCONNECTED;
+      const sdkevent = SdkEvent.DISCONNECT;
       await hpService.sdkEventHandler(sdkevent);
       expect(hpService.isConnected).toBe(false);
       expect(hpService.isConnecting).toBe(false);
       await deviceStatusEvent;
     });
-    */
 
   });
 
+  describe('Connecting a device', () => {
+    const testDevice = { productName: 'testDevice1' };
+    let getDevicesDevice = testDevice;
+
+    Object.defineProperty(window.navigator, 'hid', {
+      get: () => ({
+        getDevices: () => { return [getDevicesDevice as any]; },
+        requestDevice: () => { return [getDevicesDevice as any]; }
+      })
+    });
+
+    it('that has been previously authed call the sdk and set the correct states.', async () => {
+
+      await hpService.connect(testDevice.productName);
+      expect(mockConnectHeadset).toBeCalledWith(testDevice);
+      expect(mockRegisterEventHandler).toBeCalled();
+      expect(hpService.isConnecting).toBe(true);
+      expect(hpService.isConnected).toBe(false);
+      expect(hpService._device).toEqual(testDevice);
+    });
+
+    it('that has been previously authed but is rejected by sdk.', async () => {
+      (mockConnectHeadset as jest.Mock).mockReturnValueOnce(false);
+
+      await hpService.connect(testDevice.productName);
+      expect(mockConnectHeadset).toBeCalledWith(testDevice);
+      expect(mockRegisterEventHandler).toBeCalled();
+      expect(hpService.isConnecting).toBe(false);
+      expect(hpService.isConnected).toBe(false);
+    });
+
+    it('that has not been previously authed.', async () => {
+      getDevicesDevice = null;
+
+      (mockConnectHeadset as jest.Mock).mockReturnValue(false);
+
+      await hpService.connect(testDevice.productName);
+      expect(mockConnectHeadset).toBeCalledWith(testDevice);
+      expect(mockRegisterEventHandler).toBeCalled();
+      expect(hpService.isConnecting).toBe(true);
+      expect(hpService.isConnected).toBe(false);
+
+      // Test the case where requesting permissions fails.
+      const originalRequestWebHidPermissions = (hpService as any).requestWebHidPermissions;
+      (hpService as any).requestWebHidPermissions = jest.fn().mockImplementation(() => {
+        throw new Error('Permission denied');
+      });
+
+      await hpService.connect(testDevice.productName);
+      expect(hpService.isConnecting).toBe(false);
+      expect(hpService.isConnected).toBe(false);
+
+      (hpService as any).requestWebHidPermissions = originalRequestWebHidPermissions;
+
+      // Test the case where webHidPairing is called.
+      await hpService.webHidPairing();
+      expect(hpService.isConnecting).toBe(false);
+
+      // Test webHidPairing does not return a device, but connect fails.
+      hpService.isConnecting = true;
+      await hpService.webHidPairing();
+      expect(hpService.isConnecting).toBe(false);
+
+      // Test webHidPairing returns device, but connect fails.
+      getDevicesDevice = testDevice;
+      hpService.isConnecting = true;
+      await hpService.webHidPairing();
+      expect(hpService.isConnecting).toBe(false);
+
+      // Test webHidPairing with a device now available.
+      (mockConnectHeadset as jest.Mock).mockReturnValue(true);
+      getDevicesDevice = testDevice;
+      await hpService.webHidPairing();
+      expect(hpService.isConnecting).toBe(true);
+
+      // Test webHidPairing returns a different device than requested.
+      hpService.pendingDeviceLabel = 'another device';
+      try {
+        await hpService.webHidPairing();
+      } catch (err) {
+        expect(hpService.isConnecting).toBe(false);
+        expect(err).toBeDefined();
+      }
+      
+    });
+
+
+  });
 
   describe('sdkEventHandler in a single call scenario', () => {
     const callInfo = { conversationId: 'convoId1' };
@@ -255,15 +365,21 @@ describe('HpService', () => {
       expect(deviceAnsweredCallSpy).not.toBeCalled();
     });
 
-    it('will call deviceAnsweredCall', () => {
+    it('will call deviceAnsweredCall', async () => {
       const deviceAnsweredCallSpy = jest.spyOn(hpService, 'deviceAnsweredCall');
       hpService.incomingConversationId = callInfo['conversationId'];
       const sdkevent = SdkEvent.ANSWER;
-      hpService.sdkEventHandler(sdkevent);
+      await hpService.sdkEventHandler(sdkevent);
       expect(deviceAnsweredCallSpy).toHaveBeenCalledWith({ conversationId: callInfo['conversationId'], name: SdkEvent[sdkevent], code: sdkevent });
       expect(hpService.incomingConversationId).toBe(null);
       expect(hpService.activeConversationIds.length).toBe(1);
-      expect(mockSetCallState).toBeCalledWith(CallState.ACTIVE);
+      expect(mockSetCallState).toHaveBeenNthCalledWith(1, CallState.ACTIVE);
+
+      /* Calling answer again with the same id should not increase active calls */
+      hpService.incomingConversationId = callInfo['conversationId'];
+      await hpService.sdkEventHandler(sdkevent);
+      expect(hpService.activeConversationIds.length).toBe(1);
+      expect(mockSetCallState).toHaveBeenNthCalledWith(2, CallState.ACTIVE);
     });
 
     it('will not call deviceEndedCall if there is not an active call', () => {
@@ -365,6 +481,14 @@ describe('HpService', () => {
       expect(mockSetCallState).not.toBeCalled();
     });
 
+    it('will not call deviceHoldStatusChanged to resume when there is no held call (flash)', async () => {
+      const deviceHoldStatusChangedSpy = jest.spyOn(hpService, 'deviceHoldStatusChanged');
+      const sdkevent = SdkEvent.FLASH;
+      await hpService.sdkEventHandler(sdkevent);
+      expect(deviceHoldStatusChangedSpy).not.toBeCalled();
+      expect(mockSetCallState).not.toBeCalled();
+    });
+
     it('will call deviceHoldStatusChanged to hold an active call (with flash)', () => {
       const deviceHoldStatusChangedSpy = jest.spyOn(hpService, 'deviceHoldStatusChanged');
       hpService.activeConversationIds.push(callInfo['conversationId']);
@@ -374,6 +498,21 @@ describe('HpService', () => {
       expect(hpService.activeConversationIds.length).toBe(0);
       expect(hpService.heldConversationIds.length).toBe(1);
       expect(mockSetCallState).toBeCalledWith(CallState.HELD);
+    });
+
+    it('will call deviceHoldStatusChanged to hold an active call and answer incoming with flash', () => {
+      const deviceHoldStatusChangedSpy = jest.spyOn(hpService, 'deviceHoldStatusChanged');
+      const deviceAnsweredCallSpy = jest.spyOn(hpService, 'deviceAnsweredCall');
+      hpService.incomingConversationId = 'convoId2';
+      hpService.activeConversationIds.push(callInfo['conversationId']);
+      const sdkevent = SdkEvent.FLASH;
+      hpService.sdkEventHandler(sdkevent);
+      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith({ conversationId: callInfo['conversationId'], name: SdkEvent[sdkevent], code: sdkevent, "holdRequested": true });
+      expect(deviceAnsweredCallSpy).toHaveBeenCalledWith({ conversationId: 'convoId2', name: SdkEvent[sdkevent], code: sdkevent });
+      expect(hpService.incomingConversationId).toBe(null);
+      expect(hpService.activeConversationIds.length).toBe(1);
+      expect(hpService.heldConversationIds.length).toBe(1);
+      expect(mockSetCallState).toBeCalledWith(CallState.ACTIVE_AND_HELD);
     });
 
     it('will call deviceHoldStatusChanged to resume a held call (with flash)', () => {
@@ -406,8 +545,15 @@ describe('HpService', () => {
       const deviceMuteChangedSpy = jest.spyOn(hpService, 'deviceMuteChanged');
       const sdkevent = SdkEvent.MUTE;
       hpService.activeConversationIds.push(callInfo['conversationId']);
-      hpService.sdkEventHandler(sdkevent);
-      expect(deviceMuteChangedSpy).toHaveBeenCalledWith({ conversationId: callInfo['conversationId'], name: SdkEvent[sdkevent], code: sdkevent, "isMuted": true });
+      await hpService.sdkEventHandler(sdkevent);
+      expect(deviceMuteChangedSpy).toHaveBeenNthCalledWith(1, { conversationId: callInfo['conversationId'], name: SdkEvent[sdkevent], code: sdkevent, "isMuted": true });
+      expect(mockSetMuteState).toBeCalled();
+      await deviceMutedEvent;
+
+      // Test mute event with no active call
+      hpService.activeConversationIds.pop();
+      await hpService.sdkEventHandler(sdkevent);
+      expect(deviceMuteChangedSpy).toHaveBeenNthCalledWith(2, { conversationId: undefined, name: SdkEvent[sdkevent], code: sdkevent, "isMuted": true });
       expect(mockSetMuteState).toBeCalled();
       await deviceMutedEvent;
     });
@@ -421,6 +567,12 @@ describe('HpService', () => {
       expect(deviceMuteChangedSpy).toHaveBeenCalledWith({ conversationId: callInfo['conversationId'], name: SdkEvent[sdkevent], code: sdkevent, "isMuted": false });
       expect(mockSetMuteState).toBeCalled();
       await deviceMutedEvent;
+    });
+
+    it('will not update state when invalid event is sent', async () => {
+      const sdkevent = SdkEvent.INVALID;
+      await hpService.sdkEventHandler(sdkevent);
+      expect(mockSetCallState).not.toBeCalled();
     });
   });
 
@@ -457,10 +609,41 @@ describe('HpService', () => {
       mockSetMuteState.mockClear();
     });
 
-    it('will inform the headset of an incoming call.', () => {
-      hpService.incomingCall(callInfo);
+    it('will inform the headset of an incoming call.', async () => {
+      /* Test no call info */
+      try {
+        await hpService.incomingCall(null);
+      } catch (err) {
+        expect(hpService.incomingConversationId).toBe(null);
+        expect(err).toBeDefined();
+      }
+
+      /* Normal test */
+      await hpService.incomingCall(callInfo);
       expect(hpService.incomingConversationId).toBe(callInfo['conversationId']);
       expect(mockSetCallState).toBeCalledWith(CallState.INCOMING);
+
+      /* Test another incoming call while one is already incoming */
+      const callInfo2 = { conversationId: 'convoId2' };
+      await hpService.incomingCall(callInfo2);
+      expect(hpService.incomingConversationId).toBe(callInfo2['conversationId']);
+      expect(mockSetCallState).toBeCalledWith(CallState.INCOMING);
+    });
+
+    it('will inform the headset of an incoming call when call is already active.', async () => {
+      hpService.activeConversationIds.push(callInfo['conversationId']);
+
+      /* Test another incoming call while one is already active */
+      const callInfo2 = { conversationId: 'convoId2' };
+      await hpService.incomingCall(callInfo2);
+      expect(hpService.incomingConversationId).toBe(callInfo2['conversationId']);
+      expect(mockSetCallState).toBeCalledWith(CallState.ACTIVE_AND_INCOMING);
+    });
+
+    it('will send idle for end call even with no active call.', async () => {
+      await hpService.endCall(null);
+      expect(mockSetCallState).toBeCalledWith(CallState.IDLE);
+      expect(hpService.activeConversationIds.length).toBe(0);
     });
 
     it('will send the correct states for incoming call, answer then end for a single call.', async () => {
@@ -473,8 +656,14 @@ describe('HpService', () => {
       expect(hpService.incomingConversationId).toBe(null);
       expect(hpService.activeConversationIds.length).toBe(1);
 
+      /* Calling answer again with the same id should not increase active calls */
+      await hpService.answerCall(callInfo['conversationId'], false);
+      expect(mockSetCallState).toHaveBeenNthCalledWith(3, CallState.ACTIVE);
+      expect(hpService.incomingConversationId).toBe(null);
+      expect(hpService.activeConversationIds.length).toBe(1);
+
       await hpService.endCall(callInfo['conversationId']);
-      expect(mockSetCallState).toHaveBeenNthCalledWith(3, CallState.IDLE);
+      expect(mockSetCallState).toHaveBeenNthCalledWith(4, CallState.IDLE);
       expect(hpService.activeConversationIds.length).toBe(0);
     });
 
@@ -491,11 +680,22 @@ describe('HpService', () => {
     });
 
     it('will only set headset state correctly for an outgoing call.', async () => {
+      try {
+        await hpService.outgoingCall(null);
+      } catch (err) {
+        expect(hpService.activeConversationIds.length).toBe(0);
+        expect(err).toBeDefined();
+      }
       await hpService.outgoingCall(callInfo);
       expect(hpService.incomingConversationId).toBe(null);
       expect(hpService.activeConversationIds.length).toBe(1);
       expect(mockSetCallState).toHaveBeenNthCalledWith(1, CallState.ACTIVE);
       expect(hpService.heldConversationIds.length).toBe(0);
+
+      /* Calling outgoing again with the same id should not increase active calls */
+      await hpService.outgoingCall(callInfo);
+      expect(hpService.activeConversationIds.length).toBe(1);
+      expect(mockSetCallState).toHaveBeenNthCalledWith(2, CallState.ACTIVE);
     });
 
     it('will set headset state correctly based on hold requests.', async () => {

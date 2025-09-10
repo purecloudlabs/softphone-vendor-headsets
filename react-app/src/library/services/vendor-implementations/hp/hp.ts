@@ -190,15 +190,13 @@ export default class HpService extends VendorImplementation {
            * if activeConverstationId is not null then we just held the call above so we only resume if there was more
            * than one held call when activeConversationId is non null.*/
           const heldConversationId = this.heldConversationIds.pop();
-          if (heldConversationId) {
-            this.activeConversationIds.push(heldConversationId);
-            this.deviceHoldStatusChanged({
-              holdRequested: false,
-              name: SdkEvent[sdkEvent],
-              code: sdkEvent,
-              conversationId: heldConversationId,
-            });
-          }
+          this.activeConversationIds.push(heldConversationId);
+          this.deviceHoldStatusChanged({
+            holdRequested: false,
+            name: SdkEvent[sdkEvent],
+            code: sdkEvent,
+            conversationId: heldConversationId,
+          });
         }
       }
       break;
@@ -206,10 +204,12 @@ export default class HpService extends VendorImplementation {
     case SdkEvent.MUTE:
     case SdkEvent.UNMUTE:
       {
+        let activeConversationId: string;
         if (this.activeConversationIds.length < 1) {
           this.logger.warn('No active call to mute or unmute.');
+        } else {
+          activeConversationId = this.activeConversationIds[0];
         }
-        const activeConversationId = this.activeConversationIds[0];
         this.deviceMuteChanged({
           isMuted: sdkEvent == SdkEvent.MUTE,
           name: SdkEvent[sdkEvent],
@@ -250,6 +250,7 @@ export default class HpService extends VendorImplementation {
         if (!validConnect) {
           this.pendingDeviceLabel = null;
           this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+          return;
         } else {
           this.pendingDeviceLabel = deviceLabel;
         }
@@ -269,7 +270,7 @@ export default class HpService extends VendorImplementation {
     }
     finally
     {
-      this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
+      this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     }
   }
 
@@ -305,6 +306,8 @@ export default class HpService extends VendorImplementation {
       this._device = headset;
       if (!validConnect) {
         this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+      } else {
+        !this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: true });
       }
     }
 
@@ -319,9 +322,11 @@ export default class HpService extends VendorImplementation {
     if (!this.isConnected) {
       return;
     }
+
     if (clearReason !== 'alternativeClient') {
       await this.callControlSdk.disconnectHeadset();
     }
+
     this._deviceInfo = null;
     this.isConnected && this.changeConnectionStatus({ isConnected: false, isConnecting: this.isConnecting });
   }
@@ -331,13 +336,8 @@ export default class HpService extends VendorImplementation {
     let remainingActiveCalls = false;
     let remainingHeldCalls = false;
 
-    if (this.activeConversationIds) {
-      remainingActiveCalls = this.activeConversationIds.length > 0;
-    }
-
-    if (this.heldConversationIds) {
-      remainingHeldCalls = this.heldConversationIds.length > 0;
-    }
+    remainingActiveCalls = this.activeConversationIds.length > 0;
+    remainingHeldCalls = this.heldConversationIds.length > 0;
 
     if (this.incomingConversationId != null) {
       callState = CallState.INCOMING;
@@ -357,11 +357,11 @@ export default class HpService extends VendorImplementation {
     this.logger.info('CCSDK Call State Updated to:', CallState[callState]);
   }
 
-  removeConversationId (conversationId: string): void {
-    if (this.activeConversationIds) {
+  removeConversationId(conversationId: string): void {
+    if (this.activeConversationIds.length > 0) {
       this.activeConversationIds = this.activeConversationIds.filter(id => id !== conversationId);
     }
-    if (this.heldConversationIds) {
+    if (this.heldConversationIds.length > 0) {
       this.heldConversationIds = this.heldConversationIds.filter(id => id !== conversationId);
     }
   }
@@ -369,28 +369,27 @@ export default class HpService extends VendorImplementation {
   async incomingCall (callInfo: CallInfo): Promise<void> {
     this.logger.info('Inside incomingCall of selected implementation (Plantronics/Poly)');
 
-    if (!callInfo.conversationId) {
+    if (!callInfo || !callInfo.conversationId) {
       throw new Error('Must provide conversationId');
     }
 
     if (this.incomingConversationId != null) {
       const message = `Incoming call for conversationId ${callInfo.conversationId} while another call is pending with conversationId ${this.incomingConversationId}`;
       this.logger.warn(message);
-      this.logger.info(message);
     }
 
     this.incomingConversationId = callInfo.conversationId;
     this.updateCcsdkCallState();
   }
 
-  async outgoingCall ({ conversationId, contactName }: CallInfo): Promise<any> {
-    this.logger.info('Outgoing call for conversationId:', conversationId, ' contactName', contactName);
-    if (!conversationId) {
+  async outgoingCall (callInfo: CallInfo): Promise<any> {
+    if (!callInfo || !callInfo.conversationId) {
       throw new Error('Must provide conversationId');
     }
+    this.logger.info('Outgoing call for conversationId:', callInfo.conversationId, ' contactName', callInfo.contactName);
 
-    if (!this.activeConversationIds.includes(conversationId)) {
-      this.activeConversationIds.push(conversationId);
+    if (!this.activeConversationIds.includes(callInfo.conversationId)) {
+      this.activeConversationIds.push(callInfo.conversationId);
     }
 
     this.updateCcsdkCallState();
@@ -420,12 +419,11 @@ export default class HpService extends VendorImplementation {
   async endCall (conversationId: string): Promise<any> {
     this.logger.info('End call for conversationId:', conversationId);
     if (!conversationId) {
-      throw new Error('conversationId is invalid');
+      this.logger.error('conversationId is invalid');
     }
 
     if (!this.activeConversationIds || this.activeConversationIds.length === 0) {
       const message = `End call requested for conversationId ${conversationId} but no active call is present`;
-      this.logger.warn(message);
       this.logger.info(message);
     }
 
@@ -451,13 +449,9 @@ export default class HpService extends VendorImplementation {
 
     this.removeConversationId(conversationId);
     if (value) {
-      if (!this.heldConversationIds.includes(conversationId)) {
-        this.heldConversationIds.push(conversationId);
-      }
+      this.heldConversationIds.push(conversationId);
     } else {
-      if (!this.activeConversationIds.includes(conversationId)) {
-        this.activeConversationIds.push(conversationId);
-      }
+      this.activeConversationIds.push(conversationId);
     }
     this.updateCcsdkCallState();
   }
