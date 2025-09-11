@@ -38,7 +38,6 @@
   },
   "dependencies": {
     "@gnaudio/jabra-js": "^4.2.1",
-    "@types/w3c-web-hid": "^1.0.6",
     "@vbet/webhid-sdk": "^1.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
