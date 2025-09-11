@@ -1,7 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
 import CyberAcousticsService from './vendor-implementations/CyberAcoustics/CyberAcoustics';
-import PlantronicsService from './vendor-implementations/plantronics/plantronics';
 import HpService from './vendor-implementations/hp/hp';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
@@ -22,7 +21,6 @@ const REMOVE_WAIT = 2000;
 export default class HeadsetService {
   private static instance: HeadsetService;
 
-  plantronics: VendorImplementation;
   hp: VendorImplementation;
   jabraNative: VendorImplementation;
   jabra: VendorImplementation;
@@ -42,7 +40,6 @@ export default class HeadsetService {
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.logger = config.logger || console;
-    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
     this.hp = HpService.getInstance({ logger: this.logger, appName: config.appName });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
     this.jabra = JabraService.getInstance({ logger: this.logger });
@@ -51,7 +48,7 @@ export default class HeadsetService {
     this.vbet = VBetService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopVbet: config.useWebHidOnDesktopVbet });
     this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopCyberAcoustics: config.useWebHidOnDesktopCyberAcoustics });
 
-    [this.plantronics, this.hp, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.hp, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -65,7 +62,6 @@ export default class HeadsetService {
   get implementations (): VendorImplementation[] {
     const implementations = [
       this.sennheiser,
-      this.plantronics,
       this.hp,
       this.jabra,
       this.jabraNative,
