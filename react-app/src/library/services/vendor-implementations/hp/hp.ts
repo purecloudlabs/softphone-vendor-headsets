@@ -357,7 +357,7 @@ export default class HpService extends VendorImplementation {
     this.logger.info('CCSDK Call State Updated to:', CallState[callState]);
   }
 
-  removeConversationId(conversationId: string): void {
+  removeConversationId (conversationId: string): void {
     if (this.activeConversationIds.length > 0) {
       this.activeConversationIds = this.activeConversationIds.filter(id => id !== conversationId);
     }
