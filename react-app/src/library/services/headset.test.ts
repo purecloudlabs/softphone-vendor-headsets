@@ -78,7 +78,6 @@ describe('HeadsetService', () => {
       expect(headsetService).not.toBeFalsy();
       expect(headsetService2).not.toBeFalsy();
       expect(headsetService).toBe(headsetService2);
-      //TEST
     });
 
     it('should fallback to console logger', () => {
