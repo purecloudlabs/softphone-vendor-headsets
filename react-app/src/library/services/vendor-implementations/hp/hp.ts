@@ -284,11 +284,31 @@ export default class HpService extends VendorImplementation {
     return null;
   }
 
-  async webHidPairing (): Promise<any> {
+  async webHidPairing (timeoutMs = 30000): Promise<any> {
     // Done this way in order to validate the device label
     // If this is the way we go, then perhaps the filters should be defined in ccsdk
     const deviceFilters = [{ "vendorId": 0x047f }, { "vendorId": 0x095d }, { "vendorId": 0x03f0 }];
-    const devices = await (window.navigator as any).hid.requestDevice({ filters: deviceFilters });
+
+    // Create a timeout promise that rejects after the specified timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('HID device selection timed out after 30 seconds'));
+      }, timeoutMs);
+    });
+
+    let devices;
+    try {
+      devices = await Promise.race([
+        (window.navigator as any).hid.requestDevice({ filters: deviceFilters }),
+        timeoutPromise
+      ]);
+    } catch (error) {
+      this.logger.error('webHidPairing: Device request failed or timed out', error);
+      this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+      this.pendingDeviceLabel = null;
+      return Promise.reject(error);
+    }
+
     const headset = devices[0];
     if (!headset) {
       this.logger.warn('webHidPairing: No headset found');

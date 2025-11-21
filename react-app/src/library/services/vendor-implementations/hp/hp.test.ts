@@ -269,7 +269,8 @@ describe('HpService', () => {
       get: () => ({
         getDevices: () => { return [getDevicesDevice as any]; },
         requestDevice: () => { return [getDevicesDevice as any]; }
-      })
+      }),
+      configurable: true
     });
 
     it('that has been previously authed call the sdk and set the correct states.', async () => {
@@ -344,7 +345,24 @@ describe('HpService', () => {
         expect(hpService.isConnecting).toBe(false);
         expect(err).toBeDefined();
       }
-      
+
+      // Test webHidPairing timeout scenario
+      hpService.isConnecting = true;
+      hpService.pendingDeviceLabel = 'test device';
+      const hidGetMock = jest.spyOn(window.navigator as any, 'hid', 'get').mockReturnValue({
+        requestDevice: () => new Promise(() => {})
+      } as any);
+
+      try {
+        await hpService.webHidPairing(0);
+
+        expect(hpService.isConnecting).toBe(false);
+        expect(hpService.pendingDeviceLabel).toBe(null);
+      } catch (err) {
+        expect(err).toBeDefined();
+      } finally {
+        hidGetMock.mockRestore();
+      }
     });
 
 
