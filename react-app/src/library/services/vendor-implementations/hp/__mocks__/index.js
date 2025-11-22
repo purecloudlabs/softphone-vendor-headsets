@@ -1,6 +1,6 @@
 // jest.mock('@hp/call-control-sdk', () => {
 //   // Require the original module to not be mocked...
-//   const originalModule = jest.requireActual('../CallControlSDK-2.1.2-Web');
+//   const originalModule = jest.requireActual('../CallControlSDK-2.1.16-Web');
 
 //   return {
 //     __esModule: true, // Use it when dealing with esModules
