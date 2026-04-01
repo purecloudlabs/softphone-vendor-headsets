@@ -1,0 +1,48 @@
+#root {
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-wrapper {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+}
+
+body > div {
+  display: flex;
+}
+
+body > div > * {
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.entry-row {
+  margin:0 5px 10px 6px;
+  display: flex;
+  border: 2px lightgray solid;
+  border-radius: 5px;
+  padding: 5px;
+
+  .entry-label {
+    gux-icon {
+      padding-right: 5px;
+    }
+  }
+}
+
+.entry-row, a {
+  margin-right: 10px;
+}
+
+.entry-value {
+  padding: 0 0 10px 0;
+}
