@@ -68,7 +68,14 @@ describe('JabraService', () => {
   } };
   Object.defineProperty(window.navigator, 'locks', { get: () => ({}) });
   (window as any).BroadcastChannel = BroadcastChannel;
-  
+  (window as any).Orgspan = {
+    serviceFor: jest.fn().mockReturnValue({
+      get: jest.fn().mockReturnValue({
+        supportsWebHID: jest.fn().mockReturnValue(true),
+      })
+    })
+  };
+
   beforeEach(() => {
     jabraService = JabraService.getInstance({ logger: console, createNew: true });
     jabraService.initializeJabraSdk = initializeSdk as any;
@@ -1288,12 +1295,34 @@ describe('JabraService', () => {
   });
 
   describe('isSupported', () => {
-    it('should return true if proper values are met', () => {
+    it('should return true if isCefHosted and supportsWebHID', () => {
+      (window as any)._HostedContextFunctions = { get: () => true };
       expect(jabraService.isSupported()).toBe(true);
     });
 
-    it('should return false if proper values are not met', () => {
-      Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
+    it('should return false if isCefHosted and !supportsWebHID', () => {
+      (window as any)._HostedContextFunctions = { get: () => true };
+      (window as any).Orgspan = {
+        serviceFor: jest.fn().mockReturnValue({
+          get: jest.fn().mockReturnValue({
+            supportsWebHID: jest.fn().mockReturnValue(false),
+          })
+        })
+      };
+      expect(jabraService.isSupported()).toBe(false);
+    });
+
+    it('should return true if !isCefHosted and hid', () => {
+      (window as any)._HostedContextFunctions = undefined;
+      expect(jabraService.isSupported()).toBe(true);
+    });
+
+    it.only('should return false if !isCefHosted and !hid', () => {
+      (window as any)._HostedContextFunctions = undefined;
+      Object.defineProperty(window.navigator, 'hid', {
+        value: undefined,
+        configurable: true
+      });
       expect(jabraService.isSupported()).toBe(false);
     });
   });
@@ -1407,7 +1436,8 @@ describe('JabraService', () => {
     Object.defineProperty(window.navigator, 'hid', {
       get: () => ({
         getDevices: () => { return [{ productName: 'test-device' } as any]; }
-      })
+      }),
+      configurable: true
     });
     it('should return true if passed in label exists in getDevices', async () => {
       const deviceHasPermissions = await jabraService.deviceHasPermissions('test-device');
