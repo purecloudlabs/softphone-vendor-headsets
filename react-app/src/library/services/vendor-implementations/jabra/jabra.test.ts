@@ -1317,13 +1317,19 @@ describe('JabraService', () => {
       expect(jabraService.isSupported()).toBe(true);
     });
 
-    it.only('should return false if !isCefHosted and !hid', () => {
+    it('should return false if !isCefHosted and !hid', () => {
       (window as any)._HostedContextFunctions = undefined;
       Object.defineProperty(window.navigator, 'hid', {
         value: undefined,
         configurable: true
       });
       expect(jabraService.isSupported()).toBe(false);
+      Object.defineProperty(window.navigator, 'hid', {
+        get: () => ({
+          getDevices: () => { return [{ productName: 'test-device' } as any]; }
+        }),
+        configurable: true
+      });
     });
   });
 
