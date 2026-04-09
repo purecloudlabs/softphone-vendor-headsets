@@ -12,6 +12,7 @@ export default class HpService extends VendorImplementation {
   pluginName: string;
   config: ImplementationConfig;
   pendingDeviceLabel: string | null = null;
+  connectionTimer: any = null;
   callControlSdk = new CcSdk();
   ccsdkRegistered = false;
   incomingConversationId: string;
@@ -271,38 +272,48 @@ export default class HpService extends VendorImplementation {
     finally
     {
       this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
+      this.connectionTimer = setTimeout(() => {
+        if (this.isConnecting) {
+          console.warn('Connection attempt timed out'); // REMOVE after testing
+          this.pendingDeviceLabel = null;
+          this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
+        }
+      }, 30000);
     }
   }
 
   async getPreviouslyConnectedDevice (deviceLabel: string): Promise<any> {
+    console.log('getPreviouslyConnectedDevice for label', deviceLabel); // REMOVE after testing
     const allowedHIDDevices = await (window.navigator as any).hid.getDevices();
     for (const device of allowedHIDDevices) {
-      if (deviceLabel.includes(device?.productName?.toLowerCase())) {
-        return device;
+      let productName = device?.productName?.toLowerCase();
+      if (productName) {
+        if (productName.includes('/')) {
+          productName = productName.split('/')[0].trim();
+        }
+        if (deviceLabel.includes(productName)) {
+          return device;
+        }
       }
     }
     return null;
   }
 
-  async webHidPairing (timeoutMs = 30000): Promise<any> {
+  async webHidPairing (): Promise<any> {
     // Done this way in order to validate the device label
     // If this is the way we go, then perhaps the filters should be defined in ccsdk
     const deviceFilters = [{ "vendorId": 0x047f }, { "vendorId": 0x095d }, { "vendorId": 0x03f0 }];
 
-    // Create a timeout promise that rejects after the specified timeout
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('HID device selection timed out after 30 seconds'));
-      }, timeoutMs);
-    });
-
     let devices;
     try {
-      devices = await Promise.race([
-        (window.navigator as any).hid.requestDevice({ filters: deviceFilters }),
-        timeoutPromise
-      ]);
+      devices = await (window.navigator as any).hid.requestDevice({ filters: deviceFilters });
+      if (this.connectionTimer) {
+        clearTimeout(this.connectionTimer);
+      }
     } catch (error) {
+      if (this.connectionTimer) {
+        clearTimeout(this.connectionTimer);
+      }
       this.logger.error('webHidPairing: Device request failed or timed out', error);
       this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
       this.pendingDeviceLabel = null;
@@ -310,10 +321,15 @@ export default class HpService extends VendorImplementation {
     }
 
     const headset = devices[0];
+    let productName = headset?.productName?.toLowerCase();
+    if (productName && productName.includes('/')) {
+      productName = productName.split('/')[0].trim();
+    }
+
     if (!headset) {
       this.logger.warn('webHidPairing: No headset found');
       this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
-    } else if (this.pendingDeviceLabel && !this.pendingDeviceLabel.includes(headset.productName.toLowerCase())) {
+    } else if (this.pendingDeviceLabel && productName && !this.pendingDeviceLabel.includes(productName)) {
       this.logger.error('webHidPairing: Device label does not match', this.pendingDeviceLabel, headset.productName);
       this.pendingDeviceLabel = null;
       this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
@@ -339,6 +355,10 @@ export default class HpService extends VendorImplementation {
   }
 
   async disconnect (clearReason?: UpdateReasons): Promise<any> {
+    console.log('HpService disconnect called with reason', clearReason); // REMOVE after testing
+    if (this.connectionTimer) {
+      clearTimeout(this.connectionTimer);
+    }
     if (!this.isConnected) {
       return;
     }

@@ -219,6 +219,15 @@ describe('HpService', () => {
       hpService.disconnect();
       expect(mockDisconnectHeadset).not.toBeCalled();
     });
+
+    it('should clear connectionTimer', () => {
+      jest.useFakeTimers();
+      hpService.connectionTimer = setTimeout(() => {}, 30000);
+      hpService.disconnect();
+      expect(mockDisconnectHeadset).not.toBeCalled();
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
   });
 
   describe('When connected', () => {
@@ -346,25 +355,105 @@ describe('HpService', () => {
         expect(err).toBeDefined();
       }
 
-      // Test webHidPairing timeout scenario
-      hpService.isConnecting = true;
-      hpService.pendingDeviceLabel = 'test device';
+    });
+
+    it('should timeout and clear isConnecting after 30 seconds if no device is connected.', async () => {
+      jest.useFakeTimers();
+      getDevicesDevice = testDevice;
+      (mockConnectHeadset as jest.Mock).mockReturnValue(true);
+      await hpService.connect(testDevice.productName);
+      expect(hpService.isConnecting).toBe(true);
+      jest.advanceTimersByTime(30000);
+      expect(hpService.isConnecting).toBe(false);
+      expect(hpService.pendingDeviceLabel).toBe(null);
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    it('should not change status when connection timer fires after isConnecting is already false.', async () => {
+      jest.useFakeTimers();
+      getDevicesDevice = testDevice;
+      (mockConnectHeadset as jest.Mock).mockReturnValue(true);
+      await hpService.connect(testDevice.productName);
+      hpService.isConnecting = false;
+      jest.advanceTimersByTime(30000);
+      expect(hpService.isConnecting).toBe(false);
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    it('should return null when requested match is not found.', async () => {
       const hidGetMock = jest.spyOn(window.navigator as any, 'hid', 'get').mockReturnValue({
-        requestDevice: () => new Promise(() => {})
+        getDevices: () => [{ productName: 'differentDevice' }]
       } as any);
+      const result = await hpService.getPreviouslyConnectedDevice('testDevice1');
+      expect(result).toBeNull();
+      hidGetMock.mockRestore();
+    });
 
+    it('will reject and update status when requestDevice errors in webHidPairing.', async () => {
+      const error = new Error('requestDevice failed');
+      hpService.isConnecting = true;
+      const hidGetMock = jest.spyOn(window.navigator as any, 'hid', 'get').mockReturnValue({
+        requestDevice: () => Promise.reject(error)
+      } as any);
       try {
-        await hpService.webHidPairing(0);
-
+        await hpService.webHidPairing();
+      } catch (err) {
+        expect(err).toBe(error);
         expect(hpService.isConnecting).toBe(false);
         expect(hpService.pendingDeviceLabel).toBe(null);
-      } catch (err) {
-        expect(err).toBeDefined();
       } finally {
         hidGetMock.mockRestore();
       }
     });
 
+    it('should match a previously connected device excluding anything after "/".', async () => {
+      const slashDevice = { productName: 'testDevice1/extra' };
+      const hidGetMock = jest.spyOn(window.navigator as any, 'hid', 'get').mockReturnValue({
+        getDevices: () => [slashDevice],
+        requestDevice: () => [slashDevice]
+      });
+      (mockConnectHeadset as jest.Mock).mockReturnValue(true);
+      await hpService.connect('testDevice1');
+      expect(hpService._device).toEqual(slashDevice);
+      hidGetMock.mockRestore();
+    });
+
+    it('will split productName on "/" when connecting via request permissions.', async () => {
+      const slashDevice = { productName: 'testDevice-1/extra' };
+      (mockConnectHeadset as jest.Mock).mockReturnValue(true);
+      const hidGetMock = jest.spyOn(window.navigator as any, 'hid', 'get').mockReturnValue({
+        requestDevice: () => [slashDevice]
+      } as any);
+      await hpService.webHidPairing();
+      expect(hpService._device).toEqual(slashDevice);
+      hidGetMock.mockRestore();
+    });
+
+    it('will clear connectionTimer and set connecting to false when requestDevice errors.', async () => {
+      const error = new Error('requestDevice failed');
+      jest.useFakeTimers();
+      hpService.connectionTimer = setTimeout(() => {}, 30000);
+      const hidGetMock = jest.spyOn(window.navigator as any, 'hid', 'get').mockReturnValue({
+        requestDevice: () => Promise.reject(error)
+      } as any);
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      hpService.isConnecting = true;
+      try {
+        await hpService.webHidPairing();
+      } catch (err) {
+        expect(err).toBe(error);
+        expect(hpService.pendingDeviceLabel).toBe(null);
+        expect(clearTimeoutSpy).toBeCalledWith(hpService.connectionTimer);
+        expect(hpService.isConnecting).toBe(false);
+      } finally {
+        hidGetMock.mockRestore();
+        clearTimeoutSpy.mockRestore();
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    });
 
   });
 
