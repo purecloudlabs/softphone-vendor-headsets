@@ -274,7 +274,6 @@ export default class HpService extends VendorImplementation {
       this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
       this.connectionTimer = setTimeout(() => {
         if (this.isConnecting) {
-          console.warn('Connection attempt timed out'); // REMOVE after testing
           this.pendingDeviceLabel = null;
           this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
         }
@@ -283,7 +282,6 @@ export default class HpService extends VendorImplementation {
   }
 
   async getPreviouslyConnectedDevice (deviceLabel: string): Promise<any> {
-    console.log('getPreviouslyConnectedDevice for label', deviceLabel); // REMOVE after testing
     const allowedHIDDevices = await (window.navigator as any).hid.getDevices();
     for (const device of allowedHIDDevices) {
       let productName = device?.productName?.toLowerCase();
@@ -355,7 +353,6 @@ export default class HpService extends VendorImplementation {
   }
 
   async disconnect (clearReason?: UpdateReasons): Promise<any> {
-    console.log('HpService disconnect called with reason', clearReason); // REMOVE after testing
     if (this.connectionTimer) {
       clearTimeout(this.connectionTimer);
     }
