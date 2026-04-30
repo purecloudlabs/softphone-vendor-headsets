@@ -1237,4 +1237,15 @@ describe('PlantronicsService', () => {
       });
     });
   });
+
+  describe('isSupported', () => {
+    it('should return true if proper values are met', () => {
+      expect(plantronicsService.isSupported()).toBe(true);
+    });
+
+    it('should return false if proper values are not met', () => {
+      plantronicsService.config.useNewPoly = true;
+      expect(plantronicsService.isSupported()).toBe(false);
+    });
+  });
 });

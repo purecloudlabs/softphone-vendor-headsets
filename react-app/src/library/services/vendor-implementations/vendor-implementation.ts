@@ -12,6 +12,7 @@ export interface ImplementationConfig {
   vendorName?: string;
   appName?: string;
   createNew?: boolean; // this should only be used for testing
+  useNewPoly?: boolean;
 }
 
 export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
