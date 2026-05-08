@@ -4,11 +4,5 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-// Polyfill for structuredClone if not available in the test environment
-if (typeof structuredClone === 'undefined') {
-  (global as any).structuredClone = (obj: any) => {
-    // Simple deep clone using JSON for testing purposes
-    // Note: This may not handle all edge cases like circular references, functions, etc.
-    return JSON.parse(JSON.stringify(obj));
-  };
-}
+// Polyfill structuredClone for jsdom environment (not implemented in jsdom)
+global.structuredClone = global.structuredClone ?? ((val) => JSON.parse(JSON.stringify(val)));
