@@ -35,6 +35,7 @@ class ApplicationService {
 
 class HostedContext extends EventEmitter {
   _supportsJabra?: boolean;
+  _supportsWebHID?: boolean;
   _isHosted?: boolean;
 
   constructor () {
@@ -48,11 +49,16 @@ class HostedContext extends EventEmitter {
     };
     const appInfo = (window as any)._HostedContextFunctions.register(initData);
     this._supportsJabra = appInfo.supportsJabra;
+    this._supportsWebHID = appInfo.supportsWebHID;
     this._isHosted = true;
   }
 
   supportsJabra (): boolean {
     return !!this._supportsJabra;
+  }
+
+  supportsWebHID (): boolean {
+    return !!this._supportsWebHID;
   }
 
   isHosted (): boolean {
