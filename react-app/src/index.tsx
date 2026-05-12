@@ -7,12 +7,12 @@ import './config/i18n';
 
 import decorateCefClient from './decorate-cef-client';
 
-decorateCefClient();
+const hostedContext = decorateCefClient();
 
 ReactDOM.render(
   <React.StrictMode>
     <Suspense fallback={<div>Loading i18n</div>}>
-      <App />
+      <App hostedContext={hostedContext}/>
     </Suspense>
   </React.StrictMode>,
   document.getElementById('root')

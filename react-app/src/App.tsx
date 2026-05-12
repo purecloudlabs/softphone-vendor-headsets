@@ -10,8 +10,9 @@ import MockCall from './mocks/call';
 import { isCefHosted } from './library/utils';
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-const App = () => {
+const App = (props: { hostedContext: any }) => {
 /* eslint-enable */
+  const { hostedContext } = props;
   const { t } = useTranslation();
   const [currentCall, setCurrentCall] = useState<any>(null);
   const [muted, setMuted] = useState<boolean>(false);
@@ -23,7 +24,7 @@ const App = () => {
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('');
   const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
   const [autoAnswer, setAutoAnswer] = useState<boolean>(false);
-  const headset = HeadsetService?.getInstance({} as any);
+  const headset = HeadsetService?.getInstance({ hostedContext } as any);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
 

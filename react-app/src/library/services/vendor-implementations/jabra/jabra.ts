@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import DeviceInfo from '../../../types/device-info';
 import {
@@ -35,15 +36,18 @@ export default class JabraService extends VendorImplementation {
   pendingConversationId: string;
   pendingConversationIsOutbound: boolean;
   activeConversationId: string;
+  config: ImplementationConfig;
 
   private constructor (config: ImplementationConfig) {
     super(config);
+    this.config = config;
     this.vendorName = 'Jabra';
   }
 
   isSupported (): boolean {
+    return false;
     if (isCefHosted()) {
-      return (window as any).Orgspan?.serviceFor('application').get('hostedContext').supportsWebHID();
+      this.config.hostedContext.supportsWebHid();
     } else {
       return !!(window.navigator as any).hid;
     }

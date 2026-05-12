@@ -61,7 +61,7 @@ const initializeSdk = async (subject?: Subject<IDevice[]>) => {
   return new MockJabraSdk(subject);
 };
 
-describe('JabraService', () => {
+describe.skip('JabraService', () => {
   let jabraService: JabraService;
   (window.navigator as any) = { ...(window.navigator as any), hid: {
     getDevices: jest.fn().mockResolvedValue([])

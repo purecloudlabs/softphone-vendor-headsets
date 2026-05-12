@@ -9,6 +9,7 @@ type HeadsetEventName = keyof EmittedHeadsetEvents;
 
 export interface ImplementationConfig {
   logger: any;
+  hostedContext?: any;
   vendorName?: string;
   appName?: string;
   createNew?: boolean; // this should only be used for testing
