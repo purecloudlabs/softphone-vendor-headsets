@@ -9,6 +9,7 @@ import {
 import { BroadcastChannel } from 'broadcast-channel';
 import 'regenerator-runtime';
 import { MockJabraSdk } from './mock-jabra-sdk';
+import decorateCefClient from '../../../../decorate-cef-client';
 
 jest.mock('broadcast-channel');
 
@@ -61,8 +62,9 @@ const initializeSdk = async (subject?: Subject<IDevice[]>) => {
   return new MockJabraSdk(subject);
 };
 
-describe.skip('JabraService', () => {
+describe('JabraService', () => {
   let jabraService: JabraService;
+  let hostedContext;
   (window.navigator as any) = { ...(window.navigator as any), hid: {
     getDevices: jest.fn().mockResolvedValue([])
   } };
@@ -77,13 +79,19 @@ describe.skip('JabraService', () => {
   };
 
   beforeEach(() => {
-    jabraService = JabraService.getInstance({ logger: console, createNew: true });
+    (window as any)._HostedContextFunctions = {
+      register: jest.fn().mockReturnValue({ supportsJabra: true }),
+      sendEventToDesktop: jest.fn()
+    };
+    hostedContext = decorateCefClient();
+    jabraService = JabraService.getInstance({ logger: console, createNew: true, hostedContext });
     jabraService.initializeJabraSdk = initializeSdk as any;
   });
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-      const jabraService2 = JabraService.getInstance({ logger: console });
+      const hostedContext2 = decorateCefClient();
+      const jabraService2 = JabraService.getInstance({ logger: console, hostedContext: hostedContext2 });
 
       expect(jabraService).not.toBeFalsy();
       expect(jabraService2).not.toBeFalsy();
@@ -1295,8 +1303,9 @@ describe.skip('JabraService', () => {
   });
 
   describe('isSupported', () => {
-    it('should return true if isCefHosted and supportsWebHID', () => {
+    it('should return true if isCefHosted and supportsWebHid', () => {
       (window as any)._HostedContextFunctions = { get: () => true };
+      hostedContext._supportsWebHid = true;
       expect(jabraService.isSupported()).toBe(true);
     });
 

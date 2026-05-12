@@ -70,7 +70,7 @@ class HostedContext extends EventEmitter {
     }
   }
 
-  sendJabraEventToDesktop (deviceId, cmd, value): void {
+  sendEventToDesktop (deviceId, cmd, value): void {
     (window as any)._HostedContextFunctions.sendEventToDesktop(
       'jabraEvent',
       {
