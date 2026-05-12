@@ -126,7 +126,7 @@ export default class JabraService extends VendorImplementation {
           });
           try {
             callControl.releaseCallLock();
-          } catch ({ message, type }) {
+          } catch ({ message, type }: any) {
             if (this.checkForCallLockError(message, type)) {
               this.logger.info(message);
             } else {
@@ -172,7 +172,7 @@ export default class JabraService extends VendorImplementation {
             callControl.releaseCallLock();
             this.callLock = false;
           }
-        } catch ({ message, type }) {
+        } catch ({ message, type }: any) {
           if (this.checkForCallLockError(message, type)) {
             this.logger.info(message);
           } else {
@@ -204,7 +204,7 @@ export default class JabraService extends VendorImplementation {
     this.pendingConversationIsOutbound = false;
     try {
       this.callLock = await this.callControl.takeCallLock();
-    } catch ({ message, type }) {
+    } catch ({ message, type }: any) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
         this.callLock = true;
@@ -223,7 +223,7 @@ export default class JabraService extends VendorImplementation {
       this.pendingConversationId = conversationId;
       try {
         this.callLock = await this.callControl.takeCallLock();
-      } catch ({ message, type }) {
+      } catch ({ message, type }: any) {
         if (this.checkForCallLockError(message, type)) {
           this.logger.info(message);
           this.callLock = true;
@@ -253,7 +253,7 @@ export default class JabraService extends VendorImplementation {
       try {
         this.resetState();
         this.callControl.releaseCallLock();
-      } catch ({ message, type }) {
+      } catch ({ message, type }: any) {
         if (this.checkForCallLockError(message, type)) {
           this.logger.info(message);
         } else {
@@ -269,7 +269,7 @@ export default class JabraService extends VendorImplementation {
   async outgoingCall (callInfo: CallInfo): Promise<void> {
     try {
       this.callLock = await this.callControl.takeCallLock();
-    } catch ({ message, type }) {
+    } catch ({ message, type }: any) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
         this.callLock = true;
@@ -303,7 +303,7 @@ export default class JabraService extends VendorImplementation {
       this.callControl.offHook(false);
       this.resetState();
       this.callControl.releaseCallLock();
-    } catch ({ message, type }) {
+    } catch ({ message, type }: any) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
       } else {
@@ -325,7 +325,7 @@ export default class JabraService extends VendorImplementation {
       this.callControl.offHook(false);
       this.resetState();
       this.callControl.releaseCallLock();
-    } catch ({ message, type }) {
+    } catch ({ message, type }: any) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
       } else {
@@ -482,7 +482,7 @@ export default class JabraService extends VendorImplementation {
         );
       }
       this.callControl.releaseCallLock();
-    } catch ({ message, type }) {
+    } catch ({ message, type }: any) {
       if (this.checkForCallLockError(message, type)) {
         this.logger.info(message);
       } else {
