@@ -70,13 +70,13 @@ class HostedContext extends EventEmitter {
     }
   }
 
-  sendEventToDesktop (deviceId, cmd, value): void {
+  sendEventToDesktop (event, data): void {
     (window as any)._HostedContextFunctions.sendEventToDesktop(
-      'jabraEvent',
+      event,
       {
-        deviceID: deviceId,
-        event: cmd,
-        value
+        deviceID: data.deviceId,
+        event: data.cmd,
+        value: data.value
       }
     );
   }
