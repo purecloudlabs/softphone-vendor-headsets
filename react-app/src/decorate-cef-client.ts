@@ -1,41 +1,17 @@
 /* istanbul ignore file */
 import { EventEmitter } from 'events';
+import { isCefHosted } from './library/utils';
 
-export default function (): void {
+export default function (): any {
   if (!(window as any)._HostedContextFunctions) {
     return;
   }
 
-  const fakeApplicationService = new ApplicationService();
-
-  const Orgspan = {
-    serviceFor: (name) => {
-      if (name !== 'application') {
-        throw new Error('Only the application service is mocked');
-      }
-
-      return fakeApplicationService;
-    },
-  };
-
-  (window as any).Orgspan = Orgspan;
+  return new HostedContext();
 }
-
-class ApplicationService {
-  hostedContext = new HostedContext();
-
-  get (property: string) {
-    if (property.includes('.')) {
-      throw new Error('can only fetch top-level properties');
-    }
-
-    return this[property];
-  }
-}
-
 class HostedContext extends EventEmitter {
   _supportsJabra?: boolean;
-  _supportsWebHID?: boolean;
+  _supportsWebHid?: boolean;
   _isHosted?: boolean;
 
   constructor () {
@@ -47,25 +23,27 @@ class HostedContext extends EventEmitter {
       supportsTerminationRequest: true,
       supportsUnifiedPreferences: true,
     };
-    const appInfo = (window as any)._HostedContextFunctions.register(initData);
-    this._supportsJabra = appInfo.supportsJabra;
-    this._supportsWebHID = appInfo.supportsWebHID;
-    this._isHosted = true;
+    if (isCefHosted()) {
+      const appInfo = (window as any)._HostedContextFunctions.register(initData);
+      this._supportsJabra = appInfo.supportsJabra;
+      this._supportsWebHid = appInfo.supportsWebHID;
+      this._isHosted = true;
+    }
   }
 
   supportsJabra (): boolean {
     return !!this._supportsJabra;
   }
 
-  supportsWebHID (): boolean {
-    return !!this._supportsWebHID;
+  supportsWebHid (): boolean {
+    return !!this._supportsWebHid;
   }
 
   isHosted (): boolean {
     return !!this._isHosted;
   }
 
-  cefCallback (obj) {
+  cefCallback (obj): void {
     const msg = obj.msg;
 
     if (msg === 'JabraEvent') {
@@ -90,5 +68,16 @@ class HostedContext extends EventEmitter {
       );
       this.emit('JabraDeviceAttached', { deviceName, deviceId, attached });
     }
+  }
+
+  sendEventToDesktop (deviceId, cmd, value): void {
+    (window as any)._HostedContextFunctions.sendEventToDesktop(
+      'jabraEvent',
+      {
+        deviceID: deviceId,
+        event: cmd,
+        value
+      }
+    );
   }
 }

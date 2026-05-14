@@ -28,11 +28,11 @@ function populateDevices(service: JabraNativeService): void {
   service.devices.set(testDevice3.deviceID, testDevice3);
 }
 
-describe('JabraNativeService', () => {
+describe  ('JabraNativeService', () => {
   let jabraNativeService: JabraNativeService = null;
+  let hostedContext;
 
   beforeEach(() => {
-    decorateCefClient();
     jest.restoreAllMocks();
     jest.resetAllMocks();
 
@@ -41,24 +41,18 @@ describe('JabraNativeService', () => {
       sendEventToDesktop: jest.fn()
     };
 
-    (window as any).Orgspan = {
-      serviceFor: jest.fn().mockReturnValue({
-        get: jest.fn().mockReturnValue({
-          supportsJabra: jest.fn().mockReturnValue(true),
-          on: jest.fn(),
-          isHosted: jest.fn().mockReturnValue(true)
-        })
-      })
-    }
+    hostedContext = decorateCefClient();
 
-    jabraNativeService = JabraNativeService.getInstance({ logger: console, createNew: true });
+    jabraNativeService = JabraNativeService.getInstance({ logger: console, createNew: true, hostedContext });
+    jabraNativeService.config.hostedContext = hostedContext;
     resetJabraNativeService(jabraNativeService);
   });
 
   describe('instantiation', () => {
     it('should be a singleton', () => {
-      const jabraNativeService2 = JabraNativeService.getInstance({ logger: console });
-      decorateCefClient();
+      const hostedContext2 = decorateCefClient();
+      const jabraNativeService2 = JabraNativeService.getInstance({ logger: console, hostedContext: hostedContext2 });
+      jabraNativeService2.config.hostedContext = hostedContext2;
 
       expect(jabraNativeService).not.toBeFalsy();
       expect(jabraNativeService2).not.toBeFalsy();
@@ -74,36 +68,14 @@ describe('JabraNativeService', () => {
       expect(jabraNativeService.headsetState.offHook).toBe(false);
     });
 
-    it('should return a value that determines if the app is hosted', () => {
-      (window as any).Orgspan = {
-        serviceFor: jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue({
-            supportsJabra: jest.fn().mockReturnValue(true),
-            on: jest.fn(),
-            isHosted: jest.fn().mockReturnValue(false)
-          })
-        })
-      }
-
-      expect(jabraNativeService['isHostedContextInitialized']()).toBe(false)
-    });
-
     it('should call waitForHostedContext if not already hosted', () => {
+      hostedContext._isHosted = false;
       jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
-      (window as any).Orgspan = {
-        serviceFor: jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue({
-            supportsJabra: jest.fn().mockReturnValue(true),
-            on: jest.fn(),
-            isHosted: jest.fn().mockReturnValue(false)
-          })
-        })
-      }
 
       const setupNativeHandlersSpy = jest.spyOn(JabraNativeService.prototype as any, 'setupNativeHandlers');
       const waitForHostedContextSpy = jest.spyOn(JabraNativeService.prototype as any, 'waitForHostedContext');
 
-      JabraNativeService.getInstance({ logger: console, createNew: true });
+      JabraNativeService.getInstance({ logger: console, createNew: true, hostedContext });
 
       expect(setupNativeHandlersSpy).not.toHaveBeenCalled();
       expect(waitForHostedContextSpy).toHaveBeenCalled();
@@ -111,20 +83,11 @@ describe('JabraNativeService', () => {
 
     it('should call setupNativeHandlers if already hosted', () => {
       jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
-      (window as any).Orgspan = {
-        serviceFor: jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue({
-            supportsJabra: jest.fn().mockReturnValue(true),
-            on: jest.fn(),
-            isHosted: jest.fn().mockReturnValue(true)
-          })
-        })
-      }
 
       const setupNativeHandlersSpy = jest.spyOn(JabraNativeService.prototype as any, 'setupNativeHandlers');
       const waitForHostedContextSpy = jest.spyOn(JabraNativeService.prototype as any, 'waitForHostedContext');
 
-      JabraNativeService.getInstance({ logger: console, createNew: true });
+      JabraNativeService.getInstance({ logger: console, createNew: true, hostedContext });
 
       expect(setupNativeHandlersSpy).toHaveBeenCalled();
       expect(waitForHostedContextSpy).not.toHaveBeenCalled();
@@ -137,7 +100,6 @@ describe('JabraNativeService', () => {
     })
     it('should call setupNativeHandlers after 500 ms timeout and isHosted', async () => {
       jest.useFakeTimers();
-      jabraNativeService['isHostedContextInitialized'] = jest.fn().mockReturnValue(true);
       jabraNativeService['waitForHostedContext']();
       const setupNativeHandlersSpy = jabraNativeService['setupNativeHandlers'] = jest.fn();
       await flushPromises();
@@ -145,8 +107,8 @@ describe('JabraNativeService', () => {
       expect(setupNativeHandlersSpy).toHaveBeenCalled();
     })
     it('should call waitForHostedContext after 500 ms timeout and !isHosted', async () => {
+      hostedContext._isHosted = false;
       jest.useFakeTimers();
-      jabraNativeService['isHostedContextInitialized'] = jest.fn().mockReturnValue(false);
       jabraNativeService['waitForHostedContext']();
       const waitForHostedContextSpy = jabraNativeService['waitForHostedContext'] = jest.fn();
       await flushPromises();
