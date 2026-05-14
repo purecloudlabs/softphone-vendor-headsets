@@ -70,13 +70,6 @@ describe('JabraService', () => {
   } };
   Object.defineProperty(window.navigator, 'locks', { get: () => ({}) });
   (window as any).BroadcastChannel = BroadcastChannel;
-  (window as any).Orgspan = {
-    serviceFor: jest.fn().mockReturnValue({
-      get: jest.fn().mockReturnValue({
-        supportsWebHID: jest.fn().mockReturnValue(true),
-      })
-    })
-  };
 
   beforeEach(() => {
     (window as any)._HostedContextFunctions = {
@@ -1311,13 +1304,6 @@ describe('JabraService', () => {
 
     it('should return false if isCefHosted and !supportsWebHID', () => {
       (window as any)._HostedContextFunctions = { get: () => true };
-      (window as any).Orgspan = {
-        serviceFor: jest.fn().mockReturnValue({
-          get: jest.fn().mockReturnValue({
-            supportsWebHID: jest.fn().mockReturnValue(false),
-          })
-        })
-      };
       expect(jabraService.isSupported()).toBe(false);
     });
 
