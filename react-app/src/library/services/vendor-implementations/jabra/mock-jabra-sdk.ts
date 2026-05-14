@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 import { IDevice } from "@gnaudio/jabra-js";
 import { Observable, Subject } from "rxjs";
 

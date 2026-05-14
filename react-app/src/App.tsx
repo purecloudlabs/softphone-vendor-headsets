@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import DeviceService from './mocks/device-service';
 import HeadsetService from './library/services/headset';
@@ -8,6 +8,7 @@ import AudioVisualizer from './components/audio-visualizer';
 import ToggleSwitch from './components/toggle-switch/toggle-switch';
 import MockCall from './mocks/call';
 import { isCefHosted } from './library/utils';
+import { ImplementationConfig } from './library/services/vendor-implementations/vendor-implementation';
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const App = (props: { hostedContext: any }) => {
@@ -24,7 +25,7 @@ const App = (props: { hostedContext: any }) => {
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('');
   const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
   const [autoAnswer, setAutoAnswer] = useState<boolean>(false);
-  const headset = HeadsetService?.getInstance({ hostedContext } as any);
+  const headset = HeadsetService?.getInstance({ hostedContext } as ImplementationConfig);
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
 

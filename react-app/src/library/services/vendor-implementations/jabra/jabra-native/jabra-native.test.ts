@@ -28,7 +28,7 @@ function populateDevices(service: JabraNativeService): void {
   service.devices.set(testDevice3.deviceID, testDevice3);
 }
 
-describe  ('JabraNativeService', () => {
+describe('JabraNativeService', () => {
   let jabraNativeService: JabraNativeService = null;
   let hostedContext;
 

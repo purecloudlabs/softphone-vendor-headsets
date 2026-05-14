@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import DeviceInfo from '../../../types/device-info';
 import {
@@ -45,7 +44,6 @@ export default class JabraService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    // return false;
     if (isCefHosted()) {
       return this.config.hostedContext.supportsWebHid();
     } else {

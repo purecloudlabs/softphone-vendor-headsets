@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
 ## Changed
 * [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
+* [STREAM-456](https://inindca.atlassian.net/browse/STREAM-456) - Removed internal, antiquated value in favor of a more proper approach involving a passed in value from the consuming app
 ## Added
 * [STREAM-881](https://inindca.atlassian.net/browse/STREAM-881) - Generate a test report in JUnit.xml format
+* [STREAM-456](https://inindca.atlassian.net/browse/STREAM-456) - Added capabilities to use WebHID on the desktop app
 ## Fixed
 * [STREAM-1586](https://inindca.atlassian.net/browse/STREAM-1586) - Fix test failures due to missing value from imported dependency
 
