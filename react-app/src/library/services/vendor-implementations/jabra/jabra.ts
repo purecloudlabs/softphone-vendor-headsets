@@ -46,9 +46,9 @@ export default class JabraService extends VendorImplementation {
   isSupported (): boolean {
     if (isCefHosted()) {
       return this.config.hostedContext.supportsWebHid();
-    } else {
-      return !!(window.navigator as any).hid;
     }
+
+    return !!(window.navigator as any).hid;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
