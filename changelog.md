@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
+## Breaking Changes
+* [STREAM-1642](https://inindca.atlassian.net/browse/STREAM-1642) - Replace `uuid` with native `globalThis.crypto.randomUUID()`. `randomUUID()` has been widely available in browsers since 2022, so this should only affect you if you use vendor-headsets in an older browser.
 ## Changed
 * [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
 ## Added
