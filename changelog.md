@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
 ## Breaking Changes
-* [STREAM-1642](https://inindca.atlassian.net/browse/STREAM-1642) - Replace `uuid` with native `globalThis.crypto.randomUUID()`. `randomUUID()` has been widely available in browsers since 2022, so this should only affect you if you use vendor-headsets in an older browser.
+* [STREAM-1642](https://inindca.atlassian.net/browse/STREAM-1642) - Replace `uuid` with native `globalThis.crypto.randomUUID()`. `randomUUID()` has been widely available in browsers since 2022, so this should only affect you if you use vendor-headsets in an older browser. Bump TypeScript version from v4.1.2 to v4.6 and from v4.4.3 to v4.6.
 ## Changed
 * [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
 ## Added
