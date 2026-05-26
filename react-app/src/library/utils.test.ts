@@ -78,7 +78,7 @@ describe('utils', () => {
       expect(checkWebHidSupport(config, 'cyberacoustics')).toBe(true);
     });
 
-    it('should return false if hosted BUT requested feature toggle is false/undefined', () => {
+    it('should return falsy if hosted BUT requested feature toggle is false/undefined', () => {
       const config = {
         useWebHidOnDesktopJabra: true,
         useWebHidOnDesktopYealink: false,
@@ -89,7 +89,7 @@ describe('utils', () => {
         }
       } as ImplementationConfig;
 
-      expect(checkWebHidSupport(config, 'yealink')).toBe(false);
+      expect(checkWebHidSupport(config, 'yealink')).toBe(undefined);
     });
 
     it('should check the hid object on the window object if isCefHosted is false', () => {

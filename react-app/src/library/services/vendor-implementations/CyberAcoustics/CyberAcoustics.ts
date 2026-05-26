@@ -94,7 +94,7 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   // called to check if the WebHID interface is supported
   isSupported (): boolean {
-    return checkWebHidSupport(this.config, 'cyberacoustics');
+    return !!checkWebHidSupport(this.config, this.vendorName.toLowerCase());
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

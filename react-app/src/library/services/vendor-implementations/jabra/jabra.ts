@@ -44,7 +44,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return checkWebHidSupport(this.config, 'jabra');
+    return !!checkWebHidSupport(this.config, this.vendorName.toLowerCase());
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

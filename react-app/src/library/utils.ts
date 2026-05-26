@@ -55,9 +55,9 @@ export function checkWebHidSupport (config: ImplementationConfig, vendor: string
     if (config[featureToggleForVendor]) {
       return config.hostedContext.supportsWebHid();
     }
+  } else {
+    return !!(window.navigator as any).hid;
   }
-
-  return !!(window.navigator as any).hid;
 }
 
 export function isCefHosted (): boolean {

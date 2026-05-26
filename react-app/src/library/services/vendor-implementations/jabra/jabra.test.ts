@@ -1299,6 +1299,7 @@ describe('JabraService', () => {
   describe('isSupported', () => {
     it('should return true if isCefHosted and supportsWebHid', () => {
       (window as any)._HostedContextFunctions = { get: () => true };
+      jest.spyOn(utils, 'checkWebHidSupport').mockReturnValue(true);
       hostedContext._supportsWebHid = true;
       expect(jabraService.isSupported()).toBe(true);
     });

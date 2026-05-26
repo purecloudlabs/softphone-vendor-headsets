@@ -26,7 +26,7 @@ export default class VBetService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return checkWebHidSupport(this.config, 'vbet');
+    return !!checkWebHidSupport(this.config, this.vendorName.toLowerCase());
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
