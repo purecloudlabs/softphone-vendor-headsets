@@ -42,11 +42,11 @@ export default class HeadsetService {
     this.logger = config.logger || console;
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger, hostedContext: config.hostedContext });
-    this.jabra = JabraService.getInstance({ logger: this.logger, hostedContext: config.hostedContext });
+    this.jabra = JabraService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
-    this.yealink = YealinkService.getInstance({ logger: this.logger });
-    this.vbet = VBetService.getInstance({ logger: this.logger });
-    this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger });
+    this.yealink = YealinkService.getInstance({ logger: this.logger, useWebHidOnDesktopYealink: config.useWebHidOnDesktopYealink });
+    this.vbet = VBetService.getInstance({ logger: this.logger, useWebHidOnDesktopVbet: config.useWebHidOnDesktopVbet });
+    this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger, useWebHidOnDesktopCyberAcoustics: config.useWebHidOnDesktopCyberAcoustics });
 
     [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }

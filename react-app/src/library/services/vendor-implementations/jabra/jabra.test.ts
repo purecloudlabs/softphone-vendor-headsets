@@ -10,6 +10,7 @@ import { BroadcastChannel } from 'broadcast-channel';
 import 'regenerator-runtime';
 import { MockJabraSdk } from './mock-jabra-sdk';
 import decorateCefClient from '../../../../decorate-cef-client';
+import * as utils from '../../../utils';
 
 jest.mock('broadcast-channel');
 
@@ -1304,7 +1305,9 @@ describe('JabraService', () => {
 
     it('should return false if isCefHosted and !supportsWebHID', () => {
       (window as any)._HostedContextFunctions = { get: () => true };
+      jest.spyOn(utils, 'checkWebHidSupport').mockReturnValue(false);
       expect(jabraService.isSupported()).toBe(false);
+      jest.restoreAllMocks();
     });
 
     it('should return true if !isCefHosted and hid', () => {

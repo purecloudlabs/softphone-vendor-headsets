@@ -1,7 +1,7 @@
 import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
 import { CallInfo } from '../../..';
 import DeviceInfo from '../../../types/device-info';
-import { isCefHosted } from '../../../utils';
+import { checkWebHidSupport } from '../../../utils';
 import { webhidConsent, IDevice, DeviceSignalType, findDevice } from '@vbet/webhid-sdk';
 
 export default class VBetService extends VendorImplementation {
@@ -26,7 +26,7 @@ export default class VBetService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return (window.navigator as any).hid && !isCefHosted();
+    return checkWebHidSupport(this.config, 'vbet');
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

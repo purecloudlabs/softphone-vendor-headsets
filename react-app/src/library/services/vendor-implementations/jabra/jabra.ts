@@ -14,7 +14,7 @@ import {
 import { CallInfo } from '../../..';
 import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from 'rxjs';
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
-import { isCefHosted } from '../../../utils';
+import { checkWebHidSupport } from '../../../utils';
 
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
@@ -44,11 +44,7 @@ export default class JabraService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    if (isCefHosted()) {
-      return this.config.hostedContext.supportsWebHid();
-    }
-
-    return !!(window.navigator as any).hid;
+    return checkWebHidSupport(this.config, 'jabra');
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

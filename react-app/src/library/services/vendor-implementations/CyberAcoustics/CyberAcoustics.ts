@@ -2,7 +2,7 @@ import { VendorImplementation, ImplementationConfig } from "../vendor-implementa
 import { CallInfo } from '../../..';
 import DeviceInfo, { PartialHIDDevice } from "../../../types/device-info";
 import { PartialInputReportEvent } from '../../../types/consumed-headset-events';
-import { isCefHosted } from "../../../utils";
+import { checkWebHidSupport } from "../../../utils";
 
 
 let hookswFlag = 0x01;
@@ -94,8 +94,7 @@ export default class CyberAcousticsService extends VendorImplementation {
 
   // called to check if the WebHID interface is supported
   isSupported (): boolean {
-    const supported: boolean  =  (window.navigator as any).hid && !isCefHosted();
-    return supported;
+    return checkWebHidSupport(this.config, 'cyberacoustics');
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

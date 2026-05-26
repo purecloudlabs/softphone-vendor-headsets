@@ -13,6 +13,10 @@ export interface ImplementationConfig {
   vendorName?: string;
   appName?: string;
   createNew?: boolean; // this should only be used for testing
+  useWebHidOnDesktopJabra?: boolean;
+  useWebHidOnDesktopYealink?: boolean;
+  useWebHidOnDesktopVbet?: boolean;
+  useWebHidOnDesktopCyberAcoustics?: boolean;
 }
 
 export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
