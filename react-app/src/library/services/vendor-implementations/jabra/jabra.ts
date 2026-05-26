@@ -1,40 +1,53 @@
-import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
-import DeviceInfo from '../../../types/device-info';
 import {
+  EasyCallControlFactory,
+  HoldState,
   IApi,
-  CallControlFactory,
-  SignalType,
-  ICallControl,
-  ErrorType,
-  init,
-  RequestedBrowserTransport,
-  webHidPairing,
   IDevice,
+  IMultiCallControl,
+  init,
+  MuteState,
+  RequestedBrowserTransport,
+  webHidPairing
 } from '@gnaudio/jabra-js';
+import { EmptyError, firstValueFrom, Observable, Subscription, TimeoutError } from 'rxjs';
+import { defaultIfEmpty, filter, first, map, skip, timeout } from 'rxjs/operators';
 import { CallInfo } from '../../..';
-import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } from 'rxjs';
-import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
+import DeviceInfo from '../../../types/device-info';
 import { isCefHosted } from '../../../utils';
-
+import { ImplementationConfig, VendorImplementation } from '../vendor-implementation';
+export interface ActiveCallState {
+  conversationId: string;
+  isMuted: boolean;
+  isHeld: boolean;
+}
+export interface PendingCallState {
+  conversationId: string;
+  isOutbound: boolean;
+  isSignaled: boolean;
+}
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
-  private headsetEventSubscription: Subscription;
+  private eccSubscriptions: Subscription[] = [];
   static connectTimeout = 5000;
 
-  isActive = false;
   _deviceInfo: DeviceInfo;
+
+  // Both `isMuted` and `isHeld` mirror the corresponding fields
+  // on `activeCall` and are kept in sync via the helpers below.
   isMuted = false;
   isHeld = false;
-  version: string = null;
-  _connectDeferred: any; // { resolve: Function, reject: Function }
+
   jabraSdk: IApi;
-  callControlFactory: CallControlFactory;
-  callControl: ICallControl;
-  ongoingCalls = 0;
-  callLock = false;
-  pendingConversationId: string;
-  pendingConversationIsOutbound: boolean;
-  activeConversationId: string;
+  easyCallControlFactory: EasyCallControlFactory;
+  easyCallControl: IMultiCallControl;
+
+  activeCall: ActiveCallState | null = null;
+  pendingCall: PendingCallState | null = null;
+
+  // When the consumer answers a pending call, we end the active call on
+  // their behalf. This flag tells the `ongoingCalls = 0` handler not to
+  // fire `deviceEndedCall` — the consumer already knows the call is ending.
+  private suppressNextOngoingCallsEnd = false;
 
   private constructor (config: ImplementationConfig) {
     super(config);
@@ -73,258 +86,377 @@ export default class JabraService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  resetState (): void {
-    this.setHold(null, false);
-    this.setMute(false);
+  private startActiveCall (conversationId: string): void {
+    this.activeCall = { conversationId, isMuted: false, isHeld: false };
+    this.isMuted = false;
+    this.isHeld = false;
   }
 
-  _processEvents (callControl: ICallControl): void {
-    this.headsetEventSubscription = callControl.deviceSignals.subscribe(async (signal) => {
-      if (!this.callLock) {
-        this.logger.debug(
-          'Currently not in possession of the Call Lock; Cannot react to Device Actions'
-        );
-        return;
-      }
+  private endActiveCall (): void {
+    this.activeCall = null;
+    this.isMuted = false;
+    this.isHeld = false;
+  }
 
-      switch (signal.type) {
-      case SignalType.HOOK_SWITCH:
-        // do nothing when the end call button is pressed and we have an incoming call while we have an active call
-        if (this.activeConversationId && this.pendingConversationId) {
-          this.logger.info('ignoring hookswitch event because there is an active and incoming call');
-          break;
-        }
+  private requireEcc (action: string): boolean {
+    if (!this.easyCallControl) {
+      this.logger.warn(`EasyCallControl not available; cannot ${action}`);
+      return false;
+    }
+    return true;
+  }
 
-        if (signal.value) {
-          callControl.offHook(true);
-          callControl.ring(false);
-          this.activeConversationId = this.pendingConversationId;
-          this.pendingConversationId = null;
-          if (!this.pendingConversationIsOutbound) {
-            this.deviceAnsweredCall({
-              name: 'CallOffHook',
-              code: signal.type,
-              conversationId: this.activeConversationId,
+  private updateActiveCallState (patch: Partial<Pick<ActiveCallState, 'isMuted' | 'isHeld'>>): void {
+    /* istanbul ignore if -- defensive guard; callers always check activeCall first */
+    if (!this.activeCall) {
+      return;
+    }
+    if (patch.isMuted !== undefined) {
+      this.activeCall.isMuted = patch.isMuted;
+      this.isMuted = patch.isMuted;
+    }
+    if (patch.isHeld !== undefined) {
+      this.activeCall.isHeld = patch.isHeld;
+      this.isHeld = patch.isHeld;
+    }
+  }
+
+  /**
+   * Subscribe to EasyCallControl observables for headset-initiated events
+   * (mute button, hold button, device disconnect).
+   */
+  private _subscribeToEccEvents (ecc: IMultiCallControl): void {
+    // `skip(1)` discards the initial replay, so we only react to real state changes (button presses, our own commands).
+    this.eccSubscriptions.push(
+      ecc.muteState.pipe(skip(1)).subscribe((state) => {
+        if (!this.activeCall) return;
+
+        const isMuted = state === MuteState.MUTED;
+        if (isMuted === this.activeCall.isMuted) return;
+
+        this.logger.info('ECC muteState changed', { isMuted, conversationId: this.activeCall.conversationId });
+        const conversationId = this.activeCall.conversationId;
+        this.updateActiveCallState({ isMuted });
+        this.deviceMuteChanged({
+          isMuted,
+          name: isMuted ? 'CallMuted' : 'CallUnmuted',
+          conversationId,
+        });
+      })
+    );
+
+    this.eccSubscriptions.push(
+      ecc.holdState.pipe(skip(1)).subscribe((state) => {
+        if (!this.activeCall) return; 
+
+        const isHeld = state === HoldState.ON_HOLD;
+        if (isHeld === this.activeCall.isHeld) return;
+
+        this.logger.info('ECC holdState changed', { isHeld, conversationId: this.activeCall.conversationId });
+        const conversationId = this.activeCall.conversationId;
+        this.updateActiveCallState({ isHeld });
+        this.deviceHoldStatusChanged({
+          holdRequested: isHeld,
+          name: isHeld ? 'OnHold' : 'ResumeCall',
+          conversationId,
+        });
+      })
+    );
+
+    this.eccSubscriptions.push(
+      ecc.ongoingCalls.subscribe((count) => {
+        this.logger.info('ECC ongoingCalls changed', { count, conversationId: this.activeCall?.conversationId });
+        if (count === 0 && this.activeCall) {
+
+          const conversationId = this.activeCall.conversationId;
+          const consumerInitiated = this.suppressNextOngoingCallsEnd; // We can ignore these
+          this.suppressNextOngoingCallsEnd = false;
+          this.endActiveCall();
+          if (!consumerInitiated) {
+            this.deviceEndedCall({
+              name: 'CallOnHook',
+              conversationId,
             });
           }
-        } else {
-          callControl.mute(false);
-          callControl.hold(false);
-          callControl.offHook(false);
-          this.deviceEndedCall({
-            name: 'CallOnHook',
-            code: signal.type,
-            conversationId: this.activeConversationId,
+        }
+
+        if (count === 0 && this.pendingCall && !this.pendingCall.isSignaled) {
+          this.logger.info('active call ended; signaling deferred pending call', {
+            conversationId: this.pendingCall.conversationId,
           });
-          try {
-            callControl.releaseCallLock();
-          } catch ({ message, type }) {
-            if (this.checkForCallLockError(message, type)) {
-              this.logger.info(message);
-            } else {
-              this.logger.error(type, message);
-            }
-          } finally {
-            this.activeConversationId = null;
-            this.callLock = false;
-          }
+          this._signalPendingCall(this.pendingCall.conversationId);
         }
-        break;
-      case SignalType.FLASH:
-      case SignalType.ALT_HOLD:
-        this.isHeld = !this.isHeld;
-        callControl.hold(this.isHeld);
-        this.deviceHoldStatusChanged({
-          holdRequested: this.isHeld,
-          name: this.isHeld ? 'OnHold' : 'ResumeCall',
-          code: signal.type,
-          conversationId: this.activeConversationId,
-        });
-        break;
-      case SignalType.PHONE_MUTE:
-        this.isMuted = !this.isMuted;
-        callControl.mute(this.isMuted);
-        this.deviceMuteChanged({
-          isMuted: this.isMuted,
-          name: this.isMuted ? 'CallMuted' : 'CallUnmuted',
-          code: signal.type,
-          conversationId: this.activeConversationId,
-        });
-        break;
-      case SignalType.REJECT_CALL:
-        callControl.ring(false);
-        this.deviceRejectedCall({
-          name: SignalType[signal.type],
-          conversationId: this.pendingConversationId,
-        });
-        this.pendingConversationId = null;
-        try {
-          // we only want to release call controls if there isn't another call active
-          if (!this.activeConversationId) {
-            callControl.releaseCallLock();
-            this.callLock = false;
-          }
-        } catch ({ message, type }) {
-          if (this.checkForCallLockError(message, type)) {
-            this.logger.info(message);
-          } else {
-            this.logger.error(type, message);
-          }
-        }
-      }
-    });
+      })
+    );
+
+    // Device disconnected
+    this.eccSubscriptions.push(
+      ecc.onDisconnect.subscribe(() => {
+        this.logger.warn('ECC device disconnected');
+        this.endActiveCall();
+        this.pendingCall = null;
+        this.changeConnectionStatus({ isConnected: false, isConnecting: false });
+      })
+    );
   }
 
   async setMute (value: boolean): Promise<void> {
-    if (!this.callLock) {
+    if (!this.activeCall) {
+      this.logger.info('setMute: skipping, no active call');
       return;
     }
-    this.isMuted = value;
-    this.callControl.mute(value);
+
+    try {
+      value ? await this.easyCallControl.mute() : this.easyCallControl.unmute();
+      this.updateActiveCallState({ isMuted: value });
+    } catch (err) {
+      this.logger.error('Failed to set mute', err);
+    }
   }
 
   async setHold (conversationId: string, value: boolean): Promise<void> {
-    if (!this.callLock) {
+    if (!this.activeCall) {
+      this.logger.info('setHold: skipping, no active call');
       return;
     }
-    this.isHeld = value;
-    this.callControl.hold(value);
+
+    try {
+      value ? await this.easyCallControl.hold() : await this.easyCallControl.resume();
+      this.updateActiveCallState({ isHeld: value });
+    } catch (err) {
+      this.logger.error('Failed to set hold', err);
+    }
   }
 
   async incomingCall (callInfo: CallInfo): Promise<void> {
-    this.pendingConversationId = callInfo.conversationId;
-    this.pendingConversationIsOutbound = false;
-    try {
-      this.callLock = await this.callControl.takeCallLock();
-    } catch ({ message, type }) {
-      if (this.checkForCallLockError(message, type)) {
-        this.logger.info(message);
-        this.callLock = true;
-      } else {
-        this.logger.error(type, message);
-      }
-    }
+    if (!this.requireEcc('handle incoming call')) return;
 
-    if (this.callLock) {
-      this.callControl.ring(true);
-    }
-  }
+    this.pendingCall = {
+      conversationId: callInfo.conversationId,
+      isOutbound: false,
+      isSignaled: false,
+    };
 
-  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
-    if (autoAnswer) {
-      this.pendingConversationId = conversationId;
-      try {
-        this.callLock = await this.callControl.takeCallLock();
-      } catch ({ message, type }) {
-        if (this.checkForCallLockError(message, type)) {
-          this.logger.info(message);
-          this.callLock = true;
-        } else {
-          this.logger.error(type, message);
-        }
-      }
-    }
-
-    if (!this.callLock) {
+    if (this.activeCall) {
+      this.logger.info('incomingCall: active call exists; deferring headset ring until it ends', {
+        activeConversationId: this.activeCall.conversationId,
+        incomingConversationId: callInfo.conversationId,
+      });
       return;
     }
 
-    this.callControl.ring(false);
-    this.callControl.offHook(true);
+    this._signalPendingCall(callInfo.conversationId);
+  }
+
+  private _signalPendingCall (incomingConversationId: string): void {
+    /* istanbul ignore else -- defensive; callers always set pendingCall first */
+    if (this.pendingCall) {
+      this.pendingCall.isSignaled = true;
+    }
+
+    this.logger.info('signalIncomingCall: calling signalIncomingCall()', { conversationId: incomingConversationId });
+
+    this.easyCallControl.signalIncomingCall(120000).then((accepted) => {
+      if (this.pendingCall?.conversationId !== incomingConversationId) {
+        this.logger.info('signalIncomingCall resolved but pendingCall changed; ignoring', {
+          accepted,
+          incomingConversationId,
+          currentPendingId: this.pendingCall?.conversationId,
+        });
+        return;
+      }
+
+      if (accepted) {
+        if (this.activeCall && this.activeCall.conversationId !== incomingConversationId) {
+          const previousActiveId = this.activeCall.conversationId;
+          this.logger.info('headset accept during active+pending: ending previous active', {
+            previousActiveId,
+            newActiveId: incomingConversationId,
+          });
+          this.endActiveCall();
+          this.deviceEndedCall({ name: 'CallOnHook', conversationId: previousActiveId });
+        }
+
+        this.logger.info('signalIncomingCall: call accepted from headset', { conversationId: incomingConversationId });
+        this.startActiveCall(incomingConversationId);
+        this.pendingCall = null;
+        this.deviceAnsweredCall({
+          name: 'CallOffHook',
+          conversationId: incomingConversationId,
+        });
+      } else {
+        this.logger.info('signalIncomingCall: call rejected from headset', { conversationId: incomingConversationId });
+        this.deviceRejectedCall({
+          name: 'REJECT_CALL',
+          conversationId: incomingConversationId,
+        });
+        this.pendingCall = null;
+      }
+    }).catch((err) => {
+      this.logger.error('signalIncomingCall failed', err);
+      this.pendingCall = null;
+    });
+  }
+
+  async answerCall (conversationId: string, autoAnswer?: boolean): Promise<void> {
+    if (!this.requireEcc('answer call')) return;
+
+    if (autoAnswer) {
+      this.pendingCall = { conversationId, isOutbound: false, isSignaled: false };
+    }
+
+    const wasSignaled = !!this.pendingCall?.isSignaled;
+    const previousActive = this.activeCall;
+
+    // Suppress the deferred-ring auto-trigger: by marking `isSignaled = true`
+    // up-front, the `ongoingCalls = 0` handler (which fires when we end the
+    // previous active call below) won't try to ring this pending call while
+    // we're already taking it over.
+    if (this.pendingCall) {
+      this.pendingCall.isSignaled = true;
+    }
+
+    try {
+      if (wasSignaled) {
+        // Standard accept: SDK has this call as pending incoming.
+        // `acceptIncomingCall` (default END_CURRENT) implicitly ends any prior
+        // active call and promotes the incoming.
+        this.logger.info('answerCall: acceptIncomingCall()', { conversationId });
+        await this.easyCallControl.acceptIncomingCall();
+      } else {
+        // Call-waiting path: we deferred signalIncomingCall, so the SDK has
+        // no pending incoming to accept. End the previous active call (if
+        // any) and put the device into call state for the new one ourselves.
+        if (previousActive) {
+          this.logger.info('answerCall: ending previous active before starting new', {
+            previousActiveId: previousActive.conversationId,
+            newConversationId: conversationId,
+          });
+          // Suppress the `deviceEndedCall` event for the previous active —
+          // the consumer initiated this end by answering the pending call.
+          this.suppressNextOngoingCallsEnd = true;
+          try {
+            await this.easyCallControl.endCall();
+          } catch (err) {
+            this.suppressNextOngoingCallsEnd = false;
+            this.logger.debug('answerCall: endCall cleanup', err);
+          }
+        }
+        this.logger.info('answerCall: startCall()', { conversationId });
+        await this.easyCallControl.startCall();
+      }
+
+      // The `ongoingCalls = 0` handler has already cleared `activeCall` and
+      // fired `deviceEndedCall` for any prior active call. We just promote
+      // the pending call locally.
+      this.startActiveCall(this.pendingCall?.conversationId || conversationId);
+      this.pendingCall = null;
+    } catch (err) {
+      this.logger.error('Failed to answer call', err);
+    }
   }
 
   async rejectCall (): Promise<void> {
-    if (!this.callLock) {
-      return this.logger.info(
-        'Currently not in possession of the Call Lock; Cannot react to Device Actions'
-      );
+    if (!this.requireEcc('reject call')) return;
+
+    if (!this.pendingCall) {
+      this.logger.info('rejectCall: no pending call to reject');
+      return;
     }
-    this.callControl.ring(false);
-    this.pendingConversationId = null;
-    if (!this.activeConversationId) {
-      try {
-        this.resetState();
-        this.callControl.releaseCallLock();
-      } catch ({ message, type }) {
-        if (this.checkForCallLockError(message, type)) {
-          this.logger.info(message);
-        } else {
-          this.logger.error(type, message);
-        }
-      } finally {
-        this.pendingConversationId = null;
-        this.callLock = false;
+
+    const wasSignaled = this.pendingCall.isSignaled;
+    const conversationId = this.pendingCall.conversationId;
+
+    try {
+      if (wasSignaled) {
+        // SDK has the call as pending incoming — dismiss via rejectIncomingCall.
+        this.logger.info('rejectCall: rejectIncomingCall()', { conversationId });
+        this.easyCallControl.rejectIncomingCall();
+      } else {
+        // Call-waiting path: we never told the SDK about this call, so there
+        // is nothing to clean up on the device side. The active call (if any)
+        // is unaffected.
+        this.logger.info('rejectCall: pending was not signaled to headset, clearing locally', { conversationId });
       }
+      this.pendingCall = null;
+    } catch (err) {
+      this.logger.error('Failed to reject call', err);
     }
   }
 
   async outgoingCall (callInfo: CallInfo): Promise<void> {
-    try {
-      this.callLock = await this.callControl.takeCallLock();
-    } catch ({ message, type }) {
-      if (this.checkForCallLockError(message, type)) {
-        this.logger.info(message);
-        this.callLock = true;
-      } else {
-        this.logger.error(type, message);
-      }
+    if (!this.requireEcc('start outgoing call')) return;
+
+    if (this.activeCall) {
+      this.logger.info('outgoingCall: already in an active call, ignoring', {
+        activeConversationId: this.activeCall.conversationId,
+        requestedConversationId: callInfo.conversationId,
+      });
+      return;
     }
 
-    if (this.callLock) {
-      this.pendingConversationId = callInfo.conversationId;
-      this.pendingConversationIsOutbound = true;
-      this.callControl.offHook(true);
+    try {
+      this.pendingCall = {
+        conversationId: callInfo.conversationId,
+        isOutbound: true,
+        isSignaled: false,
+      };
+      this.logger.info('outgoingCall: startCall()', { conversationId: callInfo.conversationId });
+      await this.easyCallControl.startCall();
+      this.startActiveCall(callInfo.conversationId);
+      this.pendingCall = null;
+    } catch (err) {
+      this.logger.error('Failed to start outgoing call', err);
+      this.pendingCall = null;
     }
   }
 
   async endCall (conversationId: string, hasOtherActiveCalls: boolean): Promise<void> {
     if (hasOtherActiveCalls) {
+      this.logger.info('endCall: skipping because hasOtherActiveCalls=true', { conversationId });
       return;
     }
 
-    if (conversationId === this.activeConversationId) {
-      this.activeConversationId = null;
+    if (conversationId === this.activeCall?.conversationId) {
+      this.endActiveCall();
     }
 
+    if (!this.requireEcc('end call')) return;
+
     try {
-      if (!this.callLock) {
-        return this.logger.info(
-          'Currently not in possession of the Call Lock; Cannot react to Device Actions'
-        );
-      }
-      this.callControl.offHook(false);
-      this.resetState();
-      this.callControl.releaseCallLock();
-    } catch ({ message, type }) {
-      if (this.checkForCallLockError(message, type)) {
-        this.logger.info(message);
-      } else {
-        this.logger.error(type, message);
-      }
-    } finally {
-      this.callLock = false;
+      this.logger.info('endCall: endCall()', { conversationId });
+      await this.easyCallControl.endCall();
+    } catch (err) {
+      this.logger.error('Failed to end call', err);
     }
   }
 
   async endAllCalls (): Promise<void> {
-    try {
-      if (!this.callLock) {
-        return this.logger.info(
-          'Currently not in possession of the Call Lock; Cannot react to Device Actions'
-        );
+    if (!this.requireEcc('end all calls')) return;
+
+    // If there's a pending incoming call, reject it. Only call the SDK if we
+    // actually signaled the device — otherwise the SDK doesn't know about it
+    // and `rejectIncomingCall` would throw "no incoming call pending".
+    if (this.pendingCall) {
+      if (this.pendingCall.isSignaled) {
+        try {
+          this.easyCallControl.rejectIncomingCall();
+          this.logger.info('endAllCalls: rejected pending incoming call');
+        } catch (err) {
+          this.logger.debug('endAllCalls: rejectIncomingCall cleanup', err);
+        }
       }
-      this.activeConversationId = null;
-      this.callControl.offHook(false);
-      this.resetState();
-      this.callControl.releaseCallLock();
-    } catch ({ message, type }) {
-      if (this.checkForCallLockError(message, type)) {
-        this.logger.info(message);
-      } else {
-        this.logger.error(type, message);
+      this.pendingCall = null;
+    }
+
+    // If there's an active call, end it
+    if (this.activeCall) {
+      this.endActiveCall();
+      try {
+        await this.easyCallControl.endCall();
+      } catch (err) {
+        this.logger.debug('endAllCalls: endCall cleanup', err);
       }
-    } finally {
-      this.callLock = false;
     }
   }
 
@@ -340,14 +472,13 @@ export default class JabraService extends VendorImplementation {
     this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     if (!this.jabraSdk) {
       this.jabraSdk = await this.initializeJabraSdk();
-      this.callControlFactory = this.createCallControlFactory(this.jabraSdk);
     }
 
     const deviceLabel = originalDeviceLabel.toLocaleLowerCase();
 
     this._deviceInfo = null;
 
-    let selectedDevice;
+    let selectedDevice: IDevice;
     if (await this.deviceHasPermissions(deviceLabel)) {
       selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
 
@@ -366,9 +497,18 @@ export default class JabraService extends VendorImplementation {
       }
     }
 
-    this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
-    await this.resetHeadsetState();
-    this._processEvents(this.callControl);
+    this.easyCallControl = await this.createEasyCallControl(selectedDevice).catch((err) => {
+      this.logger.warn('Failed to create EasyCallControl instance.', err);
+      return null;
+    });
+
+    if (this.easyCallControl) {
+      this.logger.info('EasyCallControl created successfully', this.easyCallControl.device);
+      this._subscribeToEccEvents(this.easyCallControl);
+    } else {
+      this.logger.error('EasyCallControl not available — headset will not function');
+    }
+
     this._deviceInfo = {
       ProductName: selectedDevice.name,
       deviceName: selectedDevice.name,
@@ -440,55 +580,37 @@ export default class JabraService extends VendorImplementation {
   }
 
   /* istanbul ignore next */
-  createCallControlFactory (sdk: IApi): CallControlFactory {
-    return new CallControlFactory(sdk);
-  }
-
-  checkForCallLockError (message: unknown, type: unknown): boolean {
-    return (
-      (type as ErrorType) === ErrorType.SDK_USAGE_ERROR && (message as string).includes('call lock')
-    );
-  }
-
-  async resetHeadsetState (): Promise<void> {
-    if (!this.callControl) {
-      return;
-    }
-
+  createEasyCallControl (device: IDevice): Promise<IMultiCallControl> {
     try {
-      await this.callControl.takeCallLock();
-      this.callControl.hold(false);
-      this.callControl.mute(false);
-      this.callControl.offHook(false);
-      this.callControl.releaseCallLock();
-    } catch (e) {
-      this.logger.warn('Failed to takeCallLock in order to resetHeadsetState. Ignoring reset.');
+      if (!this.easyCallControlFactory) {
+        this.easyCallControlFactory = new EasyCallControlFactory(this.jabraSdk);
+      }
+      return this.easyCallControlFactory.createMultiCallControl(device);
+    } catch (err) {
+      this.logger.warn('Failed to create EasyCallControlFactory', err);
+      return Promise.resolve(null);
     }
   }
 
   async disconnect (): Promise<void> {
-    try {
-      if (!this.callLock) {
-        return this.logger.info(
-          'Currently not in possession of the Call Lock; Cannot react to Device Actions'
-        );
+    // Unsubscribe from all ECC observables
+    this.eccSubscriptions.forEach(sub => sub.unsubscribe());
+    this.eccSubscriptions = [];
+
+    // Teardown EasyCallControl (releases lock, cleans up)
+    if (this.easyCallControl) {
+      try {
+        this.easyCallControl.teardown();
+        this.logger.info('disconnect: EasyCallControl teardown completed');
+      } catch (err) {
+        this.logger.warn('disconnect: EasyCallControl teardown failed', err);
       }
-      this.callControl.releaseCallLock();
-    } catch ({ message, type }) {
-      if (this.checkForCallLockError(message, type)) {
-        this.logger.info(message);
-      } else {
-        this.logger.error(type, message);
-      }
-    } finally {
-      this.resetHeadsetState();
-      this.callLock = false;
-      if (this.activeConversationId) {
-        this.activeConversationId = null;
-      }
-      this.headsetEventSubscription && this.headsetEventSubscription.unsubscribe();
-      (this.isConnected || this.isConnecting) &&
-        this.changeConnectionStatus({ isConnected: false, isConnecting: false });
     }
+
+    this.endActiveCall();
+    this.pendingCall = null;
+
+    (this.isConnected || this.isConnecting) &&
+      this.changeConnectionStatus({ isConnected: false, isConnecting: false });
   }
 }

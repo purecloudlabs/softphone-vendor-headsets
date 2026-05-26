@@ -14,6 +14,7 @@ const App = () => {
 /* eslint-enable */
   const { t } = useTranslation();
   const [currentCall, setCurrentCall] = useState<any>(null);
+  const [pendingCall, setPendingCall] = useState<any>(null);
   const [muted, setMuted] = useState<boolean>(false);
   const [held, setHeld] = useState<boolean>(false);
   const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
@@ -33,6 +34,7 @@ const App = () => {
 
     return function cleanup () {
       setCurrentCall(null);
+      setPendingCall(null);
     };
   }, []);
 
@@ -59,15 +61,15 @@ const App = () => {
         break;
       case 'deviceAnsweredCall':
         handleHeadsetEvent(value.payload);
-        answerIncomingCall(true);
+        answerCallById(value.payload?.conversationId, true);
         break;
       case 'deviceRejectedCall':
         handleHeadsetEvent(value.payload);
-        rejectIncomingCall(true);
+        rejectCallById(value.payload?.conversationId, true);
         break;
       case 'deviceEndedCall':
         handleHeadsetEvent(value.payload);
-        endCurrentCall(true);
+        endCallById(value.payload?.conversationId, true);
         break;
       case 'deviceConnectionStatusChanged':
         setConnectionStatus(value.payload);
@@ -84,7 +86,7 @@ const App = () => {
     return () => {
       sub.unsubscribe();
     };
-  }, [ currentCall, audioStream ]);
+  }, [ currentCall, pendingCall, audioStream ]);
 
   const _updateDeviceList = async () => {
     await webrtc.ensureAudioPermissions();
@@ -121,15 +123,30 @@ const App = () => {
     setAudioStream(null);
   };
 
-  const endCurrentCall = (fromHeadset?) => {
-    const call = currentCall;
-    if (call) {
-      call.end();
-      !fromHeadset && headset.endCall(call.id);
-    }
-    setCurrentCall(null);
-    endHeadsetAudio();
+  // Look up a call by id across the active and pending slots. Falls back to
+  // `currentCall` when no id is given (legacy UI buttons).
+  const getCallById = (id?: string): any => {
+    if (!id) return currentCall;
+    if (currentCall?.id === id) return currentCall;
+    if (pendingCall?.id === id) return pendingCall;
+    return null;
   };
+
+  const endCallById = (id?: string, fromHeadset?: boolean) => {
+    const call = getCallById(id);
+    console.log('**** ENDING SIMULATED CALL ****', { call, fromHeadset });
+    if (!call) return;
+    call.end();
+    !fromHeadset && headset.endCall(call.id);
+    if (pendingCall?.id === call.id) {
+      setPendingCall(null);
+    } else {
+      setCurrentCall(null);
+      endHeadsetAudio();
+    }
+  };
+  // Kept as a thin wrapper so the existing "End current call" button keeps working.
+  const endCurrentCall = () => endCallById(currentCall?.id);
 
   const changeMic = (event) => {
     const mic = microphones.find(mic => mic.deviceId === event.target.value);
@@ -143,7 +160,14 @@ const App = () => {
   const simulateIncomingCall = () => {
     console.log('**** SIMULATING CALL ****');
     const call = new MockCall();
-    setCurrentCall(call);
+    // If there's already an active call, treat this as a call-waiting
+    // scenario and stash the new call in the pending slot instead of
+    // overwriting the active one.
+    if (currentCall) {
+      setPendingCall(call);
+    } else {
+      setCurrentCall(call);
+    }
     if (!autoAnswer) {
       headset.incomingCall({ conversationId: call.id, contactName: call.contactName });
     } else {
@@ -162,25 +186,44 @@ const App = () => {
     headset.outgoingCall({ conversationId: call.id, contactName: call.contactName });
   };
 
-  const answerIncomingCall = (fromHeadset?) => {
-    console.log('**** ANSWERING SIMULATED CALL ****', { currentCall });
-    currentCall.answer();
-    !fromHeadset && headset.answerCall(currentCall.id, autoAnswer);
+  const answerCallById = (id?: string, fromHeadset?: boolean) => {
+    const call = getCallById(id);
+    console.log('**** ANSWERING SIMULATED CALL ****', { call, fromHeadset });
+    if (!call) return;
+    call.answer();
+    if (pendingCall?.id === call.id) {
+      // Call-waiting accept: answering the pending call implicitly ends the
+      // currently active one. Promote pending into the current slot.
+      if (currentCall) {
+        currentCall.end();
+      }
+      setCurrentCall(call);
+      setPendingCall(null);
+    } else {
+      // Trigger a re-render after mutating the MockCall in place.
+      setCurrentCall(call);
+    }
+    !fromHeadset && headset.answerCall(call.id, autoAnswer);
     startHeadsetAudio();
   };
 
-  const rejectIncomingCall = (fromHeadset?) => {
-    console.log('**** REJECTING SIMULATED CALL ****', { currentCall });
-    if (currentCall) {
-      currentCall.end();
-      !fromHeadset && headset.rejectCall(currentCall.id);
+  const rejectCallById = (id?: string, fromHeadset?: boolean) => {
+    const call = getCallById(id);
+    console.log('**** REJECTING SIMULATED CALL ****', { call, fromHeadset });
+    if (!call) return;
+    call.end();
+    !fromHeadset && headset.rejectCall(call.id);
+    if (pendingCall?.id === call.id) {
+      setPendingCall(null);
+    } else {
+      setCurrentCall(null);
     }
-    setCurrentCall(null);
   };
 
   const endAllCalls = () => {
     headset.endAllCalls();
     setCurrentCall(null);
+    setPendingCall(null);
     endHeadsetAudio();
   };
 
@@ -263,12 +306,19 @@ const App = () => {
             <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
           </div>
           <div className="entry-value">
-            <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
-            <button disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button>
+            <button disabled={!currentCall?.ringing} type="button" onClick={() => answerCallById(currentCall?.id)}>{t('dummy.button.answer')}</button>
+            <button disabled={!currentCall?.ringing} type="button" onClick={() => rejectCallById(currentCall?.id)}>{t('dummy.button.reject')}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
             <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
             <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>
           </div>
+          {pendingCall &&
+            <div className="entry-value">
+              <div>Pending call (call-waiting): {pendingCall.contactName} — {pendingCall.id}</div>
+              <button type="button" onClick={() => answerCallById(pendingCall.id)}>Answer pending (ends current)</button>
+              <button type="button" onClick={() => rejectCallById(pendingCall.id)}>Reject pending</button>
+            </div>
+          }
         </div>
       </div>
 
