@@ -1,5 +1,4 @@
 /* istanbul ignore file */
-import { v4 } from "uuid";
 
 const defaultContacts = [
   'Lawrence W. Larson',
@@ -43,7 +42,7 @@ export default class MockCall {
     held = false;
 
     constructor () {
-      this.id = v4();
+      this.id = globalThis.crypto.randomUUID();
       this.contactName = getRandomContact();
     }
 
