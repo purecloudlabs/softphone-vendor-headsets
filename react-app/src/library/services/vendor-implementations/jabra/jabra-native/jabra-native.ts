@@ -178,7 +178,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return isCefHosted() && this.cefSupportsJabra && !this.config.hostedContext.supportsWebHid();
+    return isCefHosted() && this.cefSupportsJabra && !this.config.useWebHidOnDesktopJabra;
   }
 
   deviceLabelMatchesVendor(label: string): boolean {

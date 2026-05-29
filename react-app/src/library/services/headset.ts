@@ -41,7 +41,7 @@ export default class HeadsetService {
 
     this.logger = config.logger || console;
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
-    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger, hostedContext: config.hostedContext });
+    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
     this.jabra = JabraService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopYealink: config.useWebHidOnDesktopYealink });
