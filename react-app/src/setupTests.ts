@@ -5,4 +5,4 @@
 import '@testing-library/jest-dom';
 
 // Polyfill structuredClone for jsdom environment (not implemented in jsdom)
-global.structuredClone = global.structuredClone ?? ((val) => JSON.parse(JSON.stringify(val)));
+(global as any).structuredClone = (global as any).structuredClone ?? ((val) => JSON.parse(JSON.stringify(val)));

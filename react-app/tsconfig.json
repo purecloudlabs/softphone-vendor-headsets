@@ -25,7 +25,6 @@
     "types": [
       "node",
       "jest",
-      "uuid"
     ],
     "esModuleInterop": true,
     "jsx": "react-jsx",
