@@ -3,3 +3,6 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+
+// Polyfill structuredClone for jsdom environment (not implemented in jsdom)
+(global as any).structuredClone = (global as any).structuredClone ?? ((val) => JSON.parse(JSON.stringify(val)));

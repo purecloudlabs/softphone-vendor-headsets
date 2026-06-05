@@ -1,4 +1,5 @@
 import YealinkService from './yealink';
+import * as utils from '../../../utils';
 
 const mackTestDevName = 'Test Yealink Dev';
 const mackReportId = 0x04;
@@ -142,6 +143,7 @@ describe('YealinkService', () => {
 
     it('should return false if proper values are not met', () => {
       Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
+      jest.spyOn(utils, 'checkWebHidSupport').mockReturnValue(false);
       expect(yealinkService.isSupported()).toBe(false);
     });
   });

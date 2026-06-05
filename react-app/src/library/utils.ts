@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 
 import browserama from 'browserama';
+import { ImplementationConfig } from './services/vendor-implementations/vendor-implementation';
 
 export function isFirefox (): boolean {
   return browserama.isFireFox;
@@ -44,6 +45,19 @@ export function debounce (func: () => void, delay: number): any {
       func();
     }, delay);
   };
+}
+
+export function checkWebHidSupport (config: ImplementationConfig, vendor: string): boolean {
+  const featureToggleForVendor = Object.keys(config).find(key => {
+    return key.toLowerCase().includes(vendor);
+  });
+  if (isCefHosted()) {
+    if (config[featureToggleForVendor]) {
+      return config.hostedContext.supportsWebHid();
+    }
+  } else {
+    return !!(window.navigator as any).hid;
+  }
 }
 
 export function isCefHosted (): boolean {

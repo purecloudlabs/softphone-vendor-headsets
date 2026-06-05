@@ -19,15 +19,17 @@ export default class JabraNativeService extends VendorImplementation {
   pendingConversationId: string;
   activeConversationId: string;
   pendingConversationIsOutbound: boolean;
+  config: ImplementationConfig;
 
   private constructor(config: ImplementationConfig) {
     super(config);
+    this.config = config;
     this.vendorName = 'Jabra';
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
 
     if (isCefHosted()) {
-      if (this.isHostedContextInitialized()) {
+      if (this.config.hostedContext.isHosted()) {
         this.setupNativeHandlers();
       } else {
         this.waitForHostedContext();
@@ -35,13 +37,9 @@ export default class JabraNativeService extends VendorImplementation {
     }
   }
 
-  private isHostedContextInitialized (): boolean {
-    return (window as any).Orgspan?.serviceFor('application').get('hostedContext').isHosted();
-  }
-
   private waitForHostedContext () {
     setTimeout(() => {
-      if (this.isHostedContextInitialized()) {
+      if (this.config.hostedContext.isHosted()) {
         this.setupNativeHandlers()
       } else {
         this.waitForHostedContext();
@@ -50,7 +48,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   private setupNativeHandlers () {
-    const hostedContext = (window as any).Orgspan?.serviceFor('application').get('hostedContext');
+    const hostedContext = this.config.hostedContext;
     this.cefSupportsJabra = hostedContext.supportsJabra();
     hostedContext.on('JabraEvent', this.handleJabraEvent.bind(this));
     hostedContext.on('JabraDeviceAttached', this.handleJabraDeviceAttached.bind(this));
@@ -171,14 +169,7 @@ export default class JabraNativeService extends VendorImplementation {
     const deviceId = this.activeDeviceId;
     this.logger.debug('Sending command to headset', { deviceId, cmd, value });
 
-    (window as any)._HostedContextFunctions.sendEventToDesktop(
-      'jabraEvent',
-      {
-        deviceID: deviceId,
-        event: cmd,
-        value
-      }
-    );
+    this.config.hostedContext.sendEventToDesktop('jabraEvent', { deviceId, cmd, value });
   }
 
   private _setRinging(value: boolean): void {
@@ -187,7 +178,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return isCefHosted() && this.cefSupportsJabra;
+    return isCefHosted() && this.cefSupportsJabra && !this.config.useWebHidOnDesktopJabra;
   }
 
   deviceLabelMatchesVendor(label: string): boolean {

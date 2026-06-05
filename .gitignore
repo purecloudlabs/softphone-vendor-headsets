@@ -7,3 +7,5 @@ coverage/
 tmp/
 softphone-vendor-headsets*.tgz
 .history/
+
+/test-results

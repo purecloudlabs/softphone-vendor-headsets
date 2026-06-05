@@ -2,7 +2,7 @@ import { VendorImplementation, ImplementationConfig } from "../vendor-implementa
 import { CallInfo } from '../../..';
 import DeviceInfo, { PartialHIDDevice } from "../../../types/device-info";
 import { PartialInputReportEvent } from '../../../types/consumed-headset-events';
-import { isCefHosted } from "../../../utils";
+import { checkWebHidSupport } from "../../../utils";
 
 const offhookFlag = 0b1;
 const muteFlag = 0b10;
@@ -45,7 +45,7 @@ export default class YealinkService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return (window.navigator as any).hid && !isCefHosted();
+    return !!checkWebHidSupport(this.config, this.vendorName.toLowerCase());
   }
 
   deviceLabelMatchesVendor (label: string): boolean {

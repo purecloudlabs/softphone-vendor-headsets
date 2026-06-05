@@ -1,5 +1,6 @@
 import CyberAcousticsService from './CyberAcoustics';
 import { CallInfo } from '../../..';
+import * as utils from '../../../utils';
 // we may need these later
 // import { PartialInputReportEvent } from '../../../types/consumed-headset-events';
 // import { PartialHIDDevice } from '../../../types/device-info';
@@ -258,6 +259,7 @@ describe('CyberAcousticsService', () => {
     });
 
     it('should return false if proper values are not met', () => {
+      jest.spyOn(utils, 'checkWebHidSupport').mockReturnValue(false);
       Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
       expect(cyberAcousticsService.isSupported()).toBe(false);
     });
