@@ -1,10 +1,10 @@
-import fetchJsonp from 'fetch-jsonp';
-import { VendorImplementation, ImplementationConfig } from '../vendor-implementation';
-import { PlantronicsCallEvent, PlantronicsCallEventCodes } from './plantronics-call-events';
 import browserama from 'browserama';
-import DeviceInfo from '../../../types/device-info';
+import fetchJsonp from 'fetch-jsonp';
 import { CallInfo } from '../../../types/call-info';
+import DeviceInfo from '../../../types/device-info';
 import { UpdateReasons } from '../../../types/headset-states';
+import { ImplementationConfig, VendorImplementation } from '../vendor-implementation';
+import { PlantronicsCallEvent, PlantronicsCallEventCodes } from './plantronics-call-events';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
@@ -425,9 +425,23 @@ export default class PlantronicsService extends VendorImplementation {
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
+    // Reset mute/hold BEFORE terminating the call so the middleware still has an active call context
+    // to apply these state changes to. After TerminateCall, the call is torn down and state changes are ignored.
+    // Wrapped in try/catch so a timeout here never prevents the call from ending.
+    try {
+      await this.setMute(false);
+      this.deviceMuteChanged({ isMuted: false, name: 'CallEndMuteReset', conversationId });
+    } catch (e) {
+      this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
+    }
+
+    try {
+      await this.setHold(conversationId, false);
+    } catch (e) {
+      this.logger.info('Plantronics: failed to reset hold before ending call', { conversationId, error: e });
+    }
+
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
-    this.setMute(false);
-    this.setHold(conversationId, false);
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;
