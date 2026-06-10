@@ -3,17 +3,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...HEAD)
+# [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v3.0.0...HEAD)
+
+# [v3.0.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.7...v3.0.0)
 ## Breaking Changes
-* [STREAM-1642](https://inindca.atlassian.net/browse/STREAM-1642) - Replace `uuid` with native `globalThis.crypto.randomUUID()`. `randomUUID()` has been widely available in browsers since 2022, so this should only affect you if you use vendor-headsets in an older browser. Bump TypeScript version from v4.1.2 to v4.6 and from v4.4.3 to v4.6.
+* [STREAM-1642](https://inindca.atlassian.net/browse/STREAM-1642) - Replace `uuid` with native `globalThis.crypto.randomUUID()`. `randomUUID()` has been widely available in browsers since 2022, so this should only affect you if you use vendor-headsets in an older browser.
+* [no-jira] - Minimum Node.js version bumped to v24.
 ## Changed
-* [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
-* [STREAM-456](https://inindca.atlassian.net/browse/STREAM-456) - Removed internal, antiquated value in favor of a more proper approach involving a passed in value from the consuming app
+* [STREAM-456](https://inindca.atlassian.net/browse/STREAM-456) - Removed internal, antiquated value in favor of a more proper approach involving a passed in value from the consuming app. Bump TypeScript from v4 to v5.
 ## Added
-* [STREAM-881](https://inindca.atlassian.net/browse/STREAM-881) - Generate a test report in JUnit.xml format
+* [STREAM-881](https://inindca.atlassian.net/browse/STREAM-881) - Generate a test report in JUnit.xml format. Added jest-junit v16.
 * [STREAM-456](https://inindca.atlassian.net/browse/STREAM-456) - Added capabilities to use WebHID on the desktop app
 ## Fixed
 * [STREAM-1586](https://inindca.atlassian.net/browse/STREAM-1586) - Fix test failures due to missing value from imported dependency
+
+# [v2.5.7](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.6...v2.5.7)
+## Changed
+* [STREAM-619](https://inindca.atlassian.net/browse/STREAM-619) - Removed pipeline infrastructure from open-source.
 
 # [v2.5.6](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v2.5.5...v2.5.6)
 ## Changed
