@@ -74,8 +74,8 @@ class HostedContext extends EventEmitter {
     (window as any)._HostedContextFunctions.sendEventToDesktop(
       event,
       {
-        deviceID: data.deviceId,
-        event: data.cmd,
+        deviceID: data.deviceID,
+        event: data.event,
         value: data.value
       }
     );
