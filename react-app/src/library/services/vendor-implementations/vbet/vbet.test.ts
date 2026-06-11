@@ -1,5 +1,6 @@
 import { DeviceSignalType } from '@vbet/webhid-sdk';
 import VBetService from './vbet';
+import * as utils from '../../../utils';
 
 const mockTestDevName = 'VT Lync (340b:0020)';
 const mockDeviceList0 = [];
@@ -808,6 +809,7 @@ describe('VBetservice', () => {
 
     it('should return false if proper values are not met', () => {
       Object.defineProperty(window, '_HostedContextFunctions', { get: () => true });
+      jest.spyOn(utils, 'checkWebHidSupport').mockReturnValue(false);
       expect(vbetService.isSupported()).toBe(false);
     });
   });

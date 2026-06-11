@@ -20,6 +20,13 @@ const JABRA_NATIVE_MOCK_SETUP = `
     sendEventToDesktop: () => {},
   };
 
+  jabraNative.config.hostedContext = {
+    sendEventToDesktop: () => {},
+    isHosted: () => true,
+    supportsJabra: () => true,
+    on: () => {},
+  };
+
   window.__jabraNativeService = jabraNative;
   window.__jabraNativeConvId = convId;
 `;
@@ -40,6 +47,13 @@ const JABRA_NATIVE_MOCK_PENDING = `
 
   window._HostedContextFunctions = {
     sendEventToDesktop: () => {},
+  };
+
+  jabraNative.config.hostedContext = {
+    sendEventToDesktop: () => {},
+    isHosted: () => true,
+    supportsJabra: () => true,
+    on: () => {},
   };
 
   window.__jabraNativeService = jabraNative;
