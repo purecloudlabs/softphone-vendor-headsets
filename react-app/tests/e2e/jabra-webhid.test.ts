@@ -96,7 +96,9 @@ describe('Jabra', () => {
         const options = new chrome.Options();
         options.addArguments('--ignore-certificate-errors');
         options.addArguments('--allow-insecure-localhost');
-        if (process.env.HEADLESS) options.addArguments('--headless=new');
+        if (process.env.HEADLESS){
+            options.addArguments('--headless=new');
+        }
         options.addArguments('--use-fake-ui-for-media-stream');
         options.addArguments('--use-fake-device-for-media-stream');
 
@@ -112,6 +114,10 @@ describe('Jabra', () => {
 
     async function loadApp(testName: string) {
         await driver.get(`${APP_URL}?testName=${testName.replace(/\s+/g, '-')}`);
+        await driver.executeScript(`
+          const overlay = document.getElementById('webpack-dev-server-client-overlay');
+          if (overlay) overlay.remove();
+        `);
         await driver.wait(until.elementLocated(By.css('[data-testid="simulate-incoming"]')), 10000);
         await driver.executeScript(FAKE_JABRA_DEVICE);
         await driver.sleep(500);

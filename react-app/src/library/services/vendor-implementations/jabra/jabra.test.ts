@@ -1476,34 +1476,3 @@ describe('JabraService', () => {
     });
   });
 });
-
-// const hs = window.__headsetService;
-// const jabra = hs.implementations.find(i => i.vendorName === 'Jabra');
-// const convId = Object.keys(hs.headsetConversationStates)[0];
-//
-// jabra.activeConversationId = convId;
-// jabra.callLock = true;
-// jabra.isMuted = false;
-// hs.selectedImplementation = jabra;
-// jabra.isConnected = true;
-//
-// const signalSubject = {
-//   observers: [],
-//   subscribe(fn) { this.observers.push(fn); return { unsubscribe(){} }; },
-//   next(v) { this.observers.forEach(fn => fn(v)); }
-// };
-//
-// jabra.callControl = {
-//   deviceSignals: signalSubject,
-//   takeCallLock: () => Promise.resolve(),
-//   releaseCallLock: () => {},
-//   offHook: () => {},
-//   ring: () => {},
-//   mute: (v) => console.log('SDK mute called:', v),
-//   hold: () => {},
-// };
-//
-// jabra._processEvents(jabra.callControl);
-//
-// // Trigger mute:
-// signalSubject.next({ type: 47, value: true });

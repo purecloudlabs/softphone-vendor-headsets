@@ -50,7 +50,9 @@ describe('Poly', () => {
     const options = new chrome.Options();
     options.addArguments('--ignore-certificate-errors');
     options.addArguments('--allow-insecure-localhost');
-    if (process.env.HEADLESS) options.addArguments('--headless=new');
+    if (process.env.HEADLESS) {
+      options.addArguments('--headless=new');
+    }
     options.addArguments('--use-fake-ui-for-media-stream');
     options.addArguments('--use-fake-device-for-media-stream');
 

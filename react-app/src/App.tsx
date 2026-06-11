@@ -23,12 +23,8 @@ const App = () => {
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('');
   const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
   const [autoAnswer, setAutoAnswer] = useState<boolean>(false);
-<<<<<<< Updated upstream
-  const headset = HeadsetService?.getInstance({} as any);
-=======
-  const headset = HeadsetService?.getInstance({ hostedContext } as ImplementationConfig);
+  const headset = HeadsetService?.getInstance({ logger: console } as ImplementationConfig);
   (window as any).__headsetService = headset;
->>>>>>> Stashed changes
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
 

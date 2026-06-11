@@ -15,12 +15,9 @@ const JABRA_NATIVE_MOCK_SETUP = `
   jabraNative.isMuted = false;
   jabraNative.headsetState = { ringing: false, offHook: true };
 
-  // Mock the CEF hosted context
-  jabraNative.config.hostedContext = {
+  // Mock the CEF hosted context functions
+  window._HostedContextFunctions = {
     sendEventToDesktop: () => {},
-    isHosted: () => true,
-    supportsJabra: () => true,
-    on: () => {},
   };
 
   window.__jabraNativeService = jabraNative;
@@ -41,11 +38,8 @@ const JABRA_NATIVE_MOCK_PENDING = `
   jabraNative.isMuted = false;
   jabraNative.headsetState = { ringing: true, offHook: false };
 
-  jabraNative.config.hostedContext = {
+  window._HostedContextFunctions = {
     sendEventToDesktop: () => {},
-    isHosted: () => true,
-    supportsJabra: () => true,
-    on: () => {},
   };
 
   window.__jabraNativeService = jabraNative;
@@ -75,7 +69,9 @@ describe('Jabra Native', () => {
     const options = new chrome.Options();
     options.addArguments('--ignore-certificate-errors');
     options.addArguments('--allow-insecure-localhost');
-    if (process.env.HEADLESS) options.addArguments('--headless=new');
+    if (process.env.HEADLESS) {
+      options.addArguments('--headless=new');
+    }
     options.addArguments('--use-fake-ui-for-media-stream');
     options.addArguments('--use-fake-device-for-media-stream');
 
