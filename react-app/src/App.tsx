@@ -23,7 +23,12 @@ const App = () => {
   const [webHidRequestButton, setWebHidRequestButton] = useState<any>('');
   const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
   const [autoAnswer, setAutoAnswer] = useState<boolean>(false);
+<<<<<<< Updated upstream
   const headset = HeadsetService?.getInstance({} as any);
+=======
+  const headset = HeadsetService?.getInstance({ hostedContext } as ImplementationConfig);
+  (window as any).__headsetService = headset;
+>>>>>>> Stashed changes
   const webrtc = new DeviceService();
   const isNativeApp = isCefHosted();
 
@@ -258,16 +263,16 @@ const App = () => {
             <span className={ !currentCall ? 'hidden' : 'auto-answer-warning' }>Cannot toggle Auto Answer at this time</span>
           </div>
           <div className="entry-value">
-            <button type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button>
-            <button type="button" onClick={() => simulateOutgoingCall()}>{t('dummy.button.simulateOutgoingCall')}</button>
-            <button type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
+            <button data-testid="simulate-incoming" type="button" onClick={() => simulateIncomingCall()}>{t('dummy.button.simulateCall')}</button>
+            <button data-testid="simulate-outgoing" type="button" onClick={() => simulateOutgoingCall()}>{t('dummy.button.simulateOutgoingCall')}</button>
+            <button data-testid="end-all-calls" type="button" onClick={() => endAllCalls()}>{t('dummy.button.endCall.endAllCalls')}</button>
           </div>
           <div className="entry-value">
-            <button disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
-            <button disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button>
-            <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
-            <button disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
-            <button disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>
+            <button data-testid="answer" disabled={!currentCall} type="button" onClick={() => answerIncomingCall()}>{t('dummy.button.answer')}</button>
+            <button data-testid="reject" disabled={!currentCall} type="button" onClick={() => rejectIncomingCall()}>{t('dummy.button.reject')}</button>
+            <button data-testid="mute" disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareMute(!muted)}>{t(`dummy.button.${muted ? 'un' : ''}mute`)}</button>
+            <button data-testid="hold" disabled={!currentCall?.connected} type="button" onClick={() => toggleSoftwareHold(!held)}>{t(`dummy.button.${held ? 'resume' : 'hold'}`)}</button>
+            <button data-testid="end-current-call" disabled={!currentCall} type="button" onClick={() => endCurrentCall()}>{t('dummy.button.endCall.endCurrentCall')}</button>
           </div>
         </div>
       </div>
@@ -292,12 +297,12 @@ const App = () => {
           <div className="entry-value">
             {currentCall
               ? <>
-                <div>{t(`dummy.currentCall.id`)}: {currentCall.id}</div>
-                <div>{t('dummy.currentCall.contactName')}: {currentCall.contactName}</div>
-                <div>{t('dummy.currentCall.ringing')}: {JSON.stringify(currentCall.ringing)}</div>
-                <div>{t('dummy.currentCall.connected')}: {JSON.stringify(currentCall.connected)}</div>
-                <div>{t('dummy.currentCall.muted')}: {JSON.stringify(muted)}</div>
-                <div>{t('dummy.currentCall.held')}: {JSON.stringify(held)}</div>
+                <div data-testid="call-id">{t(`dummy.currentCall.id`)}: {currentCall.id}</div>
+                <div data-testid="contact-name">{t('dummy.currentCall.contactName')}: {currentCall.contactName}</div>
+                <div data-testid="ringing">{t('dummy.currentCall.ringing')}: {JSON.stringify(currentCall.ringing)}</div>
+                <div data-testid="connected">{t('dummy.currentCall.connected')}: {JSON.stringify(currentCall.connected)}</div>
+                <div data-testid="mute-state">{t('dummy.currentCall.muted')}: {JSON.stringify(muted)}</div>
+                <div data-testid="hold-state">{t('dummy.currentCall.held')}: {JSON.stringify(held)}</div>
               </>
               : t('dummy.currentCall.noCall')
             }
