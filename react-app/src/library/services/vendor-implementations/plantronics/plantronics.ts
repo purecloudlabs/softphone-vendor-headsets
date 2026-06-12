@@ -434,6 +434,7 @@ export default class PlantronicsService extends VendorImplementation {
 
     try {
       await this.setHold(conversationId, false);
+      this.deviceHoldStatusChanged({ holdRequested: false, name: 'CallEndHoldReset', conversationId });
     } catch (e) {
       this.logger.info('Plantronics: failed to reset hold before ending call', { conversationId, error: e });
     }
