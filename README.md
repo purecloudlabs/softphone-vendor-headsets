@@ -385,7 +385,7 @@ All linting and tests must pass 100% and coverage should remain at 100%
 ### End to end testing
 These tests mock out headsets by sending the specific signals the different companies have defined.  No need to plug in and manually test a headset to verify. 
 - running `npm run test:e2e:headless` will not spin up a chrome browser
-- running `npm run test:e2e` will spint up a chrome browser so you can see the UI tests execute. 
+- running `npm run test:e2e` will spin up a chrome browser so you can see the UI tests execute. 
 
 **Important Note**: Out of the box, the test scripts will not work on Windows machines.  A developer will more than likely need to make modifications to the scripts in the package.json as well as the shell scripts found in the `scripts` folder.  If you do not want to modify the scripts out of the box, using a Linux instance seemed to help.  The author of the library used an Ubuntu instance
 
