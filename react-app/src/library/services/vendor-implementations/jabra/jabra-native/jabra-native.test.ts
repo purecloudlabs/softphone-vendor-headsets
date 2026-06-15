@@ -451,7 +451,7 @@ describe('JabraNativeService', () => {
       jabraNativeService.activeDeviceId = 'asdf';
       jest.spyOn(mockLogger, 'debug');
       const expectedLogData = {
-        deviceId: jabraNativeService.activeDeviceId,
+        deviceID: jabraNativeService.activeDeviceId,
         cmd: JabraNativeCommands.Mute,
         value: true,
       };
