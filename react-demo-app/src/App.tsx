@@ -13,8 +13,6 @@ function App() {
   // let headsetConnectionStatus = 'noVendor';
 
   useEffect(() => {
-    window.navigator.mediaDevices.getUserMedia({ audio: true });
-
     const eventSub = headset.headsetEvents$.subscribe(value => {
       console.log('mMoo: received headset event', value);
       if (!value) {

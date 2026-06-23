@@ -1,14 +1,16 @@
 // import './DeviceList.css';
 import { useEffect, useState } from 'react';
-import { GuxButton, GuxDropdown, GuxIcon, GuxListbox, GuxOption } from 'genesys-spark-components-react'
+import { GuxDropdown, GuxIcon, GuxListbox, GuxOption } from 'genesys-spark-components-react';
+import { useTranslation } from 'react-i18next';
 
 function DeviceList({ connectionStatus, changeMic }: { connectionStatus: string, changeMic: any }) {
+    const { t } = useTranslation();
     const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
     // const [connectionStatus, setConnectionStatus] = useState<string>('noVendor');
 
     useEffect(() => {
+        window.navigator.mediaDevices.getUserMedia({ audio: true });
         window.navigator.mediaDevices.enumerateDevices().then((devices) => {
-            console.log('mMoo: devices', devices);
             const audioDevices = devices.filter((device) => device.kind === 'audioinput');
             setMicrophones(audioDevices);
         });
@@ -45,7 +47,11 @@ function DeviceList({ connectionStatus, changeMic }: { connectionStatus: string,
                 </GuxDropdown>
             </div>
             <div className='entry-values'>
-                { connectionStatus }
+                { connectionStatus !== 'noVendor' &&
+                    <div className='entry-values'>
+                        {t(`implementation.connectionStatus.${connectionStatus}`)}
+                    </div>
+                }
             </div>
         </div>
     )
