@@ -44,9 +44,9 @@ export default class YealinkService extends VendorImplementation {
     return this._deviceInfo;
   }
 
-  isSupported (): boolean {
-    return !!checkWebHidSupport(this.config, this.vendorName.toLowerCase());
-  }
+  // isSupported (): boolean {
+  //   return !!checkWebHidSupport(this.config, this.vendorName.toLowerCase());
+  // }
 
   deviceLabelMatchesVendor (label: string): boolean {
     const lowerLabel = label.toLowerCase();
