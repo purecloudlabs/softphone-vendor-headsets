@@ -143,6 +143,11 @@ export default class YealinkService extends VendorImplementation {
       this._deviceInfo = null;
       this.inputReportReportId = 0;
     }
+    this.callState = 0;
+    this.recCallState = 0;
+    this.isHold = false;
+    this.pendingConversationId = null;
+    this.activeConversationId = null;
   }
 
   processBtnPress (value: number): void {
