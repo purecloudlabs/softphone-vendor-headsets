@@ -90,6 +90,63 @@ const mackDeviceList4 = [{
   }]
 }];
 
+// Device with report ID in a child collection (like the UH38)
+const mackChildReportId = 0x02;
+const mackDeviceListChildCollection = [{
+  open: jest.fn(),
+  close: jest.fn(),
+  sendReport: jest.fn(),
+  addEventListener: jest.fn((name, callback) => {callback(
+    {
+      reportId: mackChildReportId,
+      data: {
+        getUint8: jest.fn(() => 0)
+      }
+    });
+  }),
+
+  productName: mackTestDevName,
+  collections: [{
+    usage: 0x0005,
+    usagePage: 0x000B,
+    inputReports: [],
+    children: [{
+      usage: 0x0006,
+      usagePage: 0x000B,
+      inputReports: [{
+        reportId: mackChildReportId
+      }]
+    }]
+  }]
+}];
+
+// Device with children but no input reports in any of them (falls back to default report ID)
+const mackDeviceListChildNoReports = [{
+  open: jest.fn(),
+  close: jest.fn(),
+  sendReport: jest.fn(),
+  addEventListener: jest.fn((name, callback) => {callback(
+    {
+      reportId: mackReportId,
+      data: {
+        getUint8: jest.fn(() => 0)
+      }
+    });
+  }),
+
+  productName: mackTestDevName,
+  collections: [{
+    usage: 0x0005,
+    usagePage: 0x000B,
+    inputReports: [],
+    children: [{
+      usage: 0x0006,
+      usagePage: 0x000B,
+      inputReports: []
+    }]
+  }]
+}];
+
 const mackRecOffhookFlag = 0b1;
 const mackRecHoldFlag = 0b1000;
 const mackRecMuteFlag = 0b100;
@@ -317,6 +374,65 @@ describe('YealinkService', () => {
       await yealinkService.connect(mackTestDevName);
       expect(yealinkService.isConnected).toBe(true);
       expect(yealinkService.isConnecting).toBe(false);
+    });
+
+    it('should resolve report ID from child collection (UH38-style device)', async () => {
+      mackDeviceList = mackDeviceListChildCollection;
+
+      await yealinkService.connect(mackTestDevName);
+
+      expect(yealinkService.isConnected).toBe(true);
+      expect(mackDeviceListChildCollection[0].sendReport).not.toHaveBeenCalled();
+
+      await yealinkService.outgoingCall({ conversationId: 'test-id' });
+
+      expect(mackDeviceListChildCollection[0].sendReport).toHaveBeenCalledWith(
+        mackChildReportId,
+        new Uint8Array([0b1])
+      );
+    });
+
+    it('should use child collection report ID for mute commands (UH38-style device)', async () => {
+      mackDeviceList = mackDeviceListChildCollection;
+
+      await yealinkService.connect(mackTestDevName);
+      await yealinkService.outgoingCall({ conversationId: 'test-id' });
+
+      await yealinkService.setMute(true);
+      expect(mackDeviceListChildCollection[0].sendReport).toHaveBeenCalledWith(
+        mackChildReportId,
+        new Uint8Array([0b11])
+      );
+
+      await yealinkService.setMute(false);
+      expect(mackDeviceListChildCollection[0].sendReport).toHaveBeenCalledWith(
+        mackChildReportId,
+        new Uint8Array([0b1])
+      );
+    });
+
+    it('should use top-level report ID when inputReports exist at the top level', async () => {
+      mackDeviceList = mackDeviceList1;
+
+      await yealinkService.connect(mackTestDevName);
+      await yealinkService.outgoingCall({ conversationId: 'test-id' });
+
+      expect(mackDeviceList1[0].sendReport).toHaveBeenCalledWith(
+        mackReportId,
+        new Uint8Array([0b1])
+      );
+    });
+
+    it('should fall back to default report ID when children have no input reports', async () => {
+      mackDeviceList = mackDeviceListChildNoReports;
+
+      await yealinkService.connect(mackTestDevName);
+      await yealinkService.outgoingCall({ conversationId: 'test-id' });
+
+      expect(mackDeviceListChildNoReports[0].sendReport).toHaveBeenCalledWith(
+        mackReportId,
+        new Uint8Array([0b1])
+      );
     });
   });
 
