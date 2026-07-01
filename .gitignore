@@ -10,3 +10,4 @@ softphone-vendor-headsets*.tgz
 
 /test-results
 .idea/
+.npmrc

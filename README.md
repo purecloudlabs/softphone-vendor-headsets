@@ -382,6 +382,9 @@ Run the tests using `npm run test:watch` or `npm run test:coverage`.  Both comma
 
 All linting and tests must pass 100% and coverage should remain at 100%
 
+### Debugging headsets
+See the [Headset WebHID Debug Tools](react-app/docs/headset-debug-tools.md) for Chrome DevTools console snippets that help diagnose WebHID connection issues, report ID mismatches, and button mapping problems.
+
 ### End to end testing
 These tests mock out headsets by sending the specific signals the different companies have defined.  No need to plug in and manually test a headset to verify. 
 - running `npm run test:e2e:headless` will not spin up a chrome browser
