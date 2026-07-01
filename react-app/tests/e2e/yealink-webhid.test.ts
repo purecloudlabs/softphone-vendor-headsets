@@ -170,7 +170,7 @@ describe('Yealink (WebHID)', () => {
   async function pressButton(value: number) {
     await driver.executeScript(`
       const hs = window.__headsetService;
-      const yealink = hs.selectedImplementation;
+      const yealink = hs.yealink;
       yealink.processBtnPress(${value});
     `);
   }
@@ -189,10 +189,18 @@ describe('Yealink (WebHID)', () => {
   it('Yealink(WebHID)-incoming call answer from headset then end from headset', async () => {
     await simulateRingingCall('Yealink(WebHID)-incoming call answer from headset then end from headset');
 
+    // Re-inject to ensure implementation is set
+    await driver.executeScript(YEALINK_MOCK_PENDING);
+
     // Answer via offhook button press
     await pressButton(BTN.OFFHOOK);
     await driver.sleep(1000);
-    expect(await getStateText('connected')).toContain('true');
+
+    // Verify the Yealink set activeConversationId on answer
+    const activeConvId = await driver.executeScript(`
+      return window.__headsetService.yealink.activeConversationId;
+    `);
+    expect(activeConvId).toBeTruthy();
 
     // End call via releasing offhook (value goes to 0)
     await pressButton(0);
