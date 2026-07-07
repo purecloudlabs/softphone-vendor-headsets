@@ -68,52 +68,14 @@ describe('JabraNativeService', () => {
       expect(jabraNativeService.headsetState.offHook).toBe(false);
     });
 
-    it('should call waitForHostedContext if not already hosted', () => {
-      hostedContext._isHosted = false;
-      jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
-
-      const setupNativeHandlersSpy = jest.spyOn(JabraNativeService.prototype as any, 'setupNativeHandlers');
-      const waitForHostedContextSpy = jest.spyOn(JabraNativeService.prototype as any, 'waitForHostedContext');
-
-      JabraNativeService.getInstance({ logger: console, createNew: true, hostedContext });
-
-      expect(setupNativeHandlersSpy).not.toHaveBeenCalled();
-      expect(waitForHostedContextSpy).toHaveBeenCalled();
-    })
-
     it('should call setupNativeHandlers if already hosted', () => {
       jest.spyOn(utils, 'isCefHosted').mockReturnValue(true);
 
       const setupNativeHandlersSpy = jest.spyOn(JabraNativeService.prototype as any, 'setupNativeHandlers');
-      const waitForHostedContextSpy = jest.spyOn(JabraNativeService.prototype as any, 'waitForHostedContext');
 
       JabraNativeService.getInstance({ logger: console, createNew: true, hostedContext });
 
       expect(setupNativeHandlersSpy).toHaveBeenCalled();
-      expect(waitForHostedContextSpy).not.toHaveBeenCalled();
-    })
-  })
-
-  describe('waitForHostedContext', () => {
-    afterEach(() => {
-      jest.useRealTimers();
-    })
-    it('should call setupNativeHandlers after 500 ms timeout and isHosted', async () => {
-      jest.useFakeTimers();
-      jabraNativeService['waitForHostedContext']();
-      const setupNativeHandlersSpy = jabraNativeService['setupNativeHandlers'] = jest.fn();
-      await flushPromises();
-      jest.advanceTimersByTime(600);
-      expect(setupNativeHandlersSpy).toHaveBeenCalled();
-    })
-    it('should call waitForHostedContext after 500 ms timeout and !isHosted', async () => {
-      hostedContext._isHosted = false;
-      jest.useFakeTimers();
-      jabraNativeService['waitForHostedContext']();
-      const waitForHostedContextSpy = jabraNativeService['waitForHostedContext'] = jest.fn();
-      await flushPromises();
-      jest.advanceTimersByTime(600);
-      expect(waitForHostedContextSpy).toHaveBeenCalled();
     })
   })
 
@@ -131,7 +93,7 @@ describe('JabraNativeService', () => {
 
       expect(jabraNativeService.isSupported()).toBeFalsy();
     });
-    
+
     it('should not be supported if not cef' , () => {
       jest.spyOn(utils, 'isCefHosted').mockReturnValue(false);
       jabraNativeService.cefSupportsJabra = false;

@@ -28,23 +28,9 @@ export default class JabraNativeService extends VendorImplementation {
     this.headsetState = { ringing: false, offHook: false };
     this.devices = new Map<string, DeviceInfo>();
 
-    if (isCefHosted()) {
-      if (this.config.hostedContext.isHosted()) {
-        this.setupNativeHandlers();
-      } else {
-        this.waitForHostedContext();
-      }
+    if (isCefHosted() && this.config.hostedContext?.isHosted()) {
+      this.setupNativeHandlers();
     }
-  }
-
-  private waitForHostedContext () {
-    setTimeout(() => {
-      if (this.config.hostedContext.isHosted()) {
-        this.setupNativeHandlers()
-      } else {
-        this.waitForHostedContext();
-      }
-    }, 500);
   }
 
   private setupNativeHandlers () {
