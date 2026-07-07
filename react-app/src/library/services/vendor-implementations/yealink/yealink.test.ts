@@ -152,6 +152,11 @@ const mackRecHoldFlag = 0b1000;
 const mackRecMuteFlag = 0b100;
 const mackRecReject = 0x40;
 
+const createYealinkService = () => {
+  (YealinkService as any).instance = undefined;
+  return YealinkService.getInstance({ logger: console });
+};
+
 describe('YealinkService', () => {
   let yealinkService: YealinkService;
   let mackDeviceList = mackDeviceList0;
@@ -171,7 +176,7 @@ describe('YealinkService', () => {
   beforeEach(() => {
     mackDeviceList = mackDeviceList0;
     mackReqDeviceList = mackDeviceList0;
-    yealinkService = YealinkService.getInstance({ logger: console });
+    yealinkService = createYealinkService();
   });
 
   afterEach(() => {
@@ -639,6 +644,16 @@ describe('YealinkService', () => {
 
       await yealinkService.endCall(null, false);
 
+      expect(devSendFun).toHaveBeenCalledWith(0);
+    });
+
+    it('clears the active conversation when ending the active call', async () => {
+      const devSendFun = yealinkService.sendOpToDevice = jest.fn();
+      (yealinkService as any).activeConversationId = 'id';
+
+      await yealinkService.endCall('id', false);
+
+      expect((yealinkService as any).activeConversationId).toBeNull();
       expect(devSendFun).toHaveBeenCalledWith(0);
     });
 
