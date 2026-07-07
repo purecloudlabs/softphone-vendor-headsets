@@ -67,9 +67,7 @@ export default class YealinkService extends VendorImplementation {
             if (collection.usage === HEADSET_USAGE &&
               collection.usagePage === HEADSET_USAGE_PAGE) {
               this.activeDevice = device;
-              if (collection.inputReports.length !== 0) {
-                this.inputReportReportId = HEADSET_REPORT_ID;
-              }
+              this.inputReportReportId = this.resolveReportId(collection);
               break;
             }
           }
@@ -94,9 +92,7 @@ export default class YealinkService extends VendorImplementation {
                   if (collection.usage === HEADSET_USAGE
                     && collection.usagePage === HEADSET_USAGE_PAGE) {
                     bFind = true;
-                    if (collection.inputReports.length !== 0) {
-                      this.inputReportReportId = HEADSET_REPORT_ID;
-                    }
+                    this.inputReportReportId = this.resolveReportId(collection);
                     resolve(device);
                     break;
                   }
@@ -147,6 +143,11 @@ export default class YealinkService extends VendorImplementation {
       this._deviceInfo = null;
       this.inputReportReportId = 0;
     }
+    this.callState = 0;
+    this.recCallState = 0;
+    this.isHold = false;
+    this.pendingConversationId = null;
+    this.activeConversationId = null;
   }
 
   processBtnPress (value: number): void {
@@ -279,6 +280,30 @@ export default class YealinkService extends VendorImplementation {
       const setValue = this.callState & (~holdFlag);
       this.sendOpToDevice(setValue | offhookFlag);
     }
+  }
+
+  /**
+   * Different Yealink models advertise their telephony HID reports at different
+   * levels of the descriptor hierarchy. Some expose input reports directly on the
+   * top-level telephony collection (usage 5 / usagePage 11), while others — like
+   * the UH38 — nest them inside a child collection. This method walks the
+   * descriptor to find the actual report ID the device uses, so we don't have to
+   * hardcode a value that only works for some models.
+   */
+  private resolveReportId (collection: any): number | null {
+    if (collection.inputReports && collection.inputReports.length !== 0) {
+      return collection.inputReports[0].reportId;
+    }
+
+    if (collection.children) {
+      for (const child of collection.children) {
+        if (child.inputReports && child.inputReports.length !== 0) {
+          return child.inputReports[0].reportId;
+        }
+      }
+    }
+
+    return HEADSET_REPORT_ID;
   }
 
   async sendOpToDevice (value: number): Promise<void> {

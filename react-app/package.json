@@ -27,6 +27,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false --collectCoverage=true",
     "test:watch": "react-scripts test",
+    "test:e2e": "cd ..; npm run test:e2e",
+    "test:e2e:headless": "cd ..; npm run test:e2e:headless",
     "test:coverage": "react-scripts test --coverage",
     "test:clean": "react-scripts test --clearCache",
     "eject": "react-scripts eject"
