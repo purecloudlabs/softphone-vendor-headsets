@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v3.0.1...HEAD)
 ## Fixed
 * [STREAM-1800](https://inindca.atlassian.net/browse/STREAM-1800) - Fixed Yealink WebHID report ID resolution for devices (like the UH38) that nest telephony input reports in a child HID collection.
+* [STREAM-1688](https://inindca.atlassian.net/browse/STREAM-1688) - Reset mute and hold on the Plantronics/Poly device before terminating a call, and emit a hold status change event so the consuming app stays in sync. Prevents a stale mute/hold state from carrying over to the next call.
 
 ## Added
 * [STREAM-1707](https://inindca.atlassian.net/browse/STREAM-1707) - Added UI integration tests for the react app.
