@@ -164,7 +164,7 @@ export default class HpService extends VendorImplementation {
     case SdkEvent.FLASH:
       {
         const activeConversationId = this.activeConversationIds.pop();
-        if (this.heldConversationIds.length==0 && !activeConversationId && !this.incomingConversationId) {
+        if (this.heldConversationIds.length === 0 && !activeConversationId && !this.incomingConversationId) {
           this.logger.warn('No held, active, or incoming conversation to flash');
           return;
         }
@@ -186,7 +186,7 @@ export default class HpService extends VendorImplementation {
             conversationId: this.incomingConversationId,
           });
           this.incomingConversationId = null;
-        } else if (this.activeConversationIds.length == 0 && (this.heldConversationIds.length > 1 || !activeConversationId)) {
+        } else if (this.activeConversationIds.length === 0 && (this.heldConversationIds.length > 1 || !activeConversationId)) {
           /* Ensure there are no active calls before resuming a held call, and either resuming a previous held call.
            * if activeConverstationId is not null then we just held the call above so we only resume if there was more
            * than one held call when activeConversationId is non null.*/
@@ -212,12 +212,12 @@ export default class HpService extends VendorImplementation {
           activeConversationId = this.activeConversationIds[0];
         }
         this.deviceMuteChanged({
-          isMuted: sdkEvent == SdkEvent.MUTE,
+          isMuted: sdkEvent === SdkEvent.MUTE,
           name: SdkEvent[sdkEvent],
           code: sdkEvent,
           conversationId: activeConversationId,
         });
-        this.callControlSdk.setMuteState(sdkEvent == SdkEvent.MUTE);
+        this.callControlSdk.setMuteState(sdkEvent === SdkEvent.MUTE);
       }
       return;
 
@@ -248,17 +248,15 @@ export default class HpService extends VendorImplementation {
         let validConnect = false;
         validConnect = await this.callControlSdk.connectHeadset(this._device);
         this.logger.debug('connect Headset validConnect', validConnect);
+        this.pendingDeviceLabel = null;
         if (!validConnect) {
-          this.pendingDeviceLabel = null;
           this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
           return;
-        } else {
-          this.pendingDeviceLabel = deviceLabel;
         }
-      }
-      else {
+      } else {
         this.logger.debug('No previously connected device found for ', deviceLabel);
         try {
+          this.pendingDeviceLabel = deviceLabel;
           this._device = await this.getDeviceFromWebhid();
         } catch (e) {
           this.isConnecting &&

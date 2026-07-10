@@ -56,7 +56,9 @@ declare class CallControlSdk {
      * @param headset The HIDDevice as received from `navigator.hid.requestDevice()` or `navigator.hid.getDevices()`.
      * @returns Promise<boolean> true on success.
      */
-    connectHeadset(headset: HIDDevice): Promise<boolean>;
+    connectHeadset(headset: HIDDevice | BluetoothDevice): Promise<boolean>;
+    connectBtHeadset(): Promise<boolean>;
+    connectBtHeadset(headset: BluetoothDevice): Promise<boolean>;
     /**
      * Disconnect the current headset and free SDK memory.
      *

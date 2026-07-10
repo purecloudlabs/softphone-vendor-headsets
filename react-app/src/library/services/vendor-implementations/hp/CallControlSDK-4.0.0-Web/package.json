@@ -6,7 +6,7 @@
   "module": "call_control_sdk.js",
   "type": "module",
   "types": "call_control_sdk.d.ts",
-  "version": "2.1.16",
+  "version": "4.0.0",
   "devDependencies": {
     "@types/w3c-web-hid": "^1.0.6"
   },
