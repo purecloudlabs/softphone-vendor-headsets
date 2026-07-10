@@ -33,6 +33,10 @@ export default class HpService extends VendorImplementation {
     this.heldConversationIds = [];
   }
 
+  isSupported (): boolean {
+    return !!this.config.useNewPolyImplementation;
+  }
+
   deviceLabelMatchesVendor (label: string): boolean {
     // includes vendor name or vendorId (chrome only)
     const lowerLabel = label.toLowerCase();

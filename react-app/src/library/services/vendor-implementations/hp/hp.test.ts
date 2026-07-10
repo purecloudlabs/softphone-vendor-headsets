@@ -41,6 +41,17 @@ describe('HpService', () => {
     });
   });
 
+  describe('isSupported', () => {
+    it('should return false if the proper values are not met', () => {
+      expect(hpService.isSupported()).toBe(false);
+    });
+
+    it('should return true if the proper values are met', () => {
+      hpService.config = { logger: console, useNewPolyImplementation: true };
+      expect(hpService.isSupported()).toBe(true);
+    });
+  });
+
   describe('deviceName', () => {
     it('should return the value of deviceInfo.ProductName', () => {
       hpService._deviceInfo = testDevice;
