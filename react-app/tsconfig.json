@@ -25,6 +25,7 @@
     "types": [
       "node",
       "jest",
+      "web-bluetooth"
     ],
     "esModuleInterop": true,
     "jsx": "react-jsx",

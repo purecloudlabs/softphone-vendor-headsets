@@ -58,6 +58,7 @@
     "@types/node": "^26.1.0",
     "@types/selenium-webdriver": "^4.35.6",
     "@types/w3c-web-hid": "^1.0.6",
+    "@types/web-bluetooth": "^0.0.21",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "babel-loader": "^8.1.0",
@@ -75,8 +76,8 @@
     "ts-node": "~7.0.0",
     "tslib": "^2.3.1",
     "typescript": "^5.9.3",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^4.9.1",
+    "webpack": "^5.108.4",
+    "webpack-cli": "^7.2.1",
     "wildstring": "^1.0.9"
   },
   "husky": {
