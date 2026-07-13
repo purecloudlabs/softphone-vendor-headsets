@@ -42,6 +42,10 @@ export default class PlantronicsService extends VendorImplementation {
     this.incomingConversationId = null;
   }
 
+  isSupported (): boolean {
+    return !this.config.useNewPolyImplementation;
+  }
+
   private _createCallMapping (conversationId: string): number {
     const ID_LENGTH = 8;
     const callId = Math.round(Math.random() * Math.pow(10, ID_LENGTH)); // Generate random number
@@ -425,21 +429,9 @@ export default class PlantronicsService extends VendorImplementation {
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
-    try {
-      await this.setMute(false);
-      this.deviceMuteChanged({ isMuted: false, name: 'CallEndMuteReset', conversationId });
-    } catch (e) {
-      this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
-    }
-
-    try {
-      await this.setHold(conversationId, false);
-      this.deviceHoldStatusChanged({ holdRequested: false, name: 'CallEndHoldReset', conversationId });
-    } catch (e) {
-      this.logger.info('Plantronics: failed to reset hold before ending call', { conversationId, error: e });
-    }
-
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
+    this.setMute(false);
+    this.setHold(conversationId, false);
     await this.getCallEvents();
     this._checkIsActiveTask();
     return response;

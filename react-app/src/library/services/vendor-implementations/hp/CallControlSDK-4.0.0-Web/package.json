@@ -1,0 +1,14 @@
+{
+  "name": "@hp/call-control-sdk",
+  "author": "HP, Inc.",
+  "browser": "call_control_sdk.js",
+  "description": "HP Poly Call Control SDK",
+  "module": "call_control_sdk.js",
+  "type": "module",
+  "types": "call_control_sdk.d.ts",
+  "version": "4.0.0",
+  "devDependencies": {
+    "@types/w3c-web-hid": "^1.0.6"
+  },
+  "license": "license.md"
+}
