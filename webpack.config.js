@@ -8,6 +8,7 @@ module.exports = (env) => {
   let babelExcludes = [];
   let babelOptions;
   let externals = [];
+  const hpSdkEntry = path.resolve(__dirname, 'react-app/src/library/services/vendor-implementations/hp/CallControlSDK-4.0.0-Web/call_control_sdk.js');
 
   /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
   babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk)).*/];
@@ -47,7 +48,10 @@ module.exports = (env) => {
       }
     },
     resolve: {
-      extensions: ['.ts', '.js', '.cjs', '.mjs', '.json']
+      extensions: ['.ts', '.js', '.cjs', '.mjs', '.json'],
+      alias: {
+        '@hp/call-control-sdk': hpSdkEntry
+      }
     },
     module: {
       rules: [
