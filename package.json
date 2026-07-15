@@ -11,6 +11,9 @@
   "files": [
     "dist"
   ],
+  "bundledDependencies": [
+    "@hp/call-control-sdk"
+  ],
   "repository": {
     "url": "https://github.com/purecloudlabs/softphone-vendor-headsets",
     "type": ""
