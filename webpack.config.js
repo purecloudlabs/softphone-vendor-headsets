@@ -1,3 +1,4 @@
+const { symlink } = require('fs');
 const path = require('path');
 
 module.exports = (env) => {
@@ -49,6 +50,7 @@ module.exports = (env) => {
     },
     resolve: {
       extensions: ['.ts', '.js', '.cjs', '.mjs', '.json'],
+      symlinks: false,
       alias: {
         '@hp/call-control-sdk': hpSdkEntry
       }
