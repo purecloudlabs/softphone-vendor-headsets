@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@gnaudio/jabra-js": "^4.2.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -10,6 +11,7 @@
     "@types/node": "^26.1.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@vbet/webhid-sdk": "^1.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
     "i18next": "^20.6.1",
@@ -19,9 +21,24 @@
     "react-dom": "^17.0.2",
     "react-i18next": "~11.12.0",
     "react-scripts": "5.0.1",
+    "rxjs": "^7.4.0",
     "typescript": "^4.6",
     "web-vitals": "^1.0.1"
   },
+  "overrides": {
+    "brace-expansion@1": "1.1.16",
+    "fast-uri": "3.1.3",
+    "js-yaml@3": "3.15.0",
+    "shell-quote": "1.9.0",
+    "underscore": "1.13.8"
+  },
+  "//overrides": [
+    "brace-expansion@1 -> 1.1.16: fixes SNYK-JS-BRACEEXPANSION-17706650",
+    "fast-uri -> 3.1.3: fixes SNYK-JS-FASTURI-17675102",
+    "js-yaml@3 -> 3.15.0: fixes SNYK-JS-JSYAML-17900054",
+    "shell-quote -> 1.9.0: fixes SNYK-JS-SHELLQUOTE-17457810",
+    "underscore -> 1.13.8: fixes SNYK-JS-UNDERSCORE-15369786"
+  ],
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
