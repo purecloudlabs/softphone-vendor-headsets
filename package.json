@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@gnaudio/jabra-js": "^4.2.1",
-    "@hp/call-control-sdk": "file:react-app/src/library/services/vendor-implementations/hp/CallControlSDK-4.0.0-Web/hp-call-control-sdk-4.0.0.tgz",
+    "@hp/call-control-sdk": "github:HPInc/softphone-vendor-headsets#HP-4.0.0",
     "@vbet/webhid-sdk": "^1.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
@@ -81,9 +81,6 @@
     "webpack-cli": "^7.2.1",
     "wildstring": "^1.0.9"
   },
-  "bundledDependencies": [
-    "@hp/call-control-sdk"
-  ],
   "husky": {
     "hooks": {}
   },
