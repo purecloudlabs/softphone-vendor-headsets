@@ -92,10 +92,5 @@
     "semi": true,
     "singleQuote": true,
     "trailingComma": "es5"
-  },
-  "exports": {
-    "./package.json": "./package.json",
-    "./call_control_sdk.js": "./dist/CallControlSdk-4.0.0-Web/call_control_sdk.js",
-    "./call_control_sdk.wasm": "./dist/CallControlSdk-4.0.0-Web/call_control_sdk.wasm"
   }
 }
