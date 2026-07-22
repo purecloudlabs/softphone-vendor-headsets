@@ -10,7 +10,7 @@ module.exports = (env) => {
   let externals = [];
 
   /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
-  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk)).*/];
+  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk|@hp\/call-control-sdk)).*/];
 
   babelOptions = {
     sourceType: 'unambiguous',
@@ -41,10 +41,11 @@ module.exports = (env) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename,
-      library: {
-        name: 'SoftphoneVendorHeadsets',
-        type: 'umd'
-      },
+      library: 'umd'
+      // library: {
+      //   name: 'SoftphoneVendorHeadsets',
+      //   type: 'umd'
+      // },
       // TODO: exporting the SDK class here does not allow CDN imports access to any
       //  other files/modules of this lib. See: https://inindca.atlassian.net/browse/PCM-1708
     },
@@ -54,6 +55,9 @@ module.exports = (env) => {
     module: {
       rules: [
         {
+          test: /\.js$/,
+          loader: require.resolve('@open-wc/webpack-import-meta-loader'),
+        }, {
           test: /\.(cjs|mjs|js|ts)$/,
           loader: 'babel-loader',
           exclude: babelExcludes,
