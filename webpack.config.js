@@ -10,8 +10,7 @@ module.exports = (env) => {
   let externals = [];
 
   /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
-  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk)).*/];
-
+  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk|@hp\/call-control-sdk)).*/];
   babelOptions = {
     sourceType: 'unambiguous',
     presets: [
@@ -19,7 +18,7 @@ module.exports = (env) => {
       '@babel/preset-typescript'
     ],
     plugins: [
-      '@babel/plugin-transform-class-properties',
+      '@babel/plugin-proposal-class-properties',
       '@babel/plugin-transform-optional-chaining',
       '@babel/plugin-transform-nullish-coalescing-operator'
     ]
@@ -41,16 +40,19 @@ module.exports = (env) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename,
-      library: {
-        name: 'SoftphoneVendorHeadsets',
-        type: 'umd'
-      }
+      library: 'SoftphoneVendorHeadsets',
+      libraryExport: '',
+      libraryTarget: 'umd'
     },
     resolve: {
       extensions: ['.ts', '.js', '.cjs', '.mjs', '.json']
     },
     module: {
       rules: [
+        {
+          test: /\.js$/,
+          loader: require.resolve('@open-wc/webpack-import-meta-loader'),
+        },
         {
           test: /\.(cjs|mjs|js|ts)$/,
           loader: 'babel-loader',

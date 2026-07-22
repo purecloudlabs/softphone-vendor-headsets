@@ -8,8 +8,7 @@
   "types": "call_control_sdk.d.ts",
   "version": "4.0.0",
   "devDependencies": {
-    "@types/w3c-web-hid": "^1.0.6",
-    "@types/web-bluetooth": "^0.0.21"
+    "@types/w3c-web-hid": "^1.0.6"
   },
   "license": "license.md"
 }
