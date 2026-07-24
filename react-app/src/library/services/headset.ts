@@ -75,6 +75,7 @@ export default class HeadsetService {
       this.cyberAcoustics
     ].filter((impl) => impl.isSupported());
 
+    console.log('mMoo: implementations', implementations);
     return implementations;
   }
 
