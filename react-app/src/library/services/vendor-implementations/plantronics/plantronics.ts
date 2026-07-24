@@ -43,6 +43,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   isSupported (): boolean {
+    console.log('mMoo: plantronics isSupported', this.config.useNewPolyImplementation);
     return !this.config.useNewPolyImplementation;
   }
 

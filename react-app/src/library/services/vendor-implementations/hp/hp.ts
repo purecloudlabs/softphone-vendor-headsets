@@ -6,6 +6,10 @@ import CcSdk, { CallState, SdkEvent } from '@hp/call-control-sdk';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
+declare global {
+  type BluetoothDevice = any
+}
+
 export default class HpService extends VendorImplementation {
   private static instance: HpService;
   vendorName = 'Hp';
@@ -34,6 +38,7 @@ export default class HpService extends VendorImplementation {
   }
 
   isSupported (): boolean {
+    console.log('mMoo: HP iSupported', this.config.useNewPolyImplementation);
     return !!this.config.useNewPolyImplementation;
   }
 
