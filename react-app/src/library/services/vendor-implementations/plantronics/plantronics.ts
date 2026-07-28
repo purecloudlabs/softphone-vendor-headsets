@@ -243,7 +243,7 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceAnsweredCall({ ...eventInfo, conversationId });
       break;
     case 'RejectCall':
-      this.logger.debug('Recevied reject call event from device', { eventInfo });
+      this.logger.debug('Received reject call event from device', { eventInfo });
       this.endCall(conversationId);
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;

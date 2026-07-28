@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v3.0.3...HEAD)
+## Added
+* [STREAM-1048](https://inindca.atlassian.net/browse/STREAM-1688) - Added additional logging to hopefully help with debugging in the future
 
 # [v3.0.3](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v3.0.2...v3.0.3)
 ## Fixed
