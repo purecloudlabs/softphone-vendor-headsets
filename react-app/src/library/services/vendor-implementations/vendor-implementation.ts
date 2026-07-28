@@ -115,22 +115,27 @@ export abstract class VendorImplementation extends (EventEmitter as { new(): Str
   }
 
   deviceAnsweredCall (eventInfo: EventInfoWithConversationId): void {
+    this.logger.debug('Emitting answer call event from device', { eventInfo });
     this.emitEvent('deviceAnsweredCall', eventInfo);
   }
 
   deviceRejectedCall (eventInfo: EventInfoWithConversationId): void {
+    this.logger.debug('Emitting reject call event from device', { eventInfo });
     this.emitEvent('deviceRejectedCall', eventInfo);
   }
 
   deviceEndedCall (eventInfo: EventInfoWithConversationId): void {
+    this.logger.debug('Emitting end call event from device', { eventInfo });
     this.emitEvent('deviceEndedCall', eventInfo);
   }
 
   deviceMuteChanged (eventInfo: MutedEventInfo): void {
+    this.logger.debug('Emitting mute call event from device', { eventInfo });
     this.emitEvent('deviceMuteStatusChanged', { ...eventInfo });
   }
 
   deviceHoldStatusChanged (eventInfo: HoldEventInfo): void {
+    this.logger.debug('Emitting hold call event from device', { eventInfo });
     this.emitEvent('deviceHoldStatusChanged', { ...eventInfo });
   }
 

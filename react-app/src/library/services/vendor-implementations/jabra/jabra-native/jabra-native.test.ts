@@ -709,6 +709,29 @@ describe('JabraNativeService', () => {
         expect(jabraNativeService['_handleHoldEvent']).toHaveBeenCalledTimes(1);
       });
     });
+    it('should log proper debug messages', () => {
+        jest.spyOn(mockLogger, 'debug');
+
+        jabraNativeService['_processEvent'](JabraNativeEventNames.OffHook, true);
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received hook switch event from device: Off hook');
+
+        jabraNativeService['_processEvent'](JabraNativeEventNames.OffHook, false);
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received hook switch event from device: On hook');
+
+        jabraNativeService['_processEvent'](JabraNativeEventNames.RejectCall, null);
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received reject call event from device');
+
+        jabraNativeService['_processEvent'](JabraNativeEventNames.Mute, true);
+        expect(mockLogger.debug).toHaveBeenNthCalledWith(5, 'Received mute state toggle event from device: Muting call');
+
+        jabraNativeService['_processEvent'](JabraNativeEventNames.Mute, false);
+        expect(mockLogger.debug).toHaveBeenNthCalledWith(8, 'Received mute state toggle event from device: Unmuting call');
+
+        jabraNativeService['_processEvent'](JabraNativeEventNames.Hold, true);
+        expect(mockLogger.debug).toHaveBeenNthCalledWith(11, 'Received hold state toggle event from device: Holding call');
+        jabraNativeService['_processEvent'](JabraNativeEventNames.Hold, false);
+        expect(mockLogger.debug).toHaveBeenNthCalledWith(14, 'Received hold state toggle event from device: Resuming held call');
+    })
   });
 
   describe('disconnect', () => {
