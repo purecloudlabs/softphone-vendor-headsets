@@ -1059,15 +1059,30 @@ describe('HeadsetService', () => {
 
       // should not find a selectable vendor
       headsetService.activeMicChange('bose');
-      
+
       expect(spy).toHaveBeenCalled();
+    });
+
+    it('should log information when attempting to change microphones without change reason', () => {
+      const debugSpy = jest.spyOn((headsetService as any).logger, 'debug');
+      headsetService['jabra'].isSupported = jest.fn().mockReturnValue(true);
+
+      headsetService.activeMicChange('jabra');
+      expect(debugSpy).toHaveBeenNthCalledWith(1, 'Attempting to update active device to jabra');
+    });
+
+    it('should log information when attempting to change microphones with change reason', () => {
+      const debugSpy = jest.spyOn((headsetService as any).logger, 'debug');
+      headsetService['jabra'].isSupported = jest.fn().mockReturnValue(true);
+
+      headsetService.activeMicChange('jabra', 'alternativeClient');
+      expect(debugSpy).toHaveBeenNthCalledWith(1, 'Attempting to update active device to jabra due to alternativeClient');
     });
   });
 
   describe('clearSelectedImplementation', () => {
     it('should only emit an event if there is a selected implementation', () => {
       headsetService.selectedImplementation = null;
-      
       const spy = jest.fn();
       headsetService.headsetEvents$
         .pipe(
