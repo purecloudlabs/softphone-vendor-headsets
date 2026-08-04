@@ -35,6 +35,7 @@ export default class VBetService extends VendorImplementation {
   }
 
   async connect (originalDeviceLabel: string): Promise<void> {
+    this.logger.debug('Attempting to connect VBeT implementation');
     if (!this.isConnecting) {
       this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     }
@@ -80,6 +81,7 @@ export default class VBetService extends VendorImplementation {
   processBtnPress = (signal:DeviceSignalType):void => {
     switch (signal) {
     case DeviceSignalType.ACCEPT_CALL:
+      this.logger.debug('Received accept call event from device', { signal });
       if (this.pendingConversationId) {
         this.answerCall(this.pendingConversationId);
         this.deviceAnsweredCall({
@@ -91,6 +93,7 @@ export default class VBetService extends VendorImplementation {
       }
       break;
     case DeviceSignalType.END_CALL:
+      this.logger.debug('Received end call event from device', { signal });
       if (this.activeConversationId) {
         const id = this.activeConversationId;
         this.endCall(id);
@@ -104,6 +107,7 @@ export default class VBetService extends VendorImplementation {
       break;
     case DeviceSignalType.MUTE_CALL:
     case DeviceSignalType.UNMUTE_CALL:
+      this.logger.debug(`Received mute state toggle event from device: ${signal === DeviceSignalType.MUTE_CALL ? 'Mute call' : 'Unmute call'}`, { signal });
       if (this.activeConversationId) {
         this.setMute(signal===DeviceSignalType.MUTE_CALL);
         this.deviceMuteChanged({
@@ -116,6 +120,7 @@ export default class VBetService extends VendorImplementation {
       }
       break;
     case DeviceSignalType.REJECT_CALL:
+      this.logger.debug('Received reject call event from device', { signal });
       if (this.pendingConversationId) {
         this.rejectCall(this.pendingConversationId);
         this.deviceRejectedCall({
@@ -130,6 +135,7 @@ export default class VBetService extends VendorImplementation {
   }
 
   async disconnect (): Promise<void> {
+    this.logger.debug('Attempting to disconnect VBeT implementation');
     this.changeConnectionStatus({ isConnected: false, isConnecting: false });
     this.activeDevice && this.activeDevice.unsubscribe();
     this.activeDevice = null;

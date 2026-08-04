@@ -76,6 +76,8 @@ export default class HeadsetService {
       this.cyberAcoustics
     ].filter((impl) => impl.isSupported());
 
+    this.logger.debug('Available vendor implementations based on environment and configuration', { implementations });
+
     return implementations;
   }
 
@@ -114,6 +116,7 @@ export default class HeadsetService {
   }
 
   activeMicChange (newMicLabel: string, changeReason?: UpdateReasons): void {
+    this.logger.debug(`Attempting to update active device to ${newMicLabel}${changeReason ? ` due to ${changeReason}` : ''}`);
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
@@ -149,6 +152,7 @@ export default class HeadsetService {
 
   async incomingCall (callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received incoming call event from consuming app', { callInfo, implementation });
     if (!implementation) {
       return;
     }
@@ -166,6 +170,7 @@ export default class HeadsetService {
 
   async outgoingCall (callInfo: CallInfo): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received outgoing call event from consuming app', { callInfo, implementation });
     if (!implementation) {
       return;
     }
@@ -183,6 +188,7 @@ export default class HeadsetService {
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received answer call event from consuming app', { conversationId, implementation, autoAnswer });
     if (!implementation) {
       return;
     }
@@ -211,6 +217,7 @@ export default class HeadsetService {
 
   async rejectCall (conversationId: string, expectExistingConversation = true): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received reject call event from consuming app', { conversationId, implementation });
     if (!implementation) {
       return;
     }
@@ -228,6 +235,7 @@ export default class HeadsetService {
 
   async setMute (value: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received mute call event from consuming app', { implementation, value });
     if (!implementation) {
       return;
     }
@@ -240,6 +248,7 @@ export default class HeadsetService {
 
   async setHold (conversationId: string, value: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received hold call event from consuming app', { conversationId, implementation, value });
     if (!implementation) {
       return;
     }
@@ -255,6 +264,7 @@ export default class HeadsetService {
 
   async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received end call event from consuming app', { conversationId, implementation });
     if (!implementation) {
       return;
     }
