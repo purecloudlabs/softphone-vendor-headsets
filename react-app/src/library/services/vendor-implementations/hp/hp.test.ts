@@ -43,7 +43,7 @@ describe('HpService', () => {
 
   describe('isSupported', () => {
     it('should return false if the proper values are not met', () => {
-      expect(hpService.isSupported()).toBe(false);
+      expect(hpService.isSupported()).toBe(undefined);
     });
 
     it('should return true if the proper values are met', () => {

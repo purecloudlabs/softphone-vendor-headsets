@@ -38,7 +38,7 @@ export default class HpService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return !!this.config.useNewPolyImplementation;
+    return this.config.useNewPolyImplementation;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
