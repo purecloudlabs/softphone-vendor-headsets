@@ -42,6 +42,10 @@ export default class PlantronicsService extends VendorImplementation {
     this.incomingConversationId = null;
   }
 
+  isSupported (): boolean {
+    return !this.config.useNewPolyImplementation;
+  }
+
   private _createCallMapping (conversationId: string): number {
     const ID_LENGTH = 8;
     const callId = Math.round(Math.random() * Math.pow(10, ID_LENGTH)); // Generate random number

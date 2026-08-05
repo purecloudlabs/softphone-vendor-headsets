@@ -17,6 +17,7 @@ export interface ImplementationConfig {
   useWebHidOnDesktopYealink?: boolean;
   useWebHidOnDesktopVbet?: boolean;
   useWebHidOnDesktopCyberAcoustics?: boolean;
+  useNewPolyImplementation?: boolean;
 }
 
 export abstract class VendorImplementation extends (EventEmitter as { new(): StrictEventEmitter<EventEmitter, EmittedHeadsetEvents> }) {
