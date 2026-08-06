@@ -56,7 +56,6 @@ export default class HeadsetService {
 
   static getInstance (config: ImplementationConfig): HeadsetService {
     if (!HeadsetService.instance || config.createNew) {
-      config.useNewPolyImplementation = true;
       HeadsetService.instance = new HeadsetService(config);
     }
 
