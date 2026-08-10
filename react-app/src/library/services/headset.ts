@@ -2,6 +2,7 @@ import { Observable, Subject } from 'rxjs';
 import { VendorImplementation, ImplementationConfig } from './vendor-implementations/vendor-implementation';
 import CyberAcousticsService from './vendor-implementations/CyberAcoustics/CyberAcoustics';
 import PlantronicsService from './vendor-implementations/plantronics/plantronics';
+import HpService from './vendor-implementations/hp/hp';
 import SennheiserService from './vendor-implementations/sennheiser/sennheiser';
 import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
@@ -22,6 +23,7 @@ export default class HeadsetService {
   private static instance: HeadsetService;
 
   plantronics: VendorImplementation;
+  hp: VendorImplementation;
   jabraNative: VendorImplementation;
   jabra: VendorImplementation;
   sennheiser: VendorImplementation;
@@ -40,15 +42,16 @@ export default class HeadsetService {
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.logger = config.logger || console;
-    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName });
-    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
-    this.jabra = JabraService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
+    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName, useNewPolyImplementation: config.useNewPolyImplementation });
+    this.hp = HpService.getInstance({ logger: this.logger, appName: config.appName, useNewPolyImplementation: config.useNewPolyImplementation });
+    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
+    this.jabra = JabraService.getInstance({ logger: this.logger });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopYealink: config.useWebHidOnDesktopYealink });
     this.vbet = VBetService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopVbet: config.useWebHidOnDesktopVbet });
     this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopCyberAcoustics: config.useWebHidOnDesktopCyberAcoustics });
 
-    [this.plantronics, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    [this.plantronics, this.hp, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -61,14 +64,18 @@ export default class HeadsetService {
 
   get implementations (): VendorImplementation[] {
     const implementations = [
+
       this.sennheiser,
       this.plantronics,
+      this.hp,
       this.jabra,
       this.jabraNative,
       this.yealink,
       this.vbet,
       this.cyberAcoustics
     ].filter((impl) => impl.isSupported());
+
+    this.logger.debug('Available vendor implementations based on environment and configuration', { implementations });
 
     return implementations;
   }
@@ -108,6 +115,7 @@ export default class HeadsetService {
   }
 
   activeMicChange (newMicLabel: string, changeReason?: UpdateReasons): void {
+    this.logger.debug(`Attempting to update active device to ${newMicLabel}${changeReason ? ` due to ${changeReason}` : ''}`);
     if (newMicLabel) {
       const implementation = this.implementations.find((implementation) => implementation.deviceLabelMatchesVendor(newMicLabel));
       if (implementation) {
@@ -143,6 +151,7 @@ export default class HeadsetService {
 
   async incomingCall (callInfo: CallInfo, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received incoming call event from consuming app', { callInfo, implementation });
     if (!implementation) {
       return;
     }
@@ -160,6 +169,7 @@ export default class HeadsetService {
 
   async outgoingCall (callInfo: CallInfo): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received outgoing call event from consuming app', { callInfo, implementation });
     if (!implementation) {
       return;
     }
@@ -177,6 +187,7 @@ export default class HeadsetService {
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received answer call event from consuming app', { conversationId, implementation, autoAnswer });
     if (!implementation) {
       return;
     }
@@ -205,6 +216,7 @@ export default class HeadsetService {
 
   async rejectCall (conversationId: string, expectExistingConversation = true): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received reject call event from consuming app', { conversationId, implementation });
     if (!implementation) {
       return;
     }
@@ -222,6 +234,7 @@ export default class HeadsetService {
 
   async setMute (value: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received mute call event from consuming app', { implementation, value });
     if (!implementation) {
       return;
     }
@@ -234,6 +247,7 @@ export default class HeadsetService {
 
   async setHold (conversationId: string, value: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received hold call event from consuming app', { conversationId, implementation, value });
     if (!implementation) {
       return;
     }
@@ -249,6 +263,7 @@ export default class HeadsetService {
 
   async endCall (conversationId: string, hasOtherActiveCalls?: boolean): Promise<any> {
     const implementation = this.getConnectedImpl();
+    this.logger.debug('Received end call event from consuming app', { conversationId, implementation });
     if (!implementation) {
       return;
     }

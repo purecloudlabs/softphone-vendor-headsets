@@ -80,6 +80,17 @@ describe('PlantronicsService', () => {
     });
   });
 
+  describe('isSupported', () => {
+    it('should return true if the proper values are met', () => {
+      expect(plantronicsService.isSupported()).toBe(true);
+    });
+
+    it('should return false if the proper values are not met', () => {
+      plantronicsService.config = { logger: console, useNewPolyImplementation: true };
+      expect(plantronicsService.isSupported()).toBe(false);
+    });
+  });
+
   describe('deviceName', () => {
     it('should return the value of deviceInfo.ProductName', () => {
       plantronicsService._deviceInfo = testDevice;

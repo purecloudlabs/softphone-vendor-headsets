@@ -1,6 +1,6 @@
 {
   "name": "softphone-vendor-headsets",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "author": "Genesys",
   "license": "MIT",
   "cjs": "dist/cjs/src/library/index.js",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@gnaudio/jabra-js": "^4.2.1",
+    "@hp/call-control-sdk": "github:HPInc/softphone-vendor-headsets#HP-4.0.0",
     "@vbet/webhid-sdk": "^1.4.1",
     "browserama": "^3.2.0",
     "fetch-jsonp": "^1.2.1",
@@ -53,10 +54,12 @@
     "@babel/plugin-transform-optional-chaining": "^7.27.1",
     "@babel/preset-env": "^7.15.6",
     "@babel/preset-typescript": "^7.15.0",
+    "@open-wc/webpack-import-meta-loader": "^0.4.7",
     "@types/jest": "^27.5.2",
     "@types/lodash": "^4.14.168",
     "@types/node": "^26.1.0",
     "@types/selenium-webdriver": "^4.35.6",
+    "@types/w3c-web-hid": "^1.0.6",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "babel-loader": "^8.1.0",

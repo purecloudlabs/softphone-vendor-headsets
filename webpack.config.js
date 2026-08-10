@@ -10,8 +10,7 @@ module.exports = (env) => {
   let externals = [];
 
   /* if we are building for 'module', don't polyfill, transpile, or bundle any dependencies – except stanza because it has node deps... */
-  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk)).*/];
-
+  babelExcludes = [/node_modules\/(?!(core\-util\-is|@vbet\/webhid-sdk|@hp\/call-control-sdk)).*/];
   babelOptions = {
     sourceType: 'unambiguous',
     presets: [
@@ -19,7 +18,7 @@ module.exports = (env) => {
       '@babel/preset-typescript'
     ],
     plugins: [
-      '@babel/plugin-proposal-class-properties',
+      '@babel/plugin-transform-class-properties',
       '@babel/plugin-transform-optional-chaining',
       '@babel/plugin-transform-nullish-coalescing-operator'
     ]
@@ -42,8 +41,6 @@ module.exports = (env) => {
       path: path.resolve(__dirname, 'dist'),
       filename,
       library: 'SoftphoneVendorHeadsets',
-      // TODO: exporting the SDK class here does not allow CDN imports access to any
-      //  other files/modules of this lib. See: https://inindca.atlassian.net/browse/PCM-1708
       libraryExport: '',
       libraryTarget: 'umd'
     },
@@ -52,6 +49,10 @@ module.exports = (env) => {
     },
     module: {
       rules: [
+        {
+          test: /\.js$/,
+          loader: require.resolve('@open-wc/webpack-import-meta-loader'),
+        },
         {
           test: /\.(cjs|mjs|js|ts)$/,
           loader: 'babel-loader',
