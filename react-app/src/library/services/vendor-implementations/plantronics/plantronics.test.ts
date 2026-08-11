@@ -1431,4 +1431,21 @@ describe('PlantronicsService', () => {
       });
     });
   });
+
+  describe('checkPlantronicsHubPresence', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+    it('should set plantronicsHubOpen to true if the endpoint resolves with no issue (Plantronics Hub is open)', async () => {
+      plantronicsService._makeRequestTask = jest.fn().mockResolvedValue(true);
+      await plantronicsService.checkPlantronicsHubPresence();
+      expect(globalThis.plantronicsHubOpen).toBe(true);
+    });
+  });
+
+  it('should set plantronicsHubOpen to false if the endpoint rejects with an issue (Plantronics Hub is potentially not open)', async () => {
+    plantronicsService._makeRequestTask = jest.fn().mockRejectedValue(false);
+    await plantronicsService.checkPlantronicsHubPresence();
+    expect(globalThis.plantronicsHubOpen).toBe(false);
+  });
 });

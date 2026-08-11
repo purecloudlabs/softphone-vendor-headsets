@@ -34,6 +34,7 @@ export default class PlantronicsService extends VendorImplementation {
 
   private constructor (config: ImplementationConfig) {
     super(config);
+    this.checkPlantronicsHubPresence();
     this.config = config;
     this.pluginName = config.appName || defaultAppName;
     this._deviceInfo = null;
@@ -43,7 +44,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return !this.config.useNewPolyImplementation;
+    return !this.config.useNewPolyImplementation || globalThis.plantronicsHubOpen;
   }
 
   private _createCallMapping (conversationId: string): number {
@@ -181,6 +182,16 @@ export default class PlantronicsService extends VendorImplementation {
   async _checkIsActiveTask (): Promise<void> {
     const calls = await this._getActiveCalls();
     this.isActive = !!calls.length;
+  }
+
+  async checkPlantronicsHubPresence (): Promise<void> {
+    try {
+      await this._makeRequestTask(`/DeviceServices/Info`);
+      globalThis.plantronicsHubOpen = true;
+    } catch (e) {
+      this.logger.warn('Plantronics Hub is seemingly not currently open', e);
+      globalThis.plantronicsHubOpen = false;
+    }
   }
 
   async _getActiveCalls (): Promise<any[]> {

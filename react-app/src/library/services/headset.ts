@@ -45,7 +45,7 @@ export default class HeadsetService {
     this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName, useNewPolyImplementation: config.useNewPolyImplementation });
     this.hp = HpService.getInstance({ logger: this.logger, appName: config.appName, useNewPolyImplementation: config.useNewPolyImplementation });
     this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
-    this.jabra = JabraService.getInstance({ logger: this.logger });
+    this.jabra = JabraService.getInstance({ logger: this.logger, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopYealink: config.useWebHidOnDesktopYealink });
     this.vbet = VBetService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopVbet: config.useWebHidOnDesktopVbet });
