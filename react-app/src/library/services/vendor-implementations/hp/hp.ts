@@ -38,7 +38,6 @@ export default class HpService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    console.log('mMoo: HP iSupported', this.config.useNewPolyImplementation);
     return this.config.useNewPolyImplementation;
   }
 

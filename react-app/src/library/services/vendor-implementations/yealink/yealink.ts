@@ -54,6 +54,7 @@ export default class YealinkService extends VendorImplementation {
   }
 
   async connect (originalDeviceLabel: string): Promise<void> {
+    this.logger.debug('Attempting to connect Yealink implementation');
     if (!this.isConnecting) {
       this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     }
@@ -134,6 +135,7 @@ export default class YealinkService extends VendorImplementation {
   }
 
   async disconnect (): Promise<void> {
+    this.logger.debug('Attempting to disconnect Yealink implementation');
     if (this.isConnected || this.isConnecting) {
       this.changeConnectionStatus({ isConnected: false, isConnecting: false });
     }

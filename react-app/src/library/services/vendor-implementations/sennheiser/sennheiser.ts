@@ -75,6 +75,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   connect (): Promise<void> {
+    this.logger.debug('Attempting to connect Sennheiser/EPOS implementation');
     this.ignoreAcknowledgement = false;
     !this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: true });
 
@@ -113,6 +114,7 @@ export default class SennheiserService extends VendorImplementation {
   }
 
   disconnect (): Promise<void> {
+    this.logger.debug('Attempting to disconnect Sennheiser/EPOS implementation');
     if (!this.isConnected) {
       return Promise.resolve();
     }
@@ -267,12 +269,14 @@ export default class SennheiserService extends VendorImplementation {
 
         break;
       case SennheiserEvents.IncomingCallAccepted:
+        this.logger.debug('Received accept incoming call event from device', { payload });
         if (payload.EventType === SennheiserEventTypes.Notification) {
           this.deviceAnsweredCall({ name: payload.Event, conversationId });
         }
 
         break;
       case SennheiserEvents.Hold:
+        this.logger.debug('Received hold call event from device', { payload });
         if (payload.EventType === SennheiserEventTypes.Ack) {
           this._handleAck(payload);
           break;
@@ -280,6 +284,7 @@ export default class SennheiserService extends VendorImplementation {
         this.deviceHoldStatusChanged({ holdRequested: true, name: payload.Event, conversationId });
         break;
       case SennheiserEvents.Resume:
+        this.logger.debug('Received resume call event from device', { payload });
         if (payload.EventType === SennheiserEventTypes.Ack) {
           this._handleAck(payload);
           break;
@@ -287,12 +292,15 @@ export default class SennheiserService extends VendorImplementation {
         this.deviceHoldStatusChanged({ holdRequested: false, name: payload.Event, conversationId });
         break;
       case SennheiserEvents.MuteFromHeadset:
+        this.logger.debug('Received mute call event from device', { payload });
         this.deviceMuteChanged({ isMuted: true, name: payload.Event });
         break;
       case SennheiserEvents.UnmuteFromHeadset:
+        this.logger.debug('Received unmute call event from device', { payload });
         this.deviceMuteChanged({ isMuted: false, name: payload.Event });
         break;
       case SennheiserEvents.CallEnded:
+        this.logger.debug('Received end call event from device', { payload });
         if (payload.EventType === SennheiserEventTypes.Notification) {
           this._sendMessage({
             Event: SennheiserEvents.UnmuteFromApp,
@@ -302,6 +310,7 @@ export default class SennheiserService extends VendorImplementation {
         }
         break;
       case SennheiserEvents.IncomingCallRejected:
+        this.logger.debug('Received reject incoming call event from device', { payload });
         if (payload.EventType === SennheiserEventTypes.Notification) {
           this.deviceRejectedCall({ name: payload.Event, conversationId });
         }

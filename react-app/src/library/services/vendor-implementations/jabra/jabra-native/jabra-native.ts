@@ -256,24 +256,29 @@ export default class JabraNativeService extends VendorImplementation {
   private _processEvent(eventName: any, value: any): void {
     switch (eventName) {
       case JabraNativeEventNames.OffHook:
+        this.logger.debug(`Received hook switch event from device: ${ value ? 'Off hook' : 'On hook' }`);
         debounce(() => this._handleOffhookEvent(value), offHookThrottleTime)();
         break;
 
       case JabraNativeEventNames.RejectCall:
+        this.logger.debug('Received reject call event from device');
         this.deviceRejectedCall({name: JabraNativeEventNames.RejectCall, conversationId: this.pendingConversationId});
         break;
 
       case JabraNativeEventNames.Mute:
+        this.logger.debug(`Received mute state toggle event from device: ${ value ? 'Muting call' : 'Unmuting call' }`);
         this._handleMuteEvent(value);
         break;
 
       case JabraNativeEventNames.Hold:
+        this.logger.debug(`Received hold state toggle event from device: ${ value ? 'Holding call' : 'Resuming held call' }`);
         this._handleHoldEvent(value);
         break;
     }
   }
 
   connect(): Promise<void> {
+    this.logger.debug('Attempting to connect to Jabra Native implementation');
     this.changeConnectionStatus({ isConnected: false, isConnecting: true });
 
     return timedPromise(this.updateDevices(), connectTimeout).catch(err => {
@@ -282,6 +287,7 @@ export default class JabraNativeService extends VendorImplementation {
   }
 
   disconnect(): Promise<void> {
+    this.logger.debug('Attempting to disconnect to Jabra Native implementation');
     this.changeConnectionStatus({ isConnected: false, isConnecting: false });
 
     return Promise.resolve();

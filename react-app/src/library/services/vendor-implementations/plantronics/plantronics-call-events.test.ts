@@ -136,7 +136,7 @@ describe('CallEvents', () => {
   it('should return 33 for DeviceArrived', () => {
     expect(PlantronicsCallEventCodes.DeviceArrived).toEqual(33);
   });
-  
+
   it('should return 34 for DeviceRemoved', () => {
     expect(PlantronicsCallEventCodes.DeviceRemoved).toEqual(34);
   });

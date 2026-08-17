@@ -43,7 +43,6 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    console.log('mMoo: plantronics isSupported', this.config.useNewPolyImplementation);
     return !this.config.useNewPolyImplementation;
   }
 
@@ -218,7 +217,7 @@ export default class PlantronicsService extends VendorImplementation {
         }
 
         const eventInfo = { name: eventType, event };
-        this.logger.debug('headset info', eventInfo);
+        this.logger.debug('event info', eventInfo);
         this.callCorrespondingFunction(eventInfo);
       });
     }
@@ -228,6 +227,7 @@ export default class PlantronicsService extends VendorImplementation {
     await this._makeRequestTask(`/DeviceServices/Info`)
       .then(response => {
         this._deviceInfo = response.Result;
+        this.logger.debug('device info', this._deviceInfo);
       })
       .catch(err => {
         const noDevicesError = err.Err && err.Err.Description.includes('no supported devices');
@@ -243,15 +243,18 @@ export default class PlantronicsService extends VendorImplementation {
 
     switch (eventInfo.name) {
     case 'AcceptCall':
+      this.logger.debug('Received accept call event from device', { eventInfo });
       this.deviceAnsweredCall({ ...eventInfo, conversationId });
       break;
     case 'RejectCall':
+      this.logger.debug('Received reject call event from device', { eventInfo });
       this.endCall(conversationId);
       this.deviceRejectedCall({ name: eventInfo.name, conversationId: this.incomingConversationId });
       break;
     case 'TerminateCall':
       this.setMute(false);
       this.setHold(conversationId, false);
+      this.logger.debug('Received terminate call event from device, call state reset', { eventInfo });
       this.deviceEndedCall({ ...eventInfo, conversationId });
       break;
     case 'CallEnded':
@@ -260,15 +263,19 @@ export default class PlantronicsService extends VendorImplementation {
       this._checkIsActiveTask();
       break;
     case 'Mute':
+      this.logger.debug('Received mute call event from device', { eventInfo });
       this.deviceMuteChanged({ isMuted: true, ...eventInfo, conversationId });
       break;
     case 'Unmute':
+      this.logger.debug('Received unmute call event from device', { eventInfo });
       this.deviceMuteChanged({ isMuted: false, ...eventInfo, conversationId });
       break;
     case 'HoldCall':
+      this.logger.debug('Received hold call event from device', { eventInfo });
       this.deviceHoldStatusChanged({ holdRequested: true, ...eventInfo, conversationId });
       break;
     case 'ResumeCall':
+      this.logger.debug('Received resume call event from device', { eventInfo });
       this.deviceHoldStatusChanged({ holdRequested: false, ...eventInfo, conversationId });
       break;
     default:
@@ -290,6 +297,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async connect (): Promise<any> {
+    this.logger.debug('Attempting to connect Plantronics/Poly implementation');
     !this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
     this.pollForDeviceStatus();
     this.pollForCallEvents();
@@ -345,6 +353,7 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   async disconnect (clearReason?: UpdateReasons): Promise<any> {
+    this.logger.debug('Attempting to disconnect Plantronics/Poly implementation');
     if (!this.isConnected) {
       return;
     }
