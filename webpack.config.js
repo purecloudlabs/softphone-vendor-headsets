@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = (env) => {
   const minimize = env && env.production;
@@ -60,6 +61,16 @@ module.exports = (env) => {
           options: babelOptions
         }
       ]
-    }
+    },
+    plugins: [
+      new CopyPlugin({
+        patterns: [
+          {
+            from: path.resolve(__dirname, 'node_modules/@hp/call-control-sdk/call_control_sdk.wasm'),
+            to: path.resolve(__dirname, 'dist/call_control_sdk.wasm'),
+          },
+        ],
+      }),
+    ]
   };
 };

@@ -23,7 +23,8 @@
   },
   "scripts": {
     "install:all": "npm ci; cd react-app; npm install; cd -",
-    "build": "npm run build:react && npm run build:src && npm run build:es && npm run build:module",
+    "build": "npm run build:react && npm run build:src && npm run build:es && npm run build:module && npm run build:copy-wasm",
+    "build:copy-wasm": "cp node_modules/@hp/call-control-sdk/call_control_sdk.wasm dist/cjs/src/library/services/vendor-implementations/hp/ && cp node_modules/@hp/call-control-sdk/call_control_sdk.wasm dist/es/src/library/services/vendor-implementations/hp/",
     "build:react": "cd react-app; yarn build",
     "build:src": "tsc -p .",
     "build:es": "tsc -p . --outDir ./dist/es --target es2015 --module es2015",
@@ -63,6 +64,7 @@
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "babel-loader": "^8.1.0",
+    "copy-webpack-plugin": "^6.4.1",
     "cors": "^2.8.5",
     "eslint": "^7.32.0",
     "express": "^4.17.1",
