@@ -81,7 +81,6 @@ export default class VBetService extends VendorImplementation {
   processBtnPress = (signal:DeviceSignalType):void => {
     switch (signal) {
     case DeviceSignalType.ACCEPT_CALL:
-      this.logger.debug('Received accept call event from device', { signal });
       if (this.pendingConversationId) {
         this.answerCall(this.pendingConversationId);
         this.deviceAnsweredCall({
@@ -93,7 +92,6 @@ export default class VBetService extends VendorImplementation {
       }
       break;
     case DeviceSignalType.END_CALL:
-      this.logger.debug('Received end call event from device', { signal });
       if (this.activeConversationId) {
         const id = this.activeConversationId;
         this.endCall(id);
@@ -107,7 +105,6 @@ export default class VBetService extends VendorImplementation {
       break;
     case DeviceSignalType.MUTE_CALL:
     case DeviceSignalType.UNMUTE_CALL:
-      this.logger.debug(`Received mute state toggle event from device: ${signal === DeviceSignalType.MUTE_CALL ? 'Mute call' : 'Unmute call'}`, { signal });
       if (this.activeConversationId) {
         this.setMute(signal===DeviceSignalType.MUTE_CALL);
         this.deviceMuteChanged({
@@ -120,7 +117,6 @@ export default class VBetService extends VendorImplementation {
       }
       break;
     case DeviceSignalType.REJECT_CALL:
-      this.logger.debug('Received reject call event from device', { signal });
       if (this.pendingConversationId) {
         this.rejectCall(this.pendingConversationId);
         this.deviceRejectedCall({
@@ -129,6 +125,30 @@ export default class VBetService extends VendorImplementation {
         });
       } else {
         this.logger.error('No call to be rejected');
+      }
+      break;
+    case DeviceSignalType.HOLD_CALL:
+      if (this.activeConversationId) {
+        this.setHold(null, true);
+        this.deviceHoldStatusChanged({
+          holdRequested: true,
+          name: 'OnHold',
+          conversationId: this.activeConversationId,
+        });
+      }else{
+        this.logger.error('No call to be held');
+      }
+      break;
+    case DeviceSignalType.RESUME_CALL:
+      if (this.activeConversationId) {
+        this.setHold(null, false);
+        this.deviceHoldStatusChanged({
+          holdRequested: false,
+          name: 'ResumeCall',
+          conversationId: this.activeConversationId,
+        });
+      }else{
+        this.logger.error('No call to be resumed');
       }
       break;
     }
@@ -166,7 +186,7 @@ export default class VBetService extends VendorImplementation {
   async rejectCall (conversationId: string): Promise<void> {
     if (conversationId === this.pendingConversationId) {
       this.pendingConversationId = '';
-      this.activeDevice.onHook();
+      this.activeDevice.rejct();
     } else {
       this.logger.error('no call to be rejected');
     }
@@ -191,5 +211,9 @@ export default class VBetService extends VendorImplementation {
   async setMute (value: boolean): Promise<void> {
     this.isMuted = value;
     this.isMuted ? this.activeDevice.muteOn() : this.activeDevice.muteOff();
+  }
+
+  async setHold (conversationId: string, value: boolean): Promise<void> {
+    value ? this.activeDevice.hold() : this.activeDevice.resume();
   }
 }
