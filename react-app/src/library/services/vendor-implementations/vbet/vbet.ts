@@ -79,6 +79,7 @@ export default class VBetService extends VendorImplementation {
   }
 
   processBtnPress = (signal:DeviceSignalType):void => {
+    this.logger.debug(`VT: User pressed button ${signal}}`);
     switch (signal) {
     case DeviceSignalType.ACCEPT_CALL:
       if (this.pendingConversationId) {
