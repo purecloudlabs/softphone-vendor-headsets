@@ -1441,11 +1441,11 @@ describe('PlantronicsService', () => {
       await plantronicsService.checkPlantronicsHubPresence();
       expect(globalThis.plantronicsHubOpen).toBe(true);
     });
-  });
 
-  it('should set plantronicsHubOpen to false if the endpoint rejects with an issue (Plantronics Hub is potentially not open)', async () => {
-    plantronicsService._makeRequestTask = jest.fn().mockRejectedValue(false);
-    await plantronicsService.checkPlantronicsHubPresence();
-    expect(globalThis.plantronicsHubOpen).toBe(false);
+    it('should set plantronicsHubOpen to false if the endpoint rejects with an issue (Plantronics Hub is potentially not open)', async () => {
+      plantronicsService._makeRequestTask = jest.fn().mockRejectedValue(false);
+      await plantronicsService.checkPlantronicsHubPresence();
+      expect(globalThis.plantronicsHubOpen).toBe(false);
+    });
   });
 });

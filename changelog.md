@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v4.0.0...HEAD)
+## Added
+* [STREAM-2123](https://inindca.atlassian.net/browse/STREAM-2123) - Add in additional logic to fallback to Legacy Plantronics if the Plantronics Hub is open, regardless of associated feature toggle
 
 # [v4.0.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v3.0.3...v4.0.0)
 ## Added

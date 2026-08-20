@@ -64,7 +64,6 @@ export default class HeadsetService {
 
   get implementations (): VendorImplementation[] {
     const implementations = [
-
       this.sennheiser,
       this.plantronics,
       this.hp,
