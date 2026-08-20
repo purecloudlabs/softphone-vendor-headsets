@@ -51,6 +51,14 @@ module.exports = (env) => {
     module: {
       rules: [
         {
+          // Patch the HP Call Control SDK's wasm resolution BEFORE other loaders
+          // transform import.meta.url. This ensures the wasm file is loaded from
+          // the same directory as the bundle output.
+          test: /node_modules[\\/]@hp[\\/]call-control-sdk[\\/].*\.js$/,
+          enforce: 'pre',
+          loader: path.resolve(__dirname, 'hp-wasm-loader.js'),
+        },
+        {
           test: /\.js$/,
           loader: require.resolve('@open-wc/webpack-import-meta-loader'),
         },
