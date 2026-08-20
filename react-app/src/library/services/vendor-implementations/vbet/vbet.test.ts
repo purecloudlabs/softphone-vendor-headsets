@@ -980,6 +980,54 @@ describe('VBetservice', () => {
       });
     });
 
+    it('hold current call', async () => {
+      const holdFun = jest.spyOn(vbetService, 'setHold');
+      const devHoldFun = jest.spyOn(vbetService, 'deviceHoldStatusChanged');
+
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.HOLD_CALL);
+      expect(holdFun).toHaveBeenCalledWith(null, true);
+      expect(devHoldFun).toHaveBeenCalledWith({
+        holdRequested: true,
+        name: 'OnHold',
+        conversationId: 'id',
+      });
+    });
+
+    it('resume current call', async () => {
+      const holdFun = jest.spyOn(vbetService, 'setHold');
+      const devHoldFun = jest.spyOn(vbetService, 'deviceHoldStatusChanged');
+
+      await vbetService.outgoingCall({ conversationId: 'id' });
+      vbetService.processBtnPress(DeviceSignalType.RESUME_CALL);
+       expect(holdFun).toHaveBeenCalledWith(null, false);
+      expect(devHoldFun).toHaveBeenCalledWith({
+        holdRequested: false,
+        name: 'ResumeCall',
+        conversationId: 'id',
+      });
+    });
+
+    it('hold current call but no id', async () => {
+      const holdFun = jest.spyOn(vbetService, 'setHold');
+      const devHoldFun = jest.spyOn(vbetService, 'deviceHoldStatusChanged');
+
+      await vbetService.outgoingCall({ conversationId: '' });
+      vbetService.processBtnPress(DeviceSignalType.HOLD_CALL);
+      expect(holdFun).not.toHaveBeenCalled();
+      expect(devHoldFun).not.toHaveBeenCalled();
+    });
+
+    it('resume current call but no id', async () => {
+      const holdFun = jest.spyOn(vbetService, 'setHold');
+      const devHoldFun = jest.spyOn(vbetService, 'deviceHoldStatusChanged');
+
+      await vbetService.outgoingCall({ conversationId: '' });
+      vbetService.processBtnPress(DeviceSignalType.RESUME_CALL);
+      expect(holdFun).not.toHaveBeenCalled();
+      expect(devHoldFun).not.toHaveBeenCalled();
+    });
+
     it('answer inbound call but no id', async () => {
       const ansFun = jest.spyOn(vbetService, 'answerCall');
       const devAnsFun = jest.spyOn(vbetService, 'deviceAnsweredCall');
