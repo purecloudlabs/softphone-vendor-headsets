@@ -42,7 +42,7 @@ module.exports = (env) => {
       path: path.resolve(__dirname, 'dist'),
       filename,
       library: 'SoftphoneVendorHeadsets',
-      libraryExport: '',
+      libraryExport: 'default',
       libraryTarget: 'umd'
     },
     resolve: {
