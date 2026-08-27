@@ -42,10 +42,10 @@ export default class HeadsetService {
     this.headsetEvents$ = this._headsetEvents$.asObservable();
 
     this.logger = config.logger || console;
-    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName, useNewPolyImplementation: config.useNewPolyImplementation });
-    this.hp = HpService.getInstance({ logger: this.logger, appName: config.appName, useNewPolyImplementation: config.useNewPolyImplementation });
-    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger });
-    this.jabra = JabraService.getInstance({ logger: this.logger });
+    this.plantronics = PlantronicsService.getInstance({ logger: this.logger, appName: config.appName, hostedContext: config.hostedContext, useNewPolyImplementation: config.useNewPolyImplementation });
+    this.hp = HpService.getInstance({ logger: this.logger, appName: config.appName, hostedContext: config.hostedContext, useNewPolyImplementation: config.useNewPolyImplementation });
+    this.jabraNative = JabraNativeService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
+    this.jabra = JabraService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopJabra: config.useWebHidOnDesktopJabra });
     this.sennheiser = SennheiserService.getInstance({ logger: this.logger });
     this.yealink = YealinkService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopYealink: config.useWebHidOnDesktopYealink });
     this.vbet = VBetService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopVbet: config.useWebHidOnDesktopVbet });
@@ -64,7 +64,6 @@ export default class HeadsetService {
 
   get implementations (): VendorImplementation[] {
     const implementations = [
-
       this.sennheiser,
       this.plantronics,
       this.hp,

@@ -89,6 +89,34 @@ describe('PlantronicsService', () => {
       plantronicsService.config = { logger: console, useNewPolyImplementation: true };
       expect(plantronicsService.isSupported()).toBe(false);
     });
+
+    it('should return true if hosted and does not support WebHID', () => {
+      plantronicsService.config = {
+        logger: console,
+        useNewPolyImplementation: false,
+        hostedContext: {
+          supportsWebHid: () => { return false; }
+        }
+      };
+
+      (window as any)._HostedContextFunctions = true;
+
+      expect(plantronicsService.isSupported()).toBe(true);
+    });
+
+    it('should return false if hosted and does support WebHID', () => {
+      plantronicsService.config = {
+        logger: console,
+        useNewPolyImplementation: true,
+        hostedContext: {
+          supportsWebHid: () => { return true; }
+        }
+      };
+
+      expect(plantronicsService.isSupported()).toBe(false);
+
+      (window as any)._HostedContextFunctions = undefined;
+    });
   });
 
   describe('deviceName', () => {

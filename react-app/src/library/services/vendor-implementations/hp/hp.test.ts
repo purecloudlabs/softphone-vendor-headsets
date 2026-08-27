@@ -2,7 +2,6 @@
 import "whatwg-fetch";
 import 'regenerator-runtime';
 import { mockLogger, eventValidation } from "../../../test-utils";
-import { UpdateReasons } from '../../../types/headset-states';
 import DeviceInfo from "../../../types/device-info";
 import HpService from "./hp";
 import {
@@ -43,12 +42,40 @@ describe('HpService', () => {
 
   describe('isSupported', () => {
     it('should return false if the proper values are not met', () => {
-      expect(hpService.isSupported()).toBe(undefined);
+      expect(hpService.isSupported()).toBe(false);
     });
 
     it('should return true if the proper values are met', () => {
       hpService.config = { logger: console, useNewPolyImplementation: true };
       expect(hpService.isSupported()).toBe(true);
+    });
+
+    it('should return true if hosted and supports WebHID', () => {
+      hpService.config = {
+        logger: console,
+        useNewPolyImplementation: true,
+        hostedContext: {
+          supportsWebHid: () => { return true; }
+        }
+      };
+
+      (window as any)._HostedContextFunctions = true;
+
+      expect(hpService.isSupported()).toBe(true);
+    });
+
+    it('should return false if hosted and does not support WebHID', () => {
+      hpService.config = {
+        logger: console,
+        useNewPolyImplementation: true,
+        hostedContext: {
+          supportsWebHid: () => { return false; }
+        }
+      };
+
+      expect(hpService.isSupported()).toBe(false);
+
+      (window as any)._HostedContextFunctions = undefined;
     });
   });
 
