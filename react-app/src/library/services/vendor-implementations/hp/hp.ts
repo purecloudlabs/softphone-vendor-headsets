@@ -40,13 +40,10 @@ export default class HpService extends VendorImplementation {
 
   isSupported (): boolean {
     if (this.config.useNewPolyImplementation) {
-      console.log('mMoo: FT true');
       if (isCefHosted()) {
-        console.log('mMoo: is hosted');
         return this.config.hostedContext?.supportsWebHid();
       }
 
-      console.log('mMoo: is not hosted', (window.navigator as any).hid);
       return !!(window.navigator as any).hid;
     }
 
