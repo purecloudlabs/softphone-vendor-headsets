@@ -3,6 +3,7 @@ import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../../types/call-info';
 import { UpdateReasons } from '../../../types/headset-states';
 import CcSdk, { CallState, SdkEvent } from '@hp/call-control-sdk';
+import { isCefHosted } from '../../../utils';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
@@ -38,7 +39,15 @@ export default class HpService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return this.config.useNewPolyImplementation;
+    if (this.config.useNewPolyImplementation) {
+      if (isCefHosted()) {
+        return this.config.hostedContext?.supportsWebHid();
+      }
+
+      return !!(window.navigator as any).hid;
+    }
+
+    return false;
   }
 
   deviceLabelMatchesVendor (label: string): boolean {
