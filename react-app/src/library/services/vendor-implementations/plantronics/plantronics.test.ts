@@ -303,6 +303,7 @@ describe('PlantronicsService', () => {
     });
 
     it('will call deviceEndedCall', () => {
+      plantronicsService.isConnected = true;
       const deviceEndedCallSpy = jest.spyOn(plantronicsService, 'deviceEndedCall');
       plantronicsService.callCorrespondingFunction({
         name: 'TerminateCall',
@@ -313,6 +314,63 @@ describe('PlantronicsService', () => {
         }
       } as any);
       expect(deviceEndedCallSpy).toHaveBeenCalled();
+    });
+
+    it('will reset state on CallEnded', () => {
+      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
+      const deviceHoldStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceHoldStatusChanged');
+      plantronicsService.isConnected = true;
+      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
+      const deviceMuteStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceMuteChanged');
+      const conversationId = 'myConvoId12345';
+      const callId = 123456;
+      plantronicsService.callMappings = {
+        [conversationId]: callId,
+        [callId]: conversationId
+      };
+      plantronicsService.callCorrespondingFunction({
+        name: 'CallEnded',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(setHoldSpy).toHaveBeenCalledWith(conversationId, false);
+      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith({
+        holdRequested: false,
+        name: 'CallEndHoldReset',
+        conversationId
+      });
+      expect(setMuteSpy).toHaveBeenCalledWith(false);
+      expect(deviceMuteStatusChangedSpy).toHaveBeenCalledWith({ isMuted: false, name: 'CallEndMuteReset', conversationId });
+    });
+
+    it('will log errors when attempting to reset state on CallEnded', () => {
+      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
+      // const deviceHoldStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceHoldStatusChanged');
+      plantronicsService.isConnected = true;
+      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
+      // const deviceMuteStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceMuteChanged');
+      const conversationId = 'myConvoId12345';
+      plantronicsService.logger.info = jest.fn();
+      const callId = 123456;
+      plantronicsService.callMappings = {
+        [conversationId]: callId,
+        [callId]: conversationId
+      };
+      setHoldSpy.mockImplementation(() => { throw 'Unable to hold before ending call'; });
+      setMuteSpy.mockImplementation(() => { throw 'Unable to mute before ending call'; });
+      plantronicsService.callCorrespondingFunction({
+        name: 'CallEnded',
+        event: {
+          CallId: {
+            Id: '123456'
+          }
+        }
+      } as any);
+      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Plantronics: failed to reset mute before ending call', { conversationId, error: 'Unable to mute before ending call' });
+      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Plantronics: failed to reset hold before ending call', { conversationId, error: 'Unable to hold before ending call' });
     });
 
     it('will call _checkIsActiveTask', () => {
@@ -633,189 +691,6 @@ describe('PlantronicsService', () => {
       expect(_makeRequestTaskSpy).toHaveBeenCalledWith(`/CallServices/TerminateCall${completeEndpoint}`);
       expect(getCallEventsSpy).toHaveBeenCalled();
       expect(_checkIsActiveTaskSpy).toHaveBeenCalled();
-    });
-
-    it('resets mute and emits deviceMuteChanged when ending a call', async () => {
-      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
-      const deviceMuteChangedSpy = jest.spyOn(plantronicsService, 'deviceMuteChanged');
-      plantronicsService.isConnected = true;
-      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
-        if (url.includes('/CallServices/MuteCall')) {
-          return buildMockFetch(responses.CallServices.MuteCall.unmute, true);
-        }
-
-        if (url.includes('/CallServices/ResumeCall')) {
-          return buildMockFetch(responses.CallServices.ResumeCall.default, true);
-        }
-
-        if (url.includes('/CallServices/TerminateCall')) {
-          return buildMockFetch(responses.CallServices.TerminateCall.default, true);
-        }
-
-        return buildMockFetch({}, true);
-      });
-
-      const conversationId = 'myConvoId12345';
-      const callId = 555123;
-      plantronicsService.callMappings = {
-        [conversationId]: callId,
-        [callId]: conversationId
-      };
-
-      await plantronicsService.endCall(conversationId);
-
-      expect(setMuteSpy).toHaveBeenCalledWith(false);
-      expect(deviceMuteChangedSpy).toHaveBeenCalledWith({
-        isMuted: false,
-        name: 'CallEndMuteReset',
-        conversationId
-      });
-    });
-
-    it('logs an error message upon failure to reset mute when ending a call', async () => {
-      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
-      plantronicsService.logger.info = jest.fn();
-      plantronicsService.isConnected = true;
-      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
-        if (url.includes('/CallServices/MuteCall')) {
-          return buildMockFetch(responses.CallServices.MuteCall.unmute, true);
-        }
-
-        if (url.includes('/CallServices/ResumeCall')) {
-          return buildMockFetch(responses.CallServices.ResumeCall.default, true);
-        }
-
-        if (url.includes('/CallServices/TerminateCall')) {
-          return buildMockFetch(responses.CallServices.TerminateCall.default, true);
-        }
-
-        return buildMockFetch({}, true);
-      });
-
-      const conversationId = 'myConvoId12345';
-      const callId = 555123;
-      plantronicsService.callMappings = {
-        [conversationId]: callId,
-        [callId]: conversationId
-      };
-
-      setMuteSpy.mockRejectedValue('Unable to mute before ending call');
-
-      await plantronicsService.endCall(conversationId);
-
-      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Plantronics: failed to reset mute before ending call', { conversationId, error: 'Unable to mute before ending call' });
-    });
-
-    it('resets hold and emits deviceHoldStatusChanged when ending a call', async () => {
-      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
-      const deviceHoldStatusChangedSpy = jest.spyOn(plantronicsService, 'deviceHoldStatusChanged');
-      plantronicsService.isConnected = true;
-      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
-        if (url.includes('/CallServices/MuteCall')) {
-          return buildMockFetch(responses.CallServices.MuteCall.unmute, true);
-        }
-
-        if (url.includes('/CallServices/ResumeCall')) {
-          return buildMockFetch(responses.CallServices.ResumeCall.default, true);
-        }
-
-        if (url.includes('/CallServices/TerminateCall')) {
-          return buildMockFetch(responses.CallServices.TerminateCall.default, true);
-        }
-
-        return buildMockFetch({}, true);
-      });
-
-      const conversationId = 'myConvoId12345';
-      const callId = 555123;
-      plantronicsService.callMappings = {
-        [conversationId]: callId,
-        [callId]: conversationId
-      };
-
-      await plantronicsService.endCall(conversationId);
-
-      expect(setHoldSpy).toHaveBeenCalledWith(conversationId, false);
-      expect(deviceHoldStatusChangedSpy).toHaveBeenCalledWith({
-        holdRequested: false,
-        name: 'CallEndHoldReset',
-        conversationId
-      });
-    });
-
-    it('logs an error message upon failure to reset hold when ending a call', async () => {
-      const setMuteSpy = jest.spyOn(plantronicsService, 'setHold');
-      plantronicsService.logger.info = jest.fn();
-      plantronicsService.isConnected = true;
-      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
-        if (url.includes('/CallServices/MuteCall')) {
-          return buildMockFetch(responses.CallServices.MuteCall.unmute, true);
-        }
-
-        if (url.includes('/CallServices/ResumeCall')) {
-          return buildMockFetch(responses.CallServices.ResumeCall.default, true);
-        }
-
-        if (url.includes('/CallServices/TerminateCall')) {
-          return buildMockFetch(responses.CallServices.TerminateCall.default, true);
-        }
-
-        return buildMockFetch({}, true);
-      });
-
-      const conversationId = 'myConvoId12345';
-      const callId = 555123;
-      plantronicsService.callMappings = {
-        [conversationId]: callId,
-        [callId]: conversationId
-      };
-
-      setMuteSpy.mockRejectedValue('Unable to hold before ending call');
-
-      await plantronicsService.endCall(conversationId);
-
-      expect(plantronicsService.logger.info).toHaveBeenCalledWith('Plantronics: failed to reset hold before ending call', { conversationId, error: 'Unable to hold before ending call' });
-    });
-
-    it('resets mute and hold before terminating the call', async () => {
-      const setMuteSpy = jest.spyOn(plantronicsService, 'setMute');
-      const setHoldSpy = jest.spyOn(plantronicsService, 'setHold');
-      const _makeRequestTaskSpy = jest.spyOn(plantronicsService, '_makeRequestTask');
-      plantronicsService.isConnected = true;
-      jest.spyOn(plantronicsService, '_fetch').mockImplementation((url): Promise<any> => {
-        if (url.includes('/CallServices/MuteCall')) {
-          return buildMockFetch(responses.CallServices.MuteCall.unmute, true);
-        }
-
-        if (url.includes('/CallServices/ResumeCall')) {
-          return buildMockFetch(responses.CallServices.ResumeCall.default, true);
-        }
-
-        if (url.includes('/CallServices/TerminateCall')) {
-          return buildMockFetch(responses.CallServices.TerminateCall.default, true);
-        }
-
-        return buildMockFetch({}, true);
-      });
-
-      const conversationId = 'myConvoId12345';
-      const callId = 555123;
-      plantronicsService.callMappings = {
-        [conversationId]: callId,
-        [callId]: conversationId
-      };
-
-      await plantronicsService.endCall(conversationId);
-
-      // Find when TerminateCall was requested relative to the mute/hold resets.
-      const terminateCallIndex = _makeRequestTaskSpy.mock.calls
-        .findIndex(([endpoint]) => (endpoint as string).includes('/CallServices/TerminateCall'));
-      const terminateOrder = _makeRequestTaskSpy.mock.invocationCallOrder[terminateCallIndex];
-      const setMuteOrder = setMuteSpy.mock.invocationCallOrder[0];
-      const setHoldOrder = setHoldSpy.mock.invocationCallOrder[0];
-
-      expect(setMuteOrder).toBeLessThan(terminateOrder);
-      expect(setHoldOrder).toBeLessThan(terminateOrder);
     });
 
     it('calls endCall an appropriate number of times for endAllCalls', async () => {

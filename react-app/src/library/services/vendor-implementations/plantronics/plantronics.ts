@@ -258,6 +258,19 @@ export default class PlantronicsService extends VendorImplementation {
       this.deviceEndedCall({ ...eventInfo, conversationId });
       break;
     case 'CallEnded':
+      try {
+        this.setMute(false);
+        this.deviceMuteChanged({ isMuted: false, name: 'CallEndMuteReset', conversationId });
+      } catch (e) {
+        this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
+      }
+
+      try {
+        this.setHold(conversationId, false);
+        this.deviceHoldStatusChanged({ holdRequested: false, name: 'CallEndHoldReset', conversationId });
+      } catch (e) {
+        this.logger.info('Plantronics: failed to reset hold before ending call', { conversationId, error: e });
+      }
       delete this.callMappings[callId];
       delete this.callMappings[conversationId];
       this._checkIsActiveTask();
@@ -438,20 +451,6 @@ export default class PlantronicsService extends VendorImplementation {
     const callId = this.callMappings[conversationId];
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
-
-    try {
-      await this.setMute(false);
-      this.deviceMuteChanged({ isMuted: false, name: 'CallEndMuteReset', conversationId });
-    } catch (e) {
-      this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
-    }
-
-    try {
-      await this.setHold(conversationId, false);
-      this.deviceHoldStatusChanged({ holdRequested: false, name: 'CallEndHoldReset', conversationId });
-    } catch (e) {
-      this.logger.info('Plantronics: failed to reset hold before ending call', { conversationId, error: e });
-    }
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
     await this.getCallEvents();
