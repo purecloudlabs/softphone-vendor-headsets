@@ -457,7 +457,7 @@ export default class PlantronicsService extends VendorImplementation {
 
     // NOTE: We intentionally do NOT resume/reset hold here. Sending a ResumeCall for a call
     // that has just ended causes Plantronics Hub to switch foreground calls, which puts any
-    // other active call on hold. See fix-for-reject-hold.
+    // other active call on hold.
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
     await this.getCallEvents();
