@@ -455,12 +455,9 @@ export default class PlantronicsService extends VendorImplementation {
       this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
     }
 
-    try {
-      await this.setHold(conversationId, false);
-      this.deviceHoldStatusChanged({ holdRequested: false, name: 'CallEndHoldReset', conversationId });
-    } catch (e) {
-      this.logger.info('Plantronics: failed to reset hold before ending call', { conversationId, error: e });
-    }
+    // NOTE: We intentionally do NOT resume/reset hold here. Sending a ResumeCall for a call
+    // that has just ended causes Plantronics Hub to switch foreground calls, which puts any
+    // other active call on hold.
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
     await this.getCallEvents();
