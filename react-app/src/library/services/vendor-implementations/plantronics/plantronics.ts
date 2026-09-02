@@ -439,16 +439,16 @@ export default class PlantronicsService extends VendorImplementation {
     const halfEncodedCallIdString = `"Id":"${callId}"`;
     params += `&callID={${encodeURI(halfEncodedCallIdString)}}`;
 
-      try {
-        await this.setMute(false);
-        this.deviceMuteChanged({ isMuted: false, name: 'CallEndMuteReset', conversationId });
-      } catch (e) {
-        this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
-      }
+    try {
+      await this.setMute(false);
+      this.deviceMuteChanged({ isMuted: false, name: 'CallEndMuteReset', conversationId });
+    } catch (e) {
+      this.logger.info('Plantronics: failed to reset mute before ending call', { conversationId, error: e });
+    }
 
-      // NOTE: We intentionally do NOT resume/reset hold here. Sending a ResumeCall for a call
-      // that has just ended causes Plantronics Hub to switch foreground calls, which puts any
-      // other active call on hold. See fix-for-reject-hold.
+    // NOTE: We intentionally do NOT resume/reset hold here. Sending a ResumeCall for a call
+    // that has just ended causes Plantronics Hub to switch foreground calls, which puts any
+    // other active call on hold. See fix-for-reject-hold.
 
     const response = await this._makeRequestTask(`/CallServices/TerminateCall${params}`);
     await this.getCallEvents();
