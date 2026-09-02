@@ -5,6 +5,7 @@ import browserama from 'browserama';
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../../types/call-info';
 import { UpdateReasons } from '../../../types/headset-states';
+import { isCefHosted } from '../../../utils';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
@@ -43,7 +44,15 @@ export default class PlantronicsService extends VendorImplementation {
   }
 
   isSupported (): boolean {
-    return !this.config.useNewPolyImplementation;
+    if (this.config.useNewPolyImplementation) {
+      if (isCefHosted()) {
+        return !this.config.hostedContext?.supportsWebHid();
+      }
+
+      return !(window.navigator as any).hid;
+    }
+
+    return true;
   }
 
   private _createCallMapping (conversationId: string): number {
