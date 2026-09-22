@@ -1,3 +1,4 @@
+/* eslint-disable */
 var initPlatform = (() => {
   var _scriptName = import.meta.url;
   
