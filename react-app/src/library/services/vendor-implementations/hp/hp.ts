@@ -2,34 +2,13 @@ import { VendorImplementation, ImplementationConfig } from '../vendor-implementa
 import DeviceInfo from '../../../types/device-info';
 import { CallInfo } from '../../../types/call-info';
 import { UpdateReasons } from '../../../types/headset-states';
-import type CcSdk from './call-control-sdk/call_control_sdk';
-import type { SdkEvent as SdkEventType } from './call-control-sdk/call_control_sdk';
+import CcSdk, { CallState, SdkEvent } from '@hp-inc/call-control-sdk';
 import { isCefHosted } from '../../../utils';
 
 const defaultAppName = 'genesys-cloud-headset-library';
 
 declare global {
   type BluetoothDevice = any
-}
-
-type HpCallControlSdk = typeof import('./call-control-sdk/call_control_sdk');
-
-/* The HP Poly Call Control SDK is vendored under ./call-control-sdk (see the README
- * there) because HP does not currently publish it to npm. It is loaded on demand so that the
- * sdk and its wasm payload stay out of the bundles of consumers who never enable
- * `useNewPolyImplementation`. */
-let hpSdk: HpCallControlSdk;
-let CallState: HpCallControlSdk['CallState'];
-let SdkEvent: HpCallControlSdk['SdkEvent'];
-
-export async function loadHpCallControlSdk (): Promise<HpCallControlSdk> {
-  if (!hpSdk) {
-    hpSdk = await import(/* webpackMode: "eager" */ './call-control-sdk/call_control_sdk');
-    CallState = hpSdk.CallState;
-    SdkEvent = hpSdk.SdkEvent;
-  }
-
-  return hpSdk;
 }
 
 export default class HpService extends VendorImplementation {
@@ -39,7 +18,7 @@ export default class HpService extends VendorImplementation {
   config: ImplementationConfig;
   pendingDeviceLabel: string | null = null;
   connectionTimer: any = null;
-  callControlSdk: CcSdk;
+  callControlSdk = new CcSdk();
   ccsdkRegistered = false;
   incomingConversationId: string;
   activeConversationIds: Array<string>;
@@ -85,15 +64,6 @@ export default class HpService extends VendorImplementation {
     return HpService.instance;
   }
 
-  private async ensureCcSdk (): Promise<CcSdk> {
-    if (!this.callControlSdk) {
-      const { default: CallControlSdk } = await loadHpCallControlSdk();
-      this.callControlSdk = new CallControlSdk();
-    }
-
-    return this.callControlSdk;
-  }
-
   get deviceName (): string | undefined {
     return this._deviceInfo?.ProductName;
   }
@@ -106,11 +76,7 @@ export default class HpService extends VendorImplementation {
     return !!this.deviceInfo;
   }
 
-  /* Only ever invoked by the SDK itself, which cannot call back before
-   * `ensureCcSdk()` has resolved in `connect()`. The lazily bound `SdkEvent`/`CallState`
-   * enums are therefore always populated here, so this stays synchronous up to its
-   * first await. */
-  async sdkEventHandler (sdkEvent: SdkEventType): Promise<any> {
+  async sdkEventHandler (sdkEvent: SdkEvent): Promise<any> {
     this.logger.debug('sdkEventHandler', SdkEvent[sdkEvent]);
 
     switch (sdkEvent) {
@@ -278,28 +244,26 @@ export default class HpService extends VendorImplementation {
       return;
     }
 
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async connect (originalDeviceLabel: string): Promise<any> {
     !this.isConnecting && this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
 
     try {
-      const ccSdk = await this.ensureCcSdk();
-
       if (!this.ccsdkRegistered) {
-        this.ccsdkRegistered = await ccSdk.registerEventHandler(this.sdkEventHandler.bind(this));
+        this.ccsdkRegistered = await this.callControlSdk.registerEventHandler(this.sdkEventHandler.bind(this));
         this.logger.debug('CCSDK Registered', this.ccsdkRegistered);
       }
 
-      await ccSdk.disconnectHeadset();
+      await this.callControlSdk.disconnectHeadset();
 
       const deviceLabel = originalDeviceLabel.toLocaleLowerCase();
       this._device = await this.getPreviouslyConnectedDevice(deviceLabel);
 
       if (this._device != null) {
         let validConnect = false;
-        validConnect = await ccSdk.connectHeadset(this._device);
+        validConnect = await this.callControlSdk.connectHeadset(this._device);
         this.logger.debug('connect Headset validConnect', validConnect);
         this.pendingDeviceLabel = null;
         if (!validConnect) {
@@ -387,7 +351,7 @@ export default class HpService extends VendorImplementation {
       return Promise.reject(err);
     } else {
       let validConnect = false;
-      validConnect = await (await this.ensureCcSdk()).connectHeadset(headset);
+      validConnect = await this.callControlSdk.connectHeadset(headset);
       this._device = headset;
       if (!validConnect) {
         this.isConnecting && this.changeConnectionStatus({ isConnected: false, isConnecting: false });
@@ -412,7 +376,7 @@ export default class HpService extends VendorImplementation {
     }
 
     if (clearReason !== 'alternativeClient') {
-      await (await this.ensureCcSdk()).disconnectHeadset();
+      await this.callControlSdk.disconnectHeadset();
     }
 
     this._deviceInfo = null;
@@ -420,10 +384,6 @@ export default class HpService extends VendorImplementation {
   }
 
   async updateCcsdkCallState (): Promise<void> {
-    if (!this.callControlSdk) {
-      await this.ensureCcSdk();
-    }
-
     let callState = CallState.IDLE;
     let remainingActiveCalls = false;
     let remainingHeldCalls = false;
@@ -471,7 +431,7 @@ export default class HpService extends VendorImplementation {
     }
 
     this.incomingConversationId = callInfo.conversationId;
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async outgoingCall (callInfo: CallInfo): Promise<any> {
@@ -484,7 +444,7 @@ export default class HpService extends VendorImplementation {
       this.activeConversationIds.push(callInfo.conversationId);
     }
 
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async answerCall (conversationId: string, autoAnswer?: boolean): Promise<any> {
@@ -498,14 +458,14 @@ export default class HpService extends VendorImplementation {
     }
 
     this.incomingConversationId = null;
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async rejectCall (conversationId: string): Promise<any> {
     this.logger.info('Rejecting call for conversationId:', conversationId);
     this.incomingConversationId = null;
     this.removeConversationId(conversationId);
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async endCall (conversationId: string): Promise<any> {
@@ -520,7 +480,7 @@ export default class HpService extends VendorImplementation {
     }
 
     this.removeConversationId(conversationId);
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async endAllCalls (): Promise<void> {
@@ -528,12 +488,12 @@ export default class HpService extends VendorImplementation {
     this.activeConversationIds = [];
     this.heldConversationIds = [];
     this.incomingConversationId = null;
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 
   async setMute (value: boolean): Promise<any> {
     this.logger.info('setMute to:', value);
-    (await this.ensureCcSdk()).setMuteState(value);
+    this.callControlSdk.setMuteState(value);
   }
 
   async setHold (conversationId: string, value: boolean): Promise<any> {
@@ -545,6 +505,6 @@ export default class HpService extends VendorImplementation {
     } else {
       this.activeConversationIds.push(conversationId);
     }
-    await this.updateCcsdkCallState();
+    this.updateCcsdkCallState();
   }
 }
