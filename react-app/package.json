@@ -60,10 +60,11 @@
     },
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      ".*\\/hp\\/CallControlSDK.*"
+      ".*\\/hp\\/CallControlSDK.*",
+      ".*\\/hp\\/call-control-sdk\\/.*"
     ],
     "moduleNameMapper": {
-      "^@hp/call-control-sdk$": "<rootDir>/src/library/services/vendor-implementations/hp/__mocks__"
+      "call-control-sdk/call_control_sdk$": "<rootDir>/src/library/services/vendor-implementations/hp/__mocks__"
     }
   },
   "devDependencies": {
