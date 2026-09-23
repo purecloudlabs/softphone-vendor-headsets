@@ -43,5 +43,3 @@ for (const outputDir of outputDirs) {
 if (!copied) {
   throw new Error('No build output found to copy vendored assets into; run tsc first.');
 }
-
-console.log(`copied ${copied} vendored asset(s) into ${outputDirs.join(', ')}`);
