@@ -18,9 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * [STREAM-2242](https://inindca.atlassian.net/browse/STREAM-2242) - Fixing issues that were found during Bughunt.  One was a regression for the Jabra implementations so they can be used on desktop apps, the other was an issue around trying to use Poly WebHID on a Mac desktop app that does not support WebHID, now we fall back to legacy Plantronics
 * [STREAM-2285](https://inindca.atlassian.net/browse/STREAM-2242) - Fixed issue around rejecting a second incoming call would put the initial active call on hold
 
-## Changed
-* [STREAM-2419](https://inindca.atlassian.net/browse/STREAM-2419) - Vendor the `@hp/call-control-sdk` files instead of resolving them from a git repository. The git specifier made it an exotic subdependency, which blocked installs for downstream consumers under stricter package manager rules such as pnpm's `blockExoticSubdeps`.
-
 # [v4.0.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v3.0.3...v4.0.0)
 ## Added
 * [STREAM-1048](https://inindca.atlassian.net/browse/STREAM-1688) - Added additional logging to help with debugging in the future
