@@ -62,7 +62,7 @@
       "/node_modules/"
     ],
     "moduleNameMapper": {
-      "@hp-inc/call_control_sdk$": "<rootDir>/src/library/services/vendor-implementations/hp/__mocks__"
+      "^@hp-inc/call-control-sdk$": "<rootDir>/src/library/services/vendor-implementations/hp/__mocks__"
     }
   },
   "devDependencies": {

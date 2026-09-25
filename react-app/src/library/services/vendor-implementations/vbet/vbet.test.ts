@@ -17,6 +17,7 @@ const mockDeviceList1 = [
         },
       });
     }),
+    removeEventListener: jest.fn(),
     productName: mockTestDevName,
     productId: 13323,
     collections: [
@@ -1000,7 +1001,7 @@ describe('VBetservice', () => {
 
       await vbetService.outgoingCall({ conversationId: 'id' });
       vbetService.processBtnPress(DeviceSignalType.RESUME_CALL);
-       expect(holdFun).toHaveBeenCalledWith(null, false);
+      expect(holdFun).toHaveBeenCalledWith(null, false);
       expect(devHoldFun).toHaveBeenCalledWith({
         holdRequested: false,
         name: 'ResumeCall',
