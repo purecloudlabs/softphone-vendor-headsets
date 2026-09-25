@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v4.2.0...HEAD)
+## Changed
+* [STREAM-2433](https://inindca.atlassian.net/browse/STREAM-2433) - Revert `STREAM-2419` in favor of installing the published dependency for the HP call control SDK
 
 # [v4.2.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v4.1.0...v4.2.0)
 ## Changed

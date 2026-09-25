@@ -3,7 +3,7 @@ import "whatwg-fetch";
 import 'regenerator-runtime';
 import { mockLogger, eventValidation } from "../../../test-utils";
 import DeviceInfo from "../../../types/device-info";
-import HpService, { loadHpCallControlSdk } from "./hp";
+import HpService from "./hp";
 import {
   mockConnectHeadset,
   mockDisconnectHeadset,
@@ -23,32 +23,7 @@ describe('HpService', () => {
   let hpService: HpService;
 
   beforeEach(async () => {
-    await loadHpCallControlSdk();
     hpService = HpService.getInstance({ logger: console, createNew: true });
-    /* specs below drive sdkEventHandler/updateCcsdkCallState directly instead of going
-     * through connect(), so put the service in the same warm state connect() leaves it in */
-    await (hpService as any).ensureCcSdk();
-  });
-
-  describe('lazy sdk loading', () => {
-    it('should not construct the call control sdk until it is needed', () => {
-      const freshService = HpService.getInstance({ logger: console, createNew: true });
-
-      expect(freshService.callControlSdk).toBeUndefined();
-    });
-
-    it('should construct the call control sdk on first use', async () => {
-      const freshService = HpService.getInstance({ logger: console, createNew: true });
-
-      await freshService.updateCcsdkCallState();
-
-      expect(freshService.callControlSdk).toBeDefined();
-      expect(mockSetCallState).toHaveBeenCalledWith(CallState.IDLE);
-    });
-
-    it('should reuse the already loaded sdk module', async () => {
-      await expect(loadHpCallControlSdk()).resolves.toBe(await loadHpCallControlSdk());
-    });
   });
 
   describe('instantiation', () => {
