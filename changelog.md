@@ -4,6 +4,8 @@ The format is based on [Keepa Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 # [Unreleased](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v4.2.0...HEAD)
+## Fixed
+* [STREAM-1871](https://inindca.atlassian.net/browse/STREAM-1871) - Fixed issue where using the hold gesture on an EPOS/Sennheiser headset during an outgoing call would end the call. Outgoing calls are now marked as active on the headset so hold works the same as on incoming calls. Also reset the demo app's hold and mute state when a call ends.
 
 # [v4.2.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v4.1.0...v4.2.0)
 ## Changed

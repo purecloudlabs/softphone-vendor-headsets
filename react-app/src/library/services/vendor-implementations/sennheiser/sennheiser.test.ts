@@ -368,6 +368,24 @@ describe('SennheiserService', () => {
 
       expect(sennheiserService._sendMessage).toHaveBeenCalledWith(expectedPayload);
     });
+
+    it('should mark the outgoing call as accepted after OutgoingCall so the headset treats it as active', async () => {
+      jest.spyOn(sennheiserService, '_sendMessage');
+      const callInfo: CallInfo = { conversationId: '23f897b' };
+
+      await sennheiserService.outgoingCall(callInfo);
+
+      expect(sennheiserService._sendMessage).toHaveBeenNthCalledWith(1, {
+        Event: SennheiserEvents.OutgoingCall,
+        EventType: SennheiserEventTypes.Request,
+        CallID: callInfo.conversationId
+      });
+      expect(sennheiserService._sendMessage).toHaveBeenNthCalledWith(2, {
+        Event: SennheiserEvents.IncomingCallAccepted,
+        EventType: SennheiserEventTypes.Request,
+        CallID: callInfo.conversationId
+      });
+    });
   });
 
   describe('endCall', () => {
