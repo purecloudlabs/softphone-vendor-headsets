@@ -246,6 +246,48 @@ describe('EPOS', () => {
     await endAllCalls();
   });
 
+  it('EPOS - outgoing call marks call active on headset', async () => {
+    await loadApp('EPOS - outgoing call marks call active on headset');
+    await driver.executeScript(`
+      ${EPOS_MOCK_SETUP}
+      window.__eposSent = [];
+      epos.websocket = { send: (m) => window.__eposSent.push(JSON.parse(m)), readyState: 1 };
+    `);
+    const btn = await driver.findElement(By.css('[data-testid="simulate-outgoing"]'));
+    await btn.click();
+    await driver.wait(until.elementLocated(By.css('[data-testid="connected"]')), 5000);
+    await driver.sleep(500);
+
+    const sent: Array<{ Event: string }> = await driver.executeScript('return window.__eposSent;');
+    const events = sent.map(m => m.Event);
+    const outgoingIdx = events.indexOf('OutgoingCall');
+    expect(outgoingIdx).toBeGreaterThanOrEqual(0);
+    expect(events.indexOf('InCallAccepted')).toBeGreaterThan(outgoingIdx);
+
+    await endAllCalls();
+  });
+
+  it('EPOS - ending a held call resets hold state for the next call', async () => {
+    await simulateOutgoingCall('EPOS - ending a held call resets hold state for the next call');
+
+    await sendEposEvent('CallHold');
+    await driver.sleep(1000);
+    expect(await getStateText('hold-state')).toContain('true');
+
+    await dismissOverlay();
+    const endBtn = await driver.findElement(By.css('[data-testid="end-current-call"]'));
+    await endBtn.click();
+    await driver.sleep(500);
+
+    const outgoingBtn = await driver.findElement(By.css('[data-testid="simulate-outgoing"]'));
+    await outgoingBtn.click();
+    await driver.wait(until.elementLocated(By.css('[data-testid="connected"]')), 5000);
+    await driver.sleep(500);
+    expect(await getStateText('hold-state')).toContain('false');
+
+    await endAllCalls();
+  });
+
   it('EPOS - UI hold headset reflects', async () => {
     await simulateOutgoingCall('EPOS - UI hold headset reflects');
 

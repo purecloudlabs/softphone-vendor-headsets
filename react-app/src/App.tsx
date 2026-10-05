@@ -124,6 +124,13 @@ const App = (props: { hostedContext: any }) => {
     setAudioStream(null);
   };
 
+  // held/muted are app-level state, so clear them whenever a call goes away.
+  // The headset library already resumes/unmutes the device on endCall.
+  const resetCallControlState = () => {
+    setHeld(false);
+    setMuted(false);
+  };
+
   const endCurrentCall = (fromHeadset?) => {
     const call = currentCall;
     if (call) {
@@ -131,6 +138,7 @@ const App = (props: { hostedContext: any }) => {
       !fromHeadset && headset.endCall(call.id);
     }
     setCurrentCall(null);
+    resetCallControlState();
     endHeadsetAudio();
   };
 
@@ -179,11 +187,13 @@ const App = (props: { hostedContext: any }) => {
       !fromHeadset && headset.rejectCall(currentCall.id);
     }
     setCurrentCall(null);
+    resetCallControlState();
   };
 
   const endAllCalls = () => {
     headset.endAllCalls();
     setCurrentCall(null);
+    resetCallControlState();
     endHeadsetAudio();
   };
 

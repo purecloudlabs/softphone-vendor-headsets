@@ -188,6 +188,13 @@ export default class SennheiserService extends VendorImplementation {
       CallID: conversationId,
     });
 
+    // EPOS Connect leaves outgoing calls in a "dialing" state until it is told the call is active.
+    this._sendMessage({
+      Event: SennheiserEvents.IncomingCallAccepted,
+      EventType: SennheiserEventTypes.Request,
+      CallID: conversationId,
+    });
+
     return Promise.resolve();
   }
 
