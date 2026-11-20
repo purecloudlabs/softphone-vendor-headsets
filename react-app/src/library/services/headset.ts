@@ -8,6 +8,7 @@ import JabraService from './vendor-implementations/jabra/jabra';
 import JabraNativeService from './vendor-implementations/jabra/jabra-native/jabra-native';
 import YealinkService from './vendor-implementations/yealink/yealink';
 import VBetService from './vendor-implementations/vbet/vbet';
+import DellService from './vendor-implementations/dell/dell';
 import { CallInfo } from '../types/call-info';
 import { VendorEvent, HoldEventInfo, MutedEventInfo, EventInfoWithConversationId } from '../types/emitted-headset-events';
 import { WebHidPermissionRequest } from '..';
@@ -30,6 +31,7 @@ export default class HeadsetService {
   yealink: VendorImplementation;
   vbet:VendorImplementation;
   cyberAcoustics: VendorImplementation;
+  dell: VendorImplementation;
   selectedImplementation: VendorImplementation;
   headsetEvents$: Observable<ConsumedHeadsetEvents>;
 
@@ -50,8 +52,8 @@ export default class HeadsetService {
     this.yealink = YealinkService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopYealink: config.useWebHidOnDesktopYealink });
     this.vbet = VBetService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopVbet: config.useWebHidOnDesktopVbet });
     this.cyberAcoustics = CyberAcousticsService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopCyberAcoustics: config.useWebHidOnDesktopCyberAcoustics });
-
-    [this.plantronics, this.hp, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
+    this.dell = DellService.getInstance({ logger: this.logger, hostedContext: config.hostedContext, useWebHidOnDesktopDell: config.useWebHidOnDesktopDell });
+    [this.plantronics, this.hp, this.jabra, this.jabraNative, this.sennheiser, this.yealink, this.vbet, this.cyberAcoustics, this.dell].forEach(implementation => this.subscribeToHeadsetEvents(implementation));
   }
 
   static getInstance (config: ImplementationConfig): HeadsetService {
@@ -71,7 +73,8 @@ export default class HeadsetService {
       this.jabraNative,
       this.yealink,
       this.vbet,
-      this.cyberAcoustics
+      this.cyberAcoustics,
+      this.dell
     ].filter((impl) => impl.isSupported());
 
     this.logger.debug('Available vendor implementations based on environment and configuration', { implementations });
