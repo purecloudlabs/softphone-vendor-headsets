@@ -55,6 +55,7 @@ describe('utils', () => {
         useWebHidOnDesktopYealink: false,
         useWebHidOnDesktopVbet: false,
         useWebHidOnDesktopCyberAcoustics: false,
+        useWebHidOnDesktopDell: false,
         hostedContext: {
           supportsWebHid: jest.fn().mockReturnValue(true)
         }
@@ -76,6 +77,11 @@ describe('utils', () => {
       config.useWebHidOnDesktopCyberAcoustics = true;
 
       expect(checkWebHidSupport(config, 'cyberacoustics')).toBe(true);
+
+      config.useWebHidOnDesktopCyberAcoustics = false;
+      config.useWebHidOnDesktopDell = true;
+
+      expect(checkWebHidSupport(config, 'dell')).toBe(true);
     });
 
     it('should return falsy if hosted BUT requested feature toggle is false/undefined', () => {
@@ -84,12 +90,14 @@ describe('utils', () => {
         useWebHidOnDesktopYealink: false,
         useWebHidOnDesktopVbet: false,
         useWebHidOnDesktopCyberAcoustics: false,
+        useWebHidOnDesktopDell: false,
         hostedContext: {
           supportsWebHid: jest.fn().mockReturnValue(true)
         }
       } as ImplementationConfig;
 
       expect(checkWebHidSupport(config, 'yealink')).toBe(undefined);
+      expect(checkWebHidSupport(config, 'dell')).toBe(undefined);
     });
 
     it('should check the hid object on the window object if isCefHosted is false', () => {
@@ -100,6 +108,7 @@ describe('utils', () => {
         useWebHidOnDesktopYealink: false,
         useWebHidOnDesktopVbet: false,
         useWebHidOnDesktopCyberAcoustics: false,
+        useWebHidOnDesktopDell: false,
         hostedContext: {
           supportsWebHid: jest.fn().mockReturnValue(true)
         }
