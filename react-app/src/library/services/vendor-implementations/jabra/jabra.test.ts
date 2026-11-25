@@ -313,19 +313,22 @@ describe('JabraService', () => {
         .mockImplementationOnce(() => { reached.resolve(); return staleDevice.promise; })
         .mockResolvedValueOnce(mockDevice1 as any);
 
+      const statusChangeSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
+      const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
       const first = jabraService.connect('test label 123');
       await reached.promise;
       await jabraService.disconnect();
       await jabraService.connect('test label 123');
       expect(jabraService.isConnected).toBe(true);
-
-      staleDevice.reject(new Error('stale'));
+      const statusCallsAfterNewer = statusChangeSpy.mock.calls.length;
+      const processCallsAfterNewer = processEventsSpy.mock.calls.length;
+      staleDevice.resolve(mockDevice1);
       await first;
-
+      expect(statusChangeSpy).toHaveBeenCalledTimes(statusCallsAfterNewer);
+      expect(processEventsSpy).toHaveBeenCalledTimes(processCallsAfterNewer);
       expect(jabraService.isConnected).toBe(true);
       expect(jabraService.isConnecting).toBe(false);
     });
-
     it('should retry init on the next connect after init rejects', async () => {
       const sdk = await initializeSdk();
       const initSpy = jabraService.initializeJabraSdk = jest.fn()
