@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 * [STREAM-2690](https://inindca.atlassian.net/browse/STREAM-2690) - Update CODEOWNERS to reflect the current team.
 ## Fixed
+* [STREAM-3019](https://inindca.atlassian.net/browse/STREAM-3019) - Fixed Jabra WebHID call controls staying "Not Running" after load. A reconnect while the first jabra-js init was still pending created a second jabra-js instance that never saw the device. The library now creates one instance and ignores a connect that was superseded by a disconnect.
 * [STREAM-1871](https://inindca.atlassian.net/browse/STREAM-1871) - Fixed issue where using the hold gesture on an EPOS/Sennheiser headset during an outgoing call would end the call. Outgoing calls are now marked as active on the headset so hold works the same as on incoming calls. Also reset the demo app's hold and mute state when a call ends.
 
 # [v4.2.0](https://github.com/purecloudlabs/softphone-vendor-headsets/compare/v4.1.0...v4.2.0)

@@ -16,9 +16,13 @@ import { Subscription, firstValueFrom, Observable, TimeoutError, EmptyError } fr
 import { defaultIfEmpty, filter, first, map, timeout } from 'rxjs/operators';
 import { checkWebHidSupport } from '../../../utils';
 
+class StaleConnectError extends Error {}
+
 export default class JabraService extends VendorImplementation {
   private static instance: JabraService;
   private headsetEventSubscription: Subscription;
+  private jabraSdkPromise: Promise<void>;
+  private connectGeneration = 0;
   static connectTimeout = 5000;
 
   isActive = false;
@@ -346,19 +350,44 @@ export default class JabraService extends VendorImplementation {
       return;
     }
 
+    const generation = this.connectGeneration;
+    // disconnect() bumps the generation, so a superseded connect must stop touching state
+    const assertCurrent = () => {
+      if (generation !== this.connectGeneration) {
+        throw new StaleConnectError();
+      }
+    };
+
     this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: true });
-    if (!this.jabraSdk) {
-      this.jabraSdk = await this.initializeJabraSdk();
-      this.callControlFactory = this.createCallControlFactory(this.jabraSdk);
+    try {
+      await this.doConnect(originalDeviceLabel, assertCurrent);
+    } catch (e) {
+      if (!(e instanceof StaleConnectError)) {
+        throw e;
+      }
     }
+  }
+
+  private async doConnect (originalDeviceLabel: string, assertCurrent: () => void): Promise<void> {
+    try {
+      await this.ensureJabraSdk();
+    } catch (e) {
+      assertCurrent();
+      this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
+      throw e;
+    }
+    assertCurrent();
 
     const deviceLabel = originalDeviceLabel.toLocaleLowerCase();
 
     this._deviceInfo = null;
 
     let selectedDevice;
-    if (await this.deviceHasPermissions(deviceLabel)) {
+    const hasPermissions = await this.deviceHasPermissions(deviceLabel);
+    assertCurrent();
+    if (hasPermissions) {
       selectedDevice = await this.getPreviouslyConnectedDevice(deviceLabel);
+      assertCurrent();
 
       if (!selectedDevice) {
         console.warn('Unable to find appropriate device. Setting state to "Not Running" to allow a retry"', deviceLabel);
@@ -369,14 +398,19 @@ export default class JabraService extends VendorImplementation {
       try {
         selectedDevice = await this.getDeviceFromWebhid(deviceLabel);
       } catch (e) {
+        assertCurrent();
         this.isConnecting &&
           this.changeConnectionStatus({ isConnected: this.isConnected, isConnecting: false });
         return;
       }
+      assertCurrent();
     }
 
-    this.callControl = await this.callControlFactory.createCallControl(selectedDevice);
+    const callControl = await this.callControlFactory.createCallControl(selectedDevice);
+    assertCurrent();
+    this.callControl = callControl;
     await this.resetHeadsetState();
+    assertCurrent();
     this._processEvents(this.callControl);
     this._deviceInfo = {
       ProductName: selectedDevice.name,
@@ -385,6 +419,27 @@ export default class JabraService extends VendorImplementation {
       deviceId: selectedDevice.id.toString(),
     };
     this.changeConnectionStatus({ isConnected: true, isConnecting: false });
+  }
+
+  private ensureJabraSdk (): Promise<void> {
+    if (this.jabraSdk) {
+      return Promise.resolve();
+    }
+
+    if (!this.jabraSdkPromise) {
+      this.jabraSdkPromise = this.initializeJabraSdk().then(
+        (sdk) => {
+          this.jabraSdk = sdk;
+          this.callControlFactory = this.createCallControlFactory(sdk);
+        },
+        (err) => {
+          this.jabraSdkPromise = null;
+          throw err;
+        }
+      );
+    }
+
+    return this.jabraSdkPromise;
   }
 
   async deviceHasPermissions (deviceLabel: string): Promise<boolean> {
@@ -477,6 +532,7 @@ export default class JabraService extends VendorImplementation {
 
   async disconnect (): Promise<void> {
     this.logger.debug('Attempting to disconnect from Jabra WebHID implementation');
+    this.connectGeneration++;
     try {
       if (!this.callLock) {
         return this.logger.info(

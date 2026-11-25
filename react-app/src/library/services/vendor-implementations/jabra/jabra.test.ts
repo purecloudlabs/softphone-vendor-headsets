@@ -248,6 +248,104 @@ describe('JabraService', () => {
     });
   });
 
+  describe('connect racing with disconnect', () => {
+    const deferred = <T>() => {
+      let resolve: (v: T) => void;
+      let reject: (e: any) => void;
+      const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+      return { promise, resolve, reject };
+    };
+
+    it('should init jabra sdk once when reconnecting while init is pending', async () => {
+      const sdk = await initializeSdk();
+      const init = deferred<any>();
+      const initSpy = jabraService.initializeJabraSdk = jest.fn().mockReturnValue(init.promise);
+      const callControl = createMockCallControl(new Subject<ICallControlSignal>().asObservable());
+      jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue({
+        createCallControl: async () => callControl,
+      } as any);
+      const statusChangeSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
+
+      const first = jabraService.connect('test label 123');
+      await jabraService.disconnect();
+      const second = jabraService.connect('test label 123');
+      init.resolve(sdk);
+      await Promise.all([first, second]);
+
+      expect(initSpy).toHaveBeenCalledTimes(1);
+      expect(jabraService.jabraSdk).toBe(sdk);
+      expect(jabraService.isConnected).toBe(true);
+      expect(jabraService.isConnecting).toBe(false);
+      expect(statusChangeSpy.mock.calls.filter(([s]) => s.isConnected)).toHaveLength(1);
+    });
+
+    it('should not complete a connect that was superseded by disconnect', async () => {
+      const callControl = createMockCallControl(new Subject<ICallControlSignal>().asObservable());
+      const created = deferred<any>();
+      const reached = deferred<void>();
+      jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue({
+        createCallControl: () => { reached.resolve(); return created.promise; },
+      } as any);
+      const processEventsSpy = jest.spyOn(jabraService, '_processEvents');
+      const statusChangeSpy = jest.spyOn(jabraService, 'changeConnectionStatus');
+
+      const connecting = jabraService.connect('test label 123');
+      await reached.promise;
+      await jabraService.disconnect();
+      created.resolve(callControl);
+      await connecting;
+
+      expect(jabraService.callControl).toBeUndefined();
+      expect(processEventsSpy).not.toHaveBeenCalled();
+      expect(statusChangeSpy).not.toHaveBeenCalledWith({ isConnected: true, isConnecting: false });
+      expect(jabraService.isConnected).toBe(false);
+      expect(jabraService.isConnecting).toBe(false);
+    });
+
+    it('should not let a superseded connect override the state of a newer one', async () => {
+      const callControl = createMockCallControl(new Subject<ICallControlSignal>().asObservable());
+      const staleDevice = deferred<any>();
+      const reached = deferred<void>();
+      jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue({
+        createCallControl: async () => callControl,
+      } as any);
+      jest.spyOn(jabraService, 'getDeviceFromWebhid')
+        .mockImplementationOnce(() => { reached.resolve(); return staleDevice.promise; })
+        .mockResolvedValueOnce(mockDevice1 as any);
+
+      const first = jabraService.connect('test label 123');
+      await reached.promise;
+      await jabraService.disconnect();
+      await jabraService.connect('test label 123');
+      expect(jabraService.isConnected).toBe(true);
+
+      staleDevice.reject(new Error('stale'));
+      await first;
+
+      expect(jabraService.isConnected).toBe(true);
+      expect(jabraService.isConnecting).toBe(false);
+    });
+
+    it('should retry init on the next connect after init rejects', async () => {
+      const sdk = await initializeSdk();
+      const initSpy = jabraService.initializeJabraSdk = jest.fn()
+        .mockRejectedValueOnce(new Error('init failed'))
+        .mockResolvedValueOnce(sdk);
+      const callControl = createMockCallControl(new Subject<ICallControlSignal>().asObservable());
+      jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue({
+        createCallControl: async () => callControl,
+      } as any);
+
+      await expect(jabraService.connect('test label 123')).rejects.toThrow('init failed');
+      expect(jabraService.isConnecting).toBe(false);
+
+      await jabraService.connect('test label 123');
+      expect(initSpy).toHaveBeenCalledTimes(2);
+      expect(jabraService.jabraSdk).toBe(sdk);
+      expect(jabraService.isConnected).toBe(true);
+    });
+  });
+
   describe('processEvents', () => {
     it('ignores offhook events when there is an active and pending call', async () => {
       jabraService.callLock = true;
