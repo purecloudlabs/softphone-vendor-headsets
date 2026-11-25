@@ -408,9 +408,9 @@ export default class JabraService extends VendorImplementation {
 
     const callControl = await this.callControlFactory.createCallControl(selectedDevice);
     assertCurrent();
-    this.callControl = callControl;
-    await this.resetHeadsetState();
+    await this.resetHeadsetState(callControl);
     assertCurrent();
+    this.callControl = callControl;
     this._processEvents(this.callControl);
     this._deviceInfo = {
       ProductName: selectedDevice.name,
@@ -514,17 +514,17 @@ export default class JabraService extends VendorImplementation {
     );
   }
 
-  async resetHeadsetState (): Promise<void> {
-    if (!this.callControl) {
+  async resetHeadsetState (callControl: ICallControl = this.callControl): Promise<void> {
+    if (!callControl) {
       return;
     }
 
     try {
-      await this.callControl.takeCallLock();
-      this.callControl.hold(false);
-      this.callControl.mute(false);
-      this.callControl.offHook(false);
-      this.callControl.releaseCallLock();
+      await callControl.takeCallLock();
+      callControl.hold(false);
+      callControl.mute(false);
+      callControl.offHook(false);
+      callControl.releaseCallLock();
     } catch (e) {
       this.logger.warn('Failed to takeCallLock in order to resetHeadsetState. Ignoring reset.');
     }

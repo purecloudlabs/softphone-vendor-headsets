@@ -329,6 +329,48 @@ describe('JabraService', () => {
       expect(jabraService.isConnected).toBe(true);
       expect(jabraService.isConnecting).toBe(false);
     });
+
+    it('should not let a superseded connect reset or replace the newer connect control', async () => {
+      const signals = new Subject<ICallControlSignal>().asObservable();
+      const staleControl = createMockCallControl(signals);
+      const newerControl = createMockCallControl(signals);
+      const lock = deferred<any>();
+      const reached = deferred<void>();
+      staleControl.takeCallLock.mockImplementation(() => { reached.resolve(); return lock.promise; });
+      const createCallControl = jest.fn()
+        .mockResolvedValueOnce(staleControl)
+        .mockResolvedValueOnce(newerControl);
+      jest.spyOn(jabraService, 'createCallControlFactory').mockReturnValue({ createCallControl } as any);
+      jest.spyOn(jabraService, 'getDeviceFromWebhid').mockResolvedValue(mockDevice1 as any);
+      const assigned: any[] = [];
+      let current: any;
+      Object.defineProperty(jabraService, 'callControl', {
+        configurable: true,
+        get: () => current,
+        set: (v) => { current = v; assigned.push(v); },
+      });
+
+      const first = jabraService.connect('test label 123');
+      await reached.promise;
+      await jabraService.disconnect();
+      await jabraService.connect('test label 123');
+      newerControl.takeCallLock.mockClear();
+      newerControl.hold.mockClear();
+      newerControl.mute.mockClear();
+      newerControl.offHook.mockClear();
+      lock.resolve(null);
+      await first;
+
+      expect(jabraService.callControl).toBe(newerControl);
+      expect(assigned).not.toContain(staleControl);
+      expect(staleControl.hold).toHaveBeenCalledWith(false);
+      expect(staleControl.releaseCallLock).toHaveBeenCalled();
+      expect(newerControl.takeCallLock).not.toHaveBeenCalled();
+      expect(newerControl.hold).not.toHaveBeenCalled();
+      expect(newerControl.mute).not.toHaveBeenCalled();
+      expect(newerControl.offHook).not.toHaveBeenCalled();
+    });
+
     it('should retry init on the next connect after init rejects', async () => {
       const sdk = await initializeSdk();
       const initSpy = jabraService.initializeJabraSdk = jest.fn()
